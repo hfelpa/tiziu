@@ -124,6 +124,10 @@ const state = {
     rangeScale: 40,
     orientation: 'HEADING', // HEADING or NORTH
     threats: [],
+    bullseyes: [
+        { name: "SILVER", lat: -15.520278, lon: -49.987222, magVar: -21.4 }
+    ],
+    activeBullseyeName: "SILVER",
     route: [],
     activeInputId: null,
     activePlotIndex: null,
@@ -449,13 +453,156 @@ function handleGpxFile(event) {
     reader.readAsText(file);
 }
 
+function updateBullseyeDropdowns() {
+    const activeSelect = document.getElementById('active-bullseye-select');
+    if (!activeSelect) return;
+    
+    const currentSelected = state.activeBullseyeName;
+    activeSelect.innerHTML = '';
+    
+    state.bullseyes.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b.name;
+        opt.textContent = b.name;
+        activeSelect.appendChild(opt);
+    });
+    
+    activeSelect.value = currentSelected;
+}
+
+function updateBullseyesTable() {
+    const list = document.getElementById('bullseyes-list');
+    if (!list) return;
+    
+    list.innerHTML = '';
+    state.bullseyes.forEach((b, index) => {
+        const row = document.createElement('tr');
+        row.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+        row.style.background = b.name === state.activeBullseyeName ? 'rgba(0, 255, 65, 0.08)' : 'transparent';
+        
+        const isActive = b.name === state.activeBullseyeName;
+        
+        row.innerHTML = `
+            <td style="padding: 10px 6px; font-weight: bold; color: ${isActive ? 'var(--primary-color)' : '#fff'}">${b.name} ${isActive ? '⭐' : ''}</td>
+            <td style="padding: 10px 6px; font-family: var(--font-mono);">${b.lat.toFixed(6)}</td>
+            <td style="padding: 10px 6px; font-family: var(--font-mono);">${b.lon.toFixed(6)}</td>
+            <td style="padding: 10px 6px; font-family: var(--font-mono);">${b.magVar.toFixed(1)}°</td>
+            <td style="padding: 10px 6px; text-align: right;">
+                <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                    ${isActive 
+                        ? `<span style="color: var(--primary-color); font-weight: bold; font-size: 0.7rem; padding: 4px 8px; border: 1px solid var(--primary-color); border-radius: 4px; background: rgba(0, 255, 65, 0.15); letter-spacing: 0.5px;">ATIVO</span>` 
+                        : `<button class="btn-tiny" onclick="selectActiveBullseye('${b.name}')" style="padding: 4px 8px; font-size: 0.7rem; border-color: var(--primary-color); color: var(--primary-color); background: rgba(0, 255, 65, 0.1);">ATIVAR</button>`
+                    }
+                    ${b.name !== 'SILVER' ? `<button class="btn-tiny" onclick="removeBullseye(${index})" style="padding: 4px 8px; font-size: 0.7rem; border-color: #ff3b30; color: #ff3b30; background: rgba(255, 59, 48, 0.1);">REMOVER</button>` : ''}
+                </div>
+            </td>
+        `;
+        list.appendChild(row);
+    });
+}
+
+window.selectActiveBullseye = (name) => {
+    state.activeBullseyeName = name;
+    const bull = state.bullseyes.find(b => b.name === name);
+    if (bull) {
+        if (el.bullLat) el.bullLat.value = bull.lat;
+        if (el.bullLon) el.bullLon.value = bull.lon;
+        if (el.magVar) el.magVar.value = bull.magVar;
+        
+        const badge = document.getElementById('bull-badge');
+        if (badge) {
+            badge.textContent = `BULLSEYE ${bull.name}`;
+            badge.className = `badge-${bull.name.toLowerCase() === 'silver' ? 'silver' : 'gold'}`;
+        }
+        
+        const activeSelect = document.getElementById('active-bullseye-select');
+        if (activeSelect) activeSelect.value = bull.name;
+        
+        const badgeMain = document.getElementById('bull-badge-main');
+        if (badgeMain) {
+            badgeMain.textContent = `PLOT BE [${bull.name}]`;
+        }
+
+        calculateBRAA();
+        calculateBullCoord();
+        drawTacticalDisplay();
+        updateBullseyesTable();
+    }
+};
+
+window.removeBullseye = (index) => {
+    const bull = state.bullseyes[index];
+    if (bull.name === 'SILVER') return;
+    
+    if (confirm(`Remover Bullseye ${bull.name}?`)) {
+        state.bullseyes.splice(index, 1);
+        if (state.activeBullseyeName === bull.name) {
+            selectActiveBullseye('SILVER');
+        }
+        updateBullseyeDropdowns();
+        updateBullseyesTable();
+    }
+};
+
+window.addBullseyeConfig = () => {
+    const nameInput = document.getElementById('newBullName');
+    const latInput = document.getElementById('newBullLat');
+    const lonInput = document.getElementById('newBullLon');
+    const magInput = document.getElementById('newBullMagVar');
+    
+    const name = nameInput.value.trim().toUpperCase();
+    const lat = parseFloat(latInput.value);
+    const lon = parseFloat(lonInput.value);
+    const magVar = parseFloat(magInput.value) || 0;
+    
+    if (!name || isNaN(lat) || isNaN(lon)) {
+        alert("Preencha o Nome, Latitude e Longitude do Bullseye.");
+        return;
+    }
+    
+    if (state.bullseyes.some(b => b.name === name)) {
+        alert("Já existe um Bullseye com este nome.");
+        return;
+    }
+    
+    state.bullseyes.push({ name, lat, lon, magVar });
+    nameInput.value = '';
+    latInput.value = '';
+    lonInput.value = '';
+    magInput.value = '';
+    
+    updateBullseyeDropdowns();
+    updateBullseyesTable();
+    selectActiveBullseye(name);
+};
+
 function applyBullseye(bull) {
-    if (el.bullLat) el.bullLat.value = bull.lat; if (el.bullLon) el.bullLon.value = bull.lon; if (el.magVar) el.magVar.value = bull.magVar;
-    if (el.bullBadge) el.bullBadge.textContent = `BULLSEYE ${bull.name.toUpperCase()}`;
-    calculateBRAA(); calculateBullCoord();
+    let existing = state.bullseyes.find(b => b.name.toUpperCase() === bull.name.toUpperCase());
+    if (!existing) {
+        existing = {
+            name: bull.name.toUpperCase(),
+            lat: bull.lat,
+            lon: bull.lon,
+            magVar: bull.magVar
+        };
+        state.bullseyes.push(existing);
+        updateBullseyeDropdowns();
+        updateBullseyesTable();
+    } else {
+        existing.lat = bull.lat;
+        existing.lon = bull.lon;
+        existing.magVar = bull.magVar;
+        updateBullseyesTable();
+    }
+    selectActiveBullseye(existing.name);
 }
 
 window.loadDefaultMission = (showAlert = false) => {
+    state.bullseyes = [
+        { name: "SILVER", lat: -15.520278, lon: -49.987222, magVar: -21.4 }
+    ];
+    updateBullseyeDropdowns();
+    updateBullseyesTable();
     const m = MISSIONS.TINIA26; applyBullseye(m.bullseye); state.threats = JSON.parse(JSON.stringify(m.threats)); updateThreatDropdowns();
     if (showAlert) alert(`Missão ${m.name} carregada.`);
 };
@@ -498,13 +645,74 @@ function renderThreatConfig() {
     if (el.threatCountBadge) el.threatCountBadge.textContent = state.threats.length;
     el.threatsConfigList.innerHTML = state.threats.map((t, index) => `
         <div class="threat-card-modern">
-            <div class="threat-info-modern"><span class="threat-code-modern">${t.code}</span><div class="threat-meta-modern"><span class="threat-type-tag">${t.type}</span><span>${t.range} NM</span></div></div>
-            <button class="btn-delete-threat-modern" onclick="deleteThreat(${index})">×</button>
+            <div class="threat-info-modern">
+                <span class="threat-code-modern">${t.code}</span>
+                <div class="threat-meta-modern" style="margin-top: 4px;">
+                    <span class="threat-type-tag" style="background: ${t.type === 'A/A' ? 'rgba(255,255,255,0.1)' : 'rgba(255, 176, 0, 0.2)'}; color: ${t.type === 'A/A' ? '#ccc' : 'var(--secondary-color)'}; border: 1px solid ${t.type === 'A/A' ? 'rgba(255,255,255,0.15)' : 'rgba(255,176,0,0.3)'}; padding: 2px 6px; border-radius: 4px; margin-right: 5px; font-size: 0.7rem; font-weight: bold;">${t.type}</span>
+                    <span style="font-family: var(--font-mono); font-size: 0.75rem;">${t.range} NM</span>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-edit-threat-modern" onclick="editThreat(${index})">✎</button>
+                <button class="btn-delete-threat-modern" onclick="deleteThreat(${index})">×</button>
+            </div>
         </div>
     `).join('');
 }
 
-function deleteThreat(index) { state.threats.splice(index, 1); updateThreatDropdowns(); }
+function deleteThreat(index) {
+    const t = state.threats[index];
+    if (confirm(`Remover Ameaça ${t.code}?`)) {
+        state.threats.splice(index, 1);
+        updateThreatDropdowns();
+        drawTacticalDisplay();
+    }
+}
+
+window.editThreat = (index) => {
+    const t = state.threats[index];
+    const newCode = prompt("Código da Ameaça:", t.code);
+    if (newCode === null) return;
+    const cleanCode = newCode.trim().toUpperCase();
+    if (!cleanCode) {
+        alert("Código inválido.");
+        return;
+    }
+    
+    const newType = prompt("Tipo da Ameaça (A/A ou A/G):", t.type);
+    if (newType === null) return;
+    const cleanType = newType.trim().toUpperCase();
+    if (cleanType !== 'A/A' && cleanType !== 'A/G') {
+        alert("Tipo inválido. Deve ser A/A ou A/G.");
+        return;
+    }
+    
+    const newRangeStr = prompt("Alcance da Ameaça (NM):", t.range);
+    if (newRangeStr === null) return;
+    const newRange = parseFloat(newRangeStr);
+    if (isNaN(newRange) || newRange <= 0) {
+        alert("Alcance inválido.");
+        return;
+    }
+    
+    const oldCode = t.code;
+    t.code = cleanCode;
+    t.type = cleanType;
+    t.range = newRange;
+    
+    // Dynamically update existing plots using this threat code
+    state.plots.forEach(p => {
+        if (p.threatCode === oldCode) {
+            p.threatCode = t.code;
+            p.threatRange = t.range;
+            p.threatType = t.type;
+        }
+    });
+    
+    updateThreatDropdowns();
+    drawTacticalDisplay();
+    renderHistory();
+};
 function selectTargetId(id) { el.targetId.value = id; }
 
 function addPlot() {
@@ -687,7 +895,12 @@ function drawTacticalDisplay() {
             ctx.font = 'bold 11px JetBrains Mono';
             const braaBrg = Math.round((b - magVar + 360) % 360).toString().padStart(3, '0'); const braaRng = Math.round(d);
             const line1 = `${plot.targetId} ${plot.threatCode || ''} ${braaBrg}/${braaRng}`; const line2 = `(${plot.radial}/${plot.dist})`;
-            const alertLabel = plot.threatType === 'A/A' ? 'PUMP CRIT' : '';
+            
+            // 3 NM proximity warning to the threat ring boundary
+            const isNearOrInside = plot.threatRange && (d <= plot.threatRange + 3);
+            const isBlinkOn = Math.floor(Date.now() / 400) % 2 === 0;
+            const alertLabel = isNearOrInside ? 'PUMP CRIT' : '';
+            
             const m1 = ctx.measureText(line1); const m2 = ctx.measureText(line2); const boxW = Math.max(m1.width, m2.width) + 8;
             const boxH = alertLabel ? 36 : 26;
             
@@ -695,11 +908,23 @@ function drawTacticalDisplay() {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.85)'; ctx.fillRect(0, 0, boxW, boxH);
             ctx.fillStyle = '#ffb000'; ctx.fillText(line1, 4, 12);
             ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.font = '9px JetBrains Mono'; ctx.fillText(line2, 4, 22);
-            if (alertLabel) { ctx.fillStyle = 'rgba(255, 0, 0, 0.9)'; ctx.font = 'bold 10px JetBrains Mono'; ctx.fillText(alertLabel, 4, 33); }
+            if (alertLabel) { 
+                ctx.fillStyle = isBlinkOn ? 'rgba(255, 0, 0, 0.95)' : 'rgba(255, 0, 0, 0.15)'; 
+                ctx.font = 'bold 10px JetBrains Mono'; 
+                ctx.fillText(alertLabel, 4, 33); 
+            }
             ctx.restore();
             
             if (plot.threatRange) {
-                ctx.strokeStyle = plot.threatType === 'A/A' ? 'rgba(255, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.4)';
+                let strokeColor = '';
+                if (isNearOrInside) {
+                    strokeColor = 'rgba(255, 0, 0, 0.85)'; // Turns Red when within 3 NM of the ring
+                } else if (plot.threatType === 'A/A') {
+                    strokeColor = 'rgba(200, 200, 200, 0.6)'; // Gray for Air-to-Air
+                } else {
+                    strokeColor = 'rgba(255, 176, 0, 0.7)'; // Orange for Air-to-Ground
+                }
+                ctx.strokeStyle = strokeColor;
                 ctx.setLineDash(plot.threatType === 'A/A' ? [2, 2] : []); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, plot.threatRange * pxPerNM, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
             }
         } else { ctx.fillStyle = 'rgba(255, 176, 0, 0.35)'; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill(); }
@@ -889,3 +1114,9 @@ if (el.gpxFileInput) el.gpxFileInput.addEventListener('change', handleGpxFile);
 // INITIAL LOAD
 loadDefaultMission(false);
 initGPS();
+
+function animLoop() {
+    drawTacticalDisplay();
+    requestAnimationFrame(animLoop);
+}
+requestAnimationFrame(animLoop);

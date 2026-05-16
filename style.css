@@ -314,6 +314,20 @@ h1 .v2 {
 .threat-meta-modern { font-size: 0.75rem; color: #888; }
 .threat-type-tag { background: rgba(255, 176, 0, 0.2); color: var(--secondary-color); padding: 2px 6px; border-radius: 4px; margin-right: 5px; }
 
+.btn-edit-threat-modern {
+    background: rgba(0, 255, 65, 0.1);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
 .btn-delete-threat-modern {
     background: rgba(255, 68, 68, 0.1);
     color: var(--danger-color);
@@ -619,4 +633,10 @@ body.keypad-focused-plot-be .action-ent {
 /* Smoothing filters reset */
 header, nav, .plotter-section, .history-section, footer, .card.target, .result-panel.compact {
     transition: filter 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, height 0.3s ease, padding 0.3s ease, margin 0.3s ease;
+}
+
+body.keypad-mode-edit #active-bullseye-select {
+    background: rgba(0, 229, 255, 0.1) !important;
+    border-color: var(--edit-color) !important;
+    color: var(--edit-color) !important;
 }

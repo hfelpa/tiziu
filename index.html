@@ -36,8 +36,11 @@
             <div id="calc-page" class="page active">
                 <!-- UNIFIED INPUT: PLOT BE -->
                 <section class="card target">
-                    <div class="card-header">
-                        <h2 id="bull-badge-main">PLOT BE</h2>
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <h2 id="bull-badge-main">PLOT BE [SILVER]</h2>
+                        <select id="active-bullseye-select" class="select-small" style="max-width: 140px; background: rgba(0, 255, 65, 0.1); border: 1px solid var(--primary-color); color: var(--primary-color); font-weight: bold; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.85rem;" onchange="selectActiveBullseye(this.value)">
+                            <option value="SILVER">SILVER</option>
+                        </select>
                     </div>
                     <div class="plot-input-row-horizontal">
                         <div class="input-group id-group">
@@ -164,24 +167,50 @@
                         <button class="btn-import-mission" style="flex: 1; border-color: #ff00ff; color: #ff00ff; background: rgba(255, 0, 255, 0.1);" onclick="document.getElementById('gpx-file-input').click()">IMPORTAR .GPX</button>
                     </div>
 
-                    <!-- BULLSEYE DATA -->
-                    <div class="card bullseye-card compact-bull">
-                        <div class="card-header-inner">
-                            <span id="bull-badge" class="badge-silver">BULLSEYE SILVER</span>
+
+
+                    <!-- LIST OF BULLSEYES TABLE & REGISTRATION FORM -->
+                    <div class="card bullseye-card compact-bull" style="margin-bottom: 15px; padding: 15px !important;">
+                        <div style="overflow-x: auto; width: 100%;">
+                            <table class="tactical-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                        <th style="padding: 8px 6px; color: var(--primary-color);">BULLSEYE</th>
+                                        <th style="padding: 8px 6px; color: #aaa;">LAT (DD)</th>
+                                        <th style="padding: 8px 6px; color: #aaa;">LON (DD)</th>
+                                        <th style="padding: 8px 6px; color: #aaa;">MAGVAR</th>
+                                        <th style="padding: 8px 6px; color: #aaa; text-align: right;">AÇÃO</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bullseyes-list">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="grid-horizontal-mission" style="margin-top:10px;">
+                        
+                        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 15px 0;">
+                        
+                        <div class="card-header-inner" style="margin-bottom: 10px;">
+                            <span style="font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">NOVO BULLSEYE</span>
+                        </div>
+                        <div class="threat-add-form-horizontal">
+                            <div class="input-group">
+                                <label>NOME</label>
+                                <input type="text" id="newBullName" placeholder="GOLD" style="text-transform: uppercase;">
+                            </div>
                             <div class="input-group">
                                 <label>LAT (DD)</label>
-                                <input type="number" id="bullLat" step="any" value="-15.520278">
+                                <input type="number" id="newBullLat" step="any" placeholder="-15.52">
                             </div>
                             <div class="input-group">
                                 <label>LON (DD)</label>
-                                <input type="number" id="bullLon" step="any" value="-49.987222">
+                                <input type="number" id="newBullLon" step="any" placeholder="-49.98">
                             </div>
                             <div class="input-group" style="flex: 0.8 !important;">
                                 <label>MAGVAR</label>
-                                <input type="number" id="magVar" step="any" value="-21.4">
+                                <input type="number" id="newBullMagVar" step="any" placeholder="-21.4">
                             </div>
+                            <button id="add-bull-btn" class="btn-add-threat-inline-horizontal" onclick="addBullseyeConfig()">+</button>
                         </div>
                     </div>
 
@@ -212,7 +241,7 @@
                         </div>
 
                         <div class="threat-list-header">
-                            <span>ORDEM DE BATALHA</span>
+                            <span>AMEAÇAS</span>
                             <span id="threat-count-badge">0</span>
                         </div>
                         <div class="threats-modern-grid" id="threats-config-list">
@@ -268,12 +297,15 @@
     <!-- Hidden native inputs -->
     <input type="hidden" id="ownLat" value="">
     <input type="hidden" id="ownLon" value="">
+    <input type="hidden" id="bullLat" value="-15.520278">
+    <input type="hidden" id="bullLon" value="-49.987222">
+    <input type="hidden" id="magVar" value="-21.4">
 
     <script src="app.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=70')
+                navigator.serviceWorker.register('sw.js?v=76')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();
