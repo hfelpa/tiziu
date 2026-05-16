@@ -16,11 +16,11 @@ O **TIZIU** foi desenvolvido para funcionar 100% offline em iPads e iPhones na n
 
 ### 2. Primeira Inicialização (Essencial)
 *   **Abra o aplicativo pela primeira vez a partir da tela de início ainda conectado ao Wi-Fi.**
-*   Esta abertura inicial é crucial para que o Service Worker baixe e armazene de forma permanente todos os arquivos locais (`index.html`, `app.js`, `style.css` e fontes) na memória segura do dispositivo.
+*   Esta abertura inicial é crucial para que o Service Worker baixe e armazene de forma permanente todos os arquivos locais na memória do dispositivo.
 
 ### 3. Utilização em Voo
 *   **Nas próximas vezes, a conexão com a internet NÃO é mais necessária.**
-*   Você pode ativar o **Modo Avião** e abrir o aplicativo a partir do ícone na tela de início. O **TIZIU** iniciará instantaneamente, e o georreferenciamento por satélite (GPS) e bússola continuarão operando de forma 100% offline no cockpit.
+*   Você pode ativar o **Modo Avião** e abrir o aplicativo a partir do ícone na tela de início. O **TIZIU** iniciará instantaneamente, e o georreferenciamento continuará operando de forma 100% offline no cockpit.
 
 ---
 
