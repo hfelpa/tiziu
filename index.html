@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BRAA Tactical Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#000000">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="tactical-theme">
+    <div class="app-container">
+        <header>
+            <div class="status-bar">
+                <span id="gps-status" class="status-indicator offline">GPS: BUSCANDO...</span>
+                <span id="pwa-status" class="status-indicator">OFFLINE READY</span>
+            </div>
+            <h1>BRAA TACTICAL <span class="v2">v3.5</span></h1>
+        </header>
+
+        <!-- NAVIGATION MENU -->
+        <nav class="tactical-nav">
+            <button class="nav-btn active" data-page="calc-page">CALCULADORA</button>
+            <button class="nav-btn" data-page="settings-page">CONFIG</button>
+        </nav>
+
+        <main>
+            <!-- PAGE 1: CALCULATOR (MAIN VIEW) -->
+            <div id="calc-page" class="page active">
+                <!-- UNIFIED INPUT: PLOT BE -->
+                <section class="card target">
+                    <div class="card-header">
+                        <h2>PLOT BE</h2>
+                    </div>
+                    <div class="plot-input-row">
+                        <div class="grid-4-main">
+                            <div class="input-group">
+                                <label>ID ALVO</label>
+                                <input type="text" id="targetId" placeholder="ID" value="1" inputmode="numeric">
+                            </div>
+                            <div class="input-group">
+                                <label>RADIAL</label>
+                                <input type="number" id="targetRadial" placeholder="360°" inputmode="numeric">
+                            </div>
+                            <div class="input-group">
+                                <label>DIST</label>
+                                <input type="number" id="targetDist" placeholder="0 NM" inputmode="numeric">
+                            </div>
+                            <div class="input-group">
+                                <label>AMEAÇA</label>
+                                <select id="threat-select">
+                                    <option value="">NENHUMA</option>
+                                    <!-- Populate via JS -->
+                                </select>
+                            </div>
+                        </div>
+                        <button id="add-plot-btn" class="btn-add-plot-inline">+</button>
+                    </div>
+                </section>
+
+                <!-- UNIFIED RESULTS (SIDE BY SIDE) -->
+                <section class="result-panel compact">
+                    <div class="unified-results-row">
+                        <!-- BRAA SECTION -->
+                        <div class="result-sub-section">
+                            <span class="sub-label">VETOR BRAA</span>
+                            <div class="braa-display">
+                                <div class="braa-item">
+                                    <span class="label">BEARING</span>
+                                    <span id="resBearing" class="value-tactical">---°</span>
+                                </div>
+                                <div class="braa-divider">/</div>
+                                <div class="braa-item">
+                                    <span class="label">RANGE</span>
+                                    <div class="range-value-container">
+                                        <span id="resRange" class="value-tactical">---</span>
+                                        <span class="unit">NM</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="v-divider"></div>
+
+                        <!-- COORD SECTION -->
+                        <div class="result-sub-section">
+                            <span class="sub-label">COORDENADAS</span>
+                            <div class="plot-be-display">
+                                <div class="coord-item">
+                                    <span id="bullResLat" class="value-small value-tactical">S 00° 00.00'</span>
+                                </div>
+                                <div class="coord-item">
+                                    <span id="bullResLon" class="value-small value-tactical">W 000° 00.00'</span>
+                                </div>
+                                <div class="mgrs-item">
+                                    <span id="resMGRS" class="value-mgrs">---</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TACTICAL PLOTTER SECTION -->
+                <section class="card plotter-section">
+                    <div class="card-header">
+                        <h2>TACTICAL DISPLAY</h2>
+                        <div class="plotter-controls">
+                            <select id="range-scale">
+                                <option value="20">20 NM</option>
+                                <option value="40" selected>40 NM</option>
+                                <option value="80">80 NM</option>
+                                <option value="160">160 NM</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="plotter-container">
+                        <canvas id="tactical-canvas"></canvas>
+                    </div>
+                </section>
+
+                <!-- HISTORY SECTION -->
+                <section class="card history-section">
+                    <div class="card-header">
+                        <h2>HISTÓRICO DE PLOTS</h2>
+                    </div>
+                    <div id="history-groups" class="history-groups-container">
+                        <!-- Grouped by ID via JS -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- PAGE 2: SETTINGS (OWN SHIP & BULLSEYE & THREATS) -->
+            <div id="settings-page" class="page">
+                <!-- SHARED SECTION: OWN SHIP (NON-EDITABLE) -->
+                <section class="card own-ship-display">
+                    <div class="card-header">
+                        <h2>CHECK DE FIDELIDADE (GPS)</h2>
+                    </div>
+                    <div class="grid-2 fidelity-row">
+                        <div class="fidelity-item">
+                            <label>OWN LAT</label>
+                            <div id="ownLatDisplay" class="value-fidelity">---</div>
+                        </div>
+                        <div class="fidelity-item">
+                            <label>OWN LON</label>
+                            <div id="ownLonDisplay" class="value-fidelity">---</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SHARED SECTION: BULLSEYE (BE SILVER) - COLLAPSED BY DEFAULT -->
+                <section class="card bullseye collapsed" id="bullseye-card">
+                    <div class="card-header" id="bullseye-header" onclick="this.parentElement.classList.toggle('collapsed')" style="cursor: pointer;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <h2>BULLSEYE</h2>
+                            <span class="badge-silver">BE SILVER</span>
+                        </div>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                    <div class="collapsible-content">
+                        <div class="grid-2">
+                            <div class="input-group">
+                                <label>LATITUDE (DD)</label>
+                                <input type="number" id="bullLat" step="any" value="-15.520278">
+                            </div>
+                            <div class="input-group">
+                                <label>LONGITUDE (DD)</label>
+                                <input type="number" id="bullLon" step="any" value="-49.987222">
+                            </div>
+                        </div>
+                        <div class="input-group" style="margin-top: 10px;">
+                            <label>MAG VAR (DECLINAÇÃO)</label>
+                            <input type="number" id="magVar" step="any" value="-21.4" placeholder="-21.4°">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- THREAT MANAGEMENT SECTION -->
+                <section class="card threats-config">
+                    <div class="card-header">
+                        <h2>GERENCIAR AMEAÇAS</h2>
+                    </div>
+                    <div class="threats-grid" id="threats-config-list">
+                        <!-- Populate via JS -->
+                    </div>
+                    <div class="add-threat-row complex">
+                        <input type="text" id="new-threat-code" placeholder="CÓDIGO">
+                        <select id="new-threat-type">
+                            <option value="A/A">A/A</option>
+                            <option value="A/G">A/G</option>
+                        </select>
+                        <input type="number" id="new-threat-range" placeholder="VALOR (NM)">
+                        <button id="add-threat-config-btn" class="btn-secondary-outline">ADICIONAR</button>
+                    </div>
+                </section>
+
+                <!-- GPX ROUTE MANAGEMENT -->
+                <section class="card gpx-config">
+                    <div class="card-header">
+                        <h2>ROTA (GPX)</h2>
+                    </div>
+                    <div class="input-group">
+                        <label>SUBIR ARQUIVO GPX</label>
+                        <input type="file" id="gpx-upload" accept=".gpx">
+                    </div>
+                    <div id="gpx-status-info" style="font-size: 0.6rem; margin-top: 5px; opacity: 0.6;">
+                        Nenhuma rota carregada.
+                    </div>
+                    <button id="clear-gpx-btn" class="btn-tiny" style="margin-top: 10px;">LIMPAR ROTA</button>
+                </section>
+            </div>
+        </main>
+
+        <footer class="tactical-footer">
+            <p>FPT</p>
+            <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
+        </footer>
+    </div>
+
+    <!-- Hidden native inputs for math logic compatibility -->
+    <input type="hidden" id="ownLat" value="">
+    <input type="hidden" id="ownLon" value="">
+
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js?v=35')
+                    .then(reg => {
+                        console.log('SW Registered');
+                        initGPS();
+                        calculateBRAA();
+                        calculateBullCoord();
+                    })
+                    .catch(err => {
+                        console.log('SW Error', err);
+                        initGPS();
+                    });
+            });
+        } else {
+            initGPS();
+        }
+    </script>
+</body>
+</html>
