@@ -3,8 +3,8 @@
  * Core Logic & Math
  */
 
-/* Version: 53.0.0 - Time: 2046 */
-const CACHE_NAME = 'braa-tactical-v53';
+/* Version: 54.0.0 - Time: 2051 */
+const CACHE_NAME = 'braa-tactical-v54';
 
 const MISSIONS = {
     TINIA26: {
@@ -69,7 +69,7 @@ const mgrs = (function() {
         const T = Math.tan(LatRad) * Math.tan(LatRad);
         const C = eccPrimeSquared * Math.cos(LatRad) * Math.cos(LatRad);
         const A = Math.cos(LatRad) * (LongRad - LongOriginRad);
-        const M = a * ((1 - ECC_SQUARED / 4 - 3 * ECC_SQUARED * ECC_SQUARED / 64 - 5 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 256) * LatRad - (3 * ECC_SQUARED / 8 + 3 * ECC_SQUARED * ECC_SQUARED / 32 + 45 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 1024) * Math.sin(2 * LatRad) + (15 * ECC_SQUARED / 256 + 45 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 1024) * Math.sin(4 * LatRad) - (35 * ECC_SQUARED / 256 + 45 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 1024) * Math.sin(6 * LatRad));
+        const M = a * ((1 - ECC_SQUARED / 4 - 3 * ECC_SQUARED * ECC_SQUARED / 64 - 5 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 256) * LatRad - (3 * ECC_SQUARED / 8 + 3 * ECC_SQUARED * ECC_SQUARED / 32 + 45 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 1024) * Math.sin(2 * LatRad) + (15 * ECC_SQUARED / 256 + 45 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 1024) * Math.sin(4 * LatRad) - (35 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 3072) * Math.sin(6 * LatRad));
         const UTMEasting = (SCALE_FACTOR * N * (A + (1 - T + C) * A * A * A / 6 + (5 - 18 * T + T * T + 72 * C - 58 * eccPrimeSquared) * A * A * A / 120) + EASTING_OFFSET);
         let UTMNorthing = (SCALE_FACTOR * (M + N * Math.tan(LatRad) * (A * A / 2 + (5 - T + 9 * C + 4 * C * C) * A * A * A * A / 24 + (61 - 58 * T + T * T + 600 * C - 330 * eccPrimeSquared) * A * A * A * A * A * A / 720)));
         if (Lat < 0) UTMNorthing += NORTHING_OFFFSET;
@@ -115,7 +115,7 @@ const CONFIG = {
 };
 
 const state = {
-    ownPos: { lat: null, lon: null, heading: 0 },
+    ownPos: { lat: null, lon: null, heading: 0, compass: null },
     watchId: null,
     lastFixTime: 0,
     plots: [],
@@ -396,8 +396,10 @@ function drawTacticalDisplay() {
     const size = el.canvas.parentElement.clientWidth; el.canvas.width = size; el.canvas.height = size;
     const centerX = size / 2; const centerY = size / 2;
     const scale = state.rangeScale; const pxPerNM = (size / 2) / scale;
-    const heading = state.ownPos.heading || 0;
-    const rotationRad = (state.orientation === 'HEADING') ? -toRad(heading) : 0;
+    
+    // HEADING logic: Prioritize physical compass if available, fallback to GPS track
+    const currentHeading = (state.ownPos.compass !== null) ? state.ownPos.compass : (state.ownPos.heading || 0);
+    const rotationRad = (state.orientation === 'HEADING') ? -toRad(currentHeading) : 0;
 
     ctx.clearRect(0, 0, size, size);
     ctx.save();
@@ -462,7 +464,7 @@ function drawTacticalDisplay() {
     // DRAW USER ICON (STATIC CENTER)
     ctx.save();
     ctx.translate(centerX, centerY);
-    if (state.orientation === 'NORTH') { ctx.rotate(toRad(heading)); }
+    if (state.orientation === 'NORTH') { ctx.rotate(toRad(currentHeading)); }
     ctx.fillStyle = '#00FF41'; ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(8, 11); ctx.lineTo(0, 6); ctx.lineTo(-8, 11); ctx.closePath(); ctx.fill();
     ctx.restore();
 }
@@ -475,8 +477,8 @@ el.canvas.addEventListener('click', (e) => {
     const size = el.canvas.width; const centerX = size / 2; const centerY = size / 2;
     const scale = state.rangeScale; const pxPerNM = (size / 2) / scale;
     if (!state.ownPos.lat) return;
-    const heading = state.ownPos.heading || 0;
-    const rotationRad = (state.orientation === 'HEADING') ? -toRad(heading) : 0;
+    const currentHeading = (state.ownPos.compass !== null) ? state.ownPos.compass : (state.ownPos.heading || 0);
+    const rotationRad = (state.orientation === 'HEADING') ? -toRad(currentHeading) : 0;
     const latestById = {}; state.plots.forEach(p => { if (!latestById[p.targetId] || p.timestamp > latestById[p.targetId].timestamp) latestById[p.targetId] = p; });
     let foundId = null;
     Object.values(latestById).forEach(plot => {
@@ -494,7 +496,7 @@ el.canvas.addEventListener('click', (e) => {
 });
 
 /**
- * GPS & ADAPTIVE LOGIC
+ * GPS & SENSORS
  */
 function updatePosition(pos) {
     const { latitude, longitude, heading } = pos.coords; el.ownLat.value = latitude.toFixed(6); el.ownLon.value = longitude.toFixed(6);
@@ -504,12 +506,28 @@ function updatePosition(pos) {
     el.gpsStatus.textContent = `GPS: LIVE [${timeStr}]`; el.gpsStatus.classList.remove('offline'); el.gpsStatus.classList.add('online'); calculateBRAA();
 }
 
+function initCompass() {
+    if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+            .then(response => { if (response === 'granted') { window.addEventListener('deviceorientation', handleOrientation, true); } })
+            .catch(console.error);
+    } else { window.addEventListener('deviceorientationabsolute', handleOrientation, true); window.addEventListener('deviceorientation', handleOrientation, true); }
+}
+
+function handleOrientation(event) {
+    let heading = null;
+    if (event.webkitCompassHeading) { heading = event.webkitCompassHeading; } // iOS
+    else if (event.absolute && event.alpha) { heading = 360 - event.alpha; } // Android absolute
+    if (heading !== null) { state.ownPos.compass = heading; drawTacticalDisplay(); }
+}
+
 function handleGPSError(err) {
     let msg = "GPS: BUSCANDO..."; if (err.code === 1) msg = "GPS: PERMISSION DENIED"; if (err.code === 3) msg = "GPS: TIMEOUT (RETRYING...)";
     el.gpsStatus.textContent = msg; el.gpsStatus.classList.add('offline'); if (err.code === 3) navigator.geolocation.getCurrentPosition(updatePosition, null, { enableHighAccuracy: false, timeout: 5000 });
 }
 
 function initGPS() {
+    initCompass();
     if (!navigator.geolocation) return; el.gpsStatus.textContent = "GPS: BUSCANDO..."; el.gpsStatus.classList.add('offline');
     const options = { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 };
     navigator.geolocation.getCurrentPosition(updatePosition, (err) => { if (err.code === 3) navigator.geolocation.getCurrentPosition(updatePosition, handleGPSError, { enableHighAccuracy: false, timeout: 10000 }); else handleGPSError(err); }, options);
@@ -517,7 +535,7 @@ function initGPS() {
 }
 
 setInterval(() => { if (Date.now() - state.lastFixTime > 15000) initGPS(); }, 20000);
-el.gpsStatus.addEventListener('click', initGPS);
+el.gpsStatus.addEventListener('click', () => { initGPS(); initCompass(); });
 document.querySelectorAll('input:not([readonly])').forEach(input => input.addEventListener('input', () => { calculateBRAA(); calculateBullCoord(); }));
 el.navBtns.forEach(btn => btn.addEventListener('click', () => { el.navBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active'); el.pages.forEach(p => p.classList.remove('active')); document.getElementById(btn.getAttribute('data-page')).classList.add('active'); if (btn.getAttribute('data-page') === 'calc-page') setTimeout(drawTacticalDisplay, 100); }));
 el.addPlotBtn.addEventListener('click', addPlot);
