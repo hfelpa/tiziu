@@ -18,19 +18,17 @@
     <div id="keypad-backdrop" class="keypad-backdrop" onclick="closeKeypad()"></div>
 
     <div class="app-container">
-        <header>
-            <div class="status-bar">
-                <span id="gps-status" class="status-indicator offline" onclick="initGPS()">GPS: OFF</span>
-                <span id="compass-status" class="status-indicator offline" onclick="activateSensors()">BÚSSOLA: OFF (CLIQUE)</span>
+        <header class="tactical-header-unified">
+            <span class="app-title-compact">TIZIU</span>
+            <div class="header-nav-group">
+                <button class="nav-btn active" data-page="calc-page">EMPREGO</button>
+                <button class="nav-btn" data-page="settings-page">CONFIGS</button>
             </div>
-            <h1>TIZIU</h1>
+            <div class="header-status-group">
+                <span id="gps-status" class="status-indicator offline" onclick="initGPS()">GPS: OFF</span>
+                <span id="compass-status" class="status-indicator offline" onclick="activateSensors()">BÚSSOLA: OFF</span>
+            </div>
         </header>
-
-        <!-- NAVIGATION MENU -->
-        <nav class="tactical-nav">
-            <button class="nav-btn active" data-page="calc-page">CALCULADORA</button>
-            <button class="nav-btn" data-page="settings-page">CONFIGURAÇÕES</button>
-        </nav>
 
         <main>
             <!-- PAGE 1: CALCULATOR (MAIN VIEW) -->
@@ -105,7 +103,7 @@
                 <!-- TACTICAL PLOTTER SECTION -->
                 <section class="card plotter-section">
                     <div class="card-header">
-                        <h2>TACTICAL DISPLAY</h2>
+                        <h2>DISPLAY TÁTICO</h2>
                         <div class="plotter-controls-grid">
                             <select id="plotter-orientation" class="select-small">
                                 <option value="HEADING">HEADING UP</option>
@@ -159,13 +157,13 @@
                     <div class="section-header-row">
                         <h3 class="section-title">02. GERENCIAMENTO DE MISSÃO</h3>
                     </div>
-                    
-                    <div class="mission-upload-container" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                 <div class="mission-upload-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                         <input type="file" id="mission-file-input" accept=".json,.csv,.txt" hidden>
-                        <button class="btn-import-mission" onclick="document.getElementById('mission-file-input').click()" style="flex: 1;">IMPORTAR .TXT</button>
+                        <button class="btn-import-mission btn-green" onclick="document.getElementById('mission-file-input').click()" style="width: 100%;">IMPORTAR CENÁRIO</button>
+                        <button class="btn-import-mission btn-green" onclick="exportState()" style="width: 100%;">EXPORTAR CENÁRIO</button>
                         
                         <input type="file" id="gpx-file-input" accept=".gpx" hidden>
-                        <button class="btn-import-mission" style="flex: 1; border-color: #ff00ff; color: #ff00ff; background: rgba(255, 0, 255, 0.1);" onclick="document.getElementById('gpx-file-input').click()">IMPORTAR .GPX</button>
+                        <button class="btn-import-mission btn-purple" style="grid-column: span 2; width: 100%;" onclick="document.getElementById('gpx-file-input').click()">IMPORTAR ROTA .GPX</button>
                     </div>
 
 
@@ -260,7 +258,7 @@
         </main>
 
         <footer class="tactical-footer">
-            <p>FPT • TIZIU v7.7.2</p>
+            <p>FPT • TIZIU v7.7.5</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
     </div>
@@ -312,7 +310,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=7.7.2')
+                navigator.serviceWorker.register('sw.js?v=7.7.5')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();

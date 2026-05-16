@@ -366,7 +366,13 @@ window.selectThreatInput = (code) => {
 
 function updateActiveField() {
     if (state.activePlotIndex !== null) { updatePlot(state.activePlotIndex, state.activeInputId, state.keypadValue); }
-    else if (state.activeInputId) { document.getElementById(state.activeInputId).value = state.keypadValue; calculateBRAA(); calculateBullCoord(); }
+    else if (state.activeInputId) { 
+        document.getElementById(state.activeInputId).value = state.keypadValue; 
+        if (state.activeInputId === 'targetId') {
+            syncThreatFromLastPlot(state.keypadValue);
+        }
+        calculateBRAA(); calculateBullCoord(); 
+    }
 }
 
 window.keyInput = (char) => { if (char === 'CLR') state.keypadValue = ""; else if (char === 'DEL') state.keypadValue = state.keypadValue.slice(0, -1); else { if (state.keypadValue.length < 6) state.keypadValue += char; } el.keypadPreview.textContent = state.keypadValue; updateActiveField(); };
@@ -403,6 +409,31 @@ window.closeKeypad = () => {
     }, 150);
 };
 
+window.exportState = () => {
+    const data = {
+        type: "tiziu_session_state",
+        version: "7.7.3",
+        plots: state.plots,
+        threats: state.threats,
+        bullseyes: state.bullseyes,
+        activeBullseyeName: state.activeBullseyeName,
+        startTargetId: state.startTargetId
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const d = new Date();
+    const dateStr = d.getFullYear() + 
+                    String(d.getMonth() + 1).padStart(2, '0') + 
+                    String(d.getDate()).padStart(2, '0') + "_" + 
+                    String(d.getHours()).padStart(2, '0') + 
+                    String(d.getMinutes()).padStart(2, '0');
+    a.href = url;
+    a.download = `tiziu_cenario_${dateStr}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+};
+
 document.querySelectorAll('.custom-keyboard-input').forEach(input => { input.addEventListener('click', () => openKeypad(input.id, null, input)); });
 
 /**
@@ -415,7 +446,31 @@ function handleMissionFile(event) {
         const content = e.target.result;
         try {
             if (file.name.endsWith('.json')) {
-                const data = JSON.parse(content); if (data.bullseye) applyBullseye(data.bullseye); if (data.threats) { state.threats = data.threats; updateThreatDropdowns(); }
+                const data = JSON.parse(content);
+                if (data.type === "tiziu_session_state" || (data.plots && data.threats)) {
+                    if (data.plots) state.plots = data.plots;
+                    if (data.threats) state.threats = data.threats;
+                    if (data.bullseyes) state.bullseyes = data.bullseyes;
+                    if (data.activeBullseyeName) {
+                        state.activeBullseyeName = data.activeBullseyeName;
+                        const activeB = state.bullseyes.find(b => b.name === state.activeBullseyeName);
+                        if (activeB) applyBullseye(activeB);
+                    }
+                    if (data.startTargetId) {
+                        state.startTargetId = data.startTargetId;
+                        const startInput = document.getElementById('start-target-id-input');
+                        if (startInput) startInput.value = data.startTargetId;
+                    }
+                    updateBullseyesTable();
+                    updateThreatDropdowns();
+                    renderHistory();
+                    drawTacticalDisplay();
+                    alert("Cenário completo carregado com sucesso!");
+                } else {
+                    if (data.bullseye) applyBullseye(data.bullseye);
+                    if (data.threats) { state.threats = data.threats; updateThreatDropdowns(); }
+                    alert("Preparação de cenário importada com sucesso!");
+                }
                 return;
             }
             const lines = content.split('\n'); const newThreats = [];
@@ -425,7 +480,11 @@ function handleMissionFile(event) {
                 else if (parts.length >= 3) { const code = parts[0].toUpperCase(); const type = parts[1].toUpperCase().includes('A/A') ? 'A/A' : 'A/G'; const range = parseFloat(parts[2]); if (code && !isNaN(range)) newThreats.push({ code, type, range }); }
             });
             if (newThreats.length > 0) { state.threats = newThreats; updateThreatDropdowns(); }
-        } catch(err) { console.error("Erro ao ler arquivo."); }
+            alert("Cenário de texto importado com sucesso!");
+        } catch(err) { 
+            console.error("Erro ao ler arquivo.", err); 
+            alert("Erro ao decodificar o arquivo de cenário.");
+        }
     };
     reader.readAsText(file);
 }
@@ -714,7 +773,22 @@ window.editThreat = (index) => {
     drawTacticalDisplay();
     renderHistory();
 };
-function selectTargetId(id) { el.targetId.value = id; }
+function syncThreatFromLastPlot(id) {
+    const targetPlots = state.plots.filter(p => p.targetId === id);
+    const threatInput = document.getElementById('targetThreat');
+    if (threatInput) {
+        if (targetPlots.length > 0) {
+            targetPlots.sort((a, b) => b.timestamp - a.timestamp);
+            const lastThreat = targetPlots[0].threatCode || "";
+            threatInput.value = lastThreat;
+        }
+    }
+}
+
+function selectTargetId(id) { 
+    el.targetId.value = id; 
+    syncThreatFromLastPlot(id);
+}
 
 function addPlot() {
     if (!state.targetPos) return;
@@ -722,7 +796,9 @@ function addPlot() {
     state.plots.push({ ...state.targetPos, targetId: targetId, threatCode: threatCode && threatCode !== '-' ? threatCode : null, threatRange: threat ? threat.range : null, threatType: threat ? threat.type : null, timestamp: Date.now() });
     state.targetPos = null; // Clear preview
     const usedIds = new Set(state.plots.map(p => p.targetId)); let nextId = state.startTargetId || 1; while (usedIds.has(nextId.toString())) { nextId++; }
-    el.targetId.value = nextId.toString(); renderHistory(); drawTacticalDisplay();
+    el.targetId.value = nextId.toString();
+    syncThreatFromLastPlot(nextId.toString());
+    renderHistory(); drawTacticalDisplay();
 }
 
 window.updateStartTargetId = (val) => {

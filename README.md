@@ -1,12 +1,12 @@
-# TIZIU - Simulador de Navegação e Alertas de Ameaças ✈️
+# TIZIU - Consciência Situacional de Ameaças ✈️
 
-O **TIZIU** é um aplicativo PWA (Progressive Web App) desenvolvido especificamente para simulação de aviação militar e navegação aérea tática. Ele foi projetado com foco em dispositivos móveis/tablets (como o iPad em condições de voo), apresentando uma interface escura de alta fidelidade e ergonomia de inserção ultrarápida com teclado numérico tático integrado.
+O **TIZIU** é um software desenvolvido para auxiliar a formar a consciência situacional de ameaças no cenário tático. Ele é um aplicativo PWA (Progressive Web App) projetado com foco em dispositivos móveis/tablets (como o iPad em condições de voo), apresentando uma interface escura de alta fidelidade e ergonomia de inserção ultrarápida com teclado numérico tático integrado.
 
 ---
 
 ## 🚀 Principais Funcionalidades
 
-### 1. Visor Tático Circular (Radar)
+### 1. Display Tático Circular (Radar)
 *   Visualização gráfica interativa da sua posição relativa aos alvos (plots) e ameaças cadastradas.
 *   **Modo de Orientação**: Alternação instantânea entre orientação relativa à proa (**HEADING**) ou ao norte geográfico (**NORTH**).
 *   **Escala Dinâmica**: Zoom ajustável em tempo real (10, 20, 40, 80 e 160 NM).
@@ -15,7 +15,7 @@ O **TIZIU** é um aplicativo PWA (Progressive Web App) desenvolvido especificame
 ### 2. Teclado Numérico Customizado e Zero Scroll Lock
 *   Teclado tático de alta fidelidade que evita o teclado nativo do sistema operacional, acelerando a digitação rápida em voo.
 *   **Zero Scroll Lock**: Quando o teclado é focado, a rolagem da página é completamente travada em `(0, 0)` para que toques na tela não desalinhem os controles sob turbulência.
-*   A interface é comprimida de forma inteligente, ampliando o Visor Tático em **20%** adicionais durante a inserção.
+*   A interface é comprimida de forma inteligente, ampliando o Display Tático em **20%** adicionais durante a inserção.
 
 ### 3. Sistema Multi-Bullseye Inteligente
 *   **Seletor Tático**: Alterne instantaneamente o Bullseye ativo por meio do dropdown no cabeçalho do painel principal.
@@ -89,6 +89,11 @@ Você pode carregar arquivos de rota tradicionais de GPS (`.gpx`). O aplicativo 
 
 ---
 
+### 4. Arquivo de Salvamento de Sessão Completa (.json)
+Você pode exportar o estado completo atual do seu aplicativo (incluindo todos os alvos plotados em tempo real, banco de dados de ameaças cadastradas, bullseyes ativos e configurações de offsets) para um único arquivo de backup `.json`. Para fazer isso, utilize os botões **EXPORTAR SALVAMENTO** e **IMPORTAR SALVAMENTO** integrados no gerenciador de missão. Isso permite pausar a simulação e retomá-la perfeitamente a qualquer momento offline.
+
+---
+
 ## 🛠️ Desenvolvimento e Atualização (PWA no iOS/iPad)
 
 ### Importante: Persistência de Cache do Service Worker
@@ -96,11 +101,11 @@ Como o aplicativo roda instalado como PWA em iPads, o navegador Safari é extrem
 
 1.  **Incremente a versão do cache** no arquivo `sw.js` (variável `CACHE_NAME` e o cabeçalho do arquivo):
     ```javascript
-    /* Version: 7.7.2 */
-    const CACHE_NAME = 'braa-tactical-v7.7.2';
+    /* Version: 7.7.5 */
+    const CACHE_NAME = 'braa-tactical-v7.7.5';
     ```
 2.  **Incremente o parâmetro de query string** no registro do service worker no final do arquivo `index.html`:
     ```javascript
-    navigator.serviceWorker.register('sw.js?v=7.7.2')
+    navigator.serviceWorker.register('sw.js?v=7.7.5')
     ```
 Isso força o iPad a invalidar instantaneamente o cache local antigo e baixar as atualizações na próxima abertura do aplicativo.
