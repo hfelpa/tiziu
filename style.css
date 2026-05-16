@@ -424,14 +424,22 @@ input.editing-active {
 
 /* FOCUS ON PLOT BE BLUR AND HIGHLIGHT EFFECT */
 body.keypad-focused-plot-be header,
-body.keypad-focused-plot-be nav,
+body.keypad-focused-plot-be nav {
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 body.keypad-focused-plot-be .plotter-section,
 body.keypad-focused-plot-be .history-section,
 body.keypad-focused-plot-be footer {
     filter: blur(5px) grayscale(0.5);
     opacity: 0.2;
     pointer-events: none;
-    transition: filter 0.3s ease, opacity 0.3s ease;
 }
 
 body.keypad-focused-plot-be .card.target,
@@ -441,10 +449,97 @@ body.keypad-focused-plot-be .result-panel.compact {
     box-shadow: 0 0 35px rgba(0, 255, 65, 0.35) !important;
     border: 2px solid var(--primary-color) !important;
     background: #050505 !important;
-    transition: all 0.3s ease;
+}
+
+/* COMPACTING PLOT BE & RESULTS */
+body.keypad-focused-plot-be .card.target {
+    padding: 8px 12px !important;
+    margin-bottom: 8px !important;
+}
+body.keypad-focused-plot-be .card.target .card-header {
+    margin-bottom: 6px !important;
+    padding-bottom: 2px !important;
+}
+body.keypad-focused-plot-be .card.target .card-header h2 {
+    font-size: 0.8rem !important;
+}
+body.keypad-focused-plot-be .plot-input-row-horizontal {
+    gap: 8px !important;
+}
+body.keypad-focused-plot-be .input-group input,
+body.keypad-focused-plot-be .input-group select {
+    height: 48px !important;
+    padding: 8px !important;
+    font-size: 0.95rem !important;
+}
+body.keypad-focused-plot-be .btn-add-plot-inline-horizontal {
+    height: 48px !important;
+    font-size: 1.2rem !important;
+}
+
+body.keypad-focused-plot-be .result-panel.compact {
+    padding: 8px 12px !important;
+    margin-bottom: 8px !important;
+}
+body.keypad-focused-plot-be .unified-results-row {
+    gap: 10px !important;
+}
+body.keypad-focused-plot-be .result-sub-section {
+    gap: 2px !important;
+}
+body.keypad-focused-plot-be .value-tactical {
+    font-size: 1.4rem !important;
+}
+body.keypad-focused-plot-be .braa-display {
+    gap: 0.6rem !important;
+}
+body.keypad-focused-plot-be .braa-divider {
+    font-size: 1.8rem !important;
+}
+body.keypad-focused-plot-be .value-small {
+    font-size: 1rem !important;
+}
+body.keypad-focused-plot-be .mgrs-item {
+    margin-top: 4px !important;
+    padding: 4px 10px !important;
+}
+
+/* COMPACTING KEYPAD OVERLAY */
+body.keypad-focused-plot-be .keypad-overlay {
+    padding: 8px 10px !important;
+}
+body.keypad-focused-plot-be .keypad-display {
+    padding: 8px !important;
+    margin-bottom: 8px !important;
+}
+body.keypad-focused-plot-be #keypad-preview {
+    font-size: 2rem !important;
+}
+body.keypad-focused-plot-be .keypad-grid {
+    gap: 8px !important;
+    margin-bottom: 8px !important;
+}
+body.keypad-focused-plot-be .key-btn {
+    padding: 12px !important;
+    font-size: 1.6rem !important;
+}
+body.keypad-focused-plot-be .threat-key-btn {
+    padding: 8px 4px !important;
+}
+body.keypad-focused-plot-be .threat-key-btn .t-code {
+    font-size: 1.1rem !important;
+}
+body.keypad-focused-plot-be .keypad-footer-grid {
+    gap: 8px !important;
+}
+body.keypad-focused-plot-be .nav-btn-keypad {
+    font-size: 1.8rem !important;
+}
+body.keypad-focused-plot-be .action-ent {
+    font-size: 1.4rem !important;
 }
 
 /* Smoothing filters reset */
 header, nav, .plotter-section, .history-section, footer, .card.target, .result-panel.compact {
-    transition: filter 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    transition: filter 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, height 0.3s ease, padding 0.3s ease, margin 0.3s ease;
 }
