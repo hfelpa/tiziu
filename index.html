@@ -22,13 +22,13 @@
                 <span id="gps-status" class="status-indicator offline">GPS: BUSCANDO...</span>
                 <span id="pwa-status" class="status-indicator">OFFLINE READY</span>
             </div>
-            <h1>BRAA TACTICAL <span class="v2">v4.2</span></h1>
+            <h1>BRAA TACTICAL <span class="v2">v5.3</span></h1>
         </header>
 
         <!-- NAVIGATION MENU -->
         <nav class="tactical-nav">
             <button class="nav-btn active" data-page="calc-page">CALCULADORA</button>
-            <button class="nav-btn" data-page="settings-page">CONFIG</button>
+            <button class="nav-btn" data-page="settings-page">CONFIGURAÇÕES</button>
         </nav>
 
         <main>
@@ -37,38 +37,34 @@
                 <!-- UNIFIED INPUT: PLOT BE -->
                 <section class="card target">
                     <div class="card-header">
-                        <h2>PLOT BE</h2>
+                        <h2 id="bull-badge-main">PLOT BE</h2>
                     </div>
-                    <div class="plot-input-row">
-                        <div class="grid-4-main">
-                            <div class="input-group">
-                                <label>ID ALVO</label>
-                                <input type="text" id="targetId" placeholder="ID" value="1" readonly class="custom-keyboard-input">
-                            </div>
-                            <div class="input-group">
-                                <label>RADIAL</label>
-                                <input type="text" id="targetRadial" placeholder="360°" readonly class="custom-keyboard-input">
-                            </div>
-                            <div class="input-group">
-                                <label>DIST</label>
-                                <input type="text" id="targetDist" placeholder="0 NM" readonly class="custom-keyboard-input">
-                            </div>
-                            <div class="input-group">
-                                <label>AMEAÇA</label>
-                                <select id="threat-select">
-                                    <option value="">-</option>
-                                    <!-- Populate via JS -->
-                                </select>
-                            </div>
+                    <div class="plot-input-row-horizontal">
+                        <div class="input-group id-group">
+                            <label>ID</label>
+                            <input type="text" id="targetId" value="1" readonly class="custom-keyboard-input">
                         </div>
-                        <button id="add-plot-btn" class="btn-add-plot-inline">+</button>
+                        <div class="input-group rad-group">
+                            <label>RADIAL</label>
+                            <input type="text" id="targetRadial" placeholder="360°" readonly class="custom-keyboard-input">
+                        </div>
+                        <div class="input-group dist-group">
+                            <label>DIST</label>
+                            <input type="text" id="targetDist" placeholder="0 NM" readonly class="custom-keyboard-input">
+                        </div>
+                        <div class="input-group threat-group">
+                            <label>AMEAÇA</label>
+                            <select id="threat-select">
+                                <option value="">-</option>
+                            </select>
+                        </div>
+                        <button id="add-plot-btn" class="btn-add-plot-inline-horizontal">+</button>
                     </div>
                 </section>
 
-                <!-- UNIFIED RESULTS (SIDE BY SIDE) -->
+                <!-- UNIFIED RESULTS -->
                 <section class="result-panel compact">
                     <div class="unified-results-row">
-                        <!-- BRAA SECTION -->
                         <div class="result-sub-section">
                             <span class="sub-label">VETOR BRAA</span>
                             <div class="braa-display">
@@ -86,10 +82,7 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class="v-divider"></div>
-
-                        <!-- COORD SECTION -->
                         <div class="result-sub-section">
                             <span class="sub-label">COORDENADAS</span>
                             <div class="plot-be-display">
@@ -111,8 +104,12 @@
                 <section class="card plotter-section">
                     <div class="card-header">
                         <h2>TACTICAL DISPLAY</h2>
-                        <div class="plotter-controls">
-                            <select id="range-scale">
+                        <div class="plotter-controls-grid">
+                            <select id="plotter-orientation" class="select-small">
+                                <option value="HEADING">HEADING UP</option>
+                                <option value="NORTH">NORTH UP</option>
+                            </select>
+                            <select id="range-scale" class="select-small">
                                 <option value="20">20 NM</option>
                                 <option value="40" selected>40 NM</option>
                                 <option value="80">80 NM</option>
@@ -136,78 +133,107 @@
                 </section>
             </div>
 
-            <!-- PAGE 2: SETTINGS (OWN SHIP & BULLSEYE & THREATS) -->
+            <!-- PAGE 2: SETTINGS (UNIFIED) -->
             <div id="settings-page" class="page">
-                <section class="card own-ship-display">
-                    <div class="card-header">
-                        <h2>CHECK DE FIDELIDADE (GPS)</h2>
-                    </div>
-                    <div class="grid-2 fidelity-row">
-                        <div class="fidelity-item">
-                            <label>OWN LAT</label>
-                            <div id="ownLatDisplay" class="value-fidelity">---</div>
-                        </div>
-                        <div class="fidelity-item">
-                            <label>OWN LON</label>
-                            <div id="ownLonDisplay" class="value-fidelity">---</div>
+                <!-- SECTION 1: GPS STATUS -->
+                <section class="settings-section">
+                    <h3 class="section-title">01. STATUS GPS</h3>
+                    <div class="card fidelity-card">
+                        <div class="grid-horizontal-gps">
+                            <div class="fidelity-item">
+                                <label>OWN LAT</label>
+                                <div id="ownLatDisplay" class="value-fidelity">---</div>
+                            </div>
+                            <div class="fidelity-item">
+                                <label>OWN LON</label>
+                                <div id="ownLonDisplay" class="value-fidelity">---</div>
+                            </div>
                         </div>
                     </div>
                 </section>
 
-                <section class="card bullseye collapsed" id="bullseye-card">
-                    <div class="card-header" id="bullseye-header" onclick="this.parentElement.classList.toggle('collapsed')" style="cursor: pointer;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <h2>BULLSEYE</h2>
-                            <span class="badge-silver">BE SILVER</span>
+                <!-- SECTION 2: MISSION MANAGEMENT -->
+                <section class="settings-section">
+                    <div class="section-header-row">
+                        <h3 class="section-title">02. GERENCIAMENTO DE MISSÃO</h3>
+                        <div class="mission-upload-container">
+                            <input type="file" id="mission-file-input" accept=".json,.csv,.txt" hidden>
+                            <button class="btn-import-mission" onclick="document.getElementById('mission-file-input').click()">IMPORTAR .TXT</button>
                         </div>
-                        <span class="toggle-icon">▼</span>
                     </div>
-                    <div class="collapsible-content">
-                        <div class="grid-2">
+
+                    <!-- BULLSEYE DATA -->
+                    <div class="card bullseye-card compact-bull">
+                        <div class="card-header-inner">
+                            <span id="bull-badge" class="badge-silver">BULLSEYE SILVER</span>
+                        </div>
+                        <div class="grid-horizontal-mission" style="margin-top:10px;">
                             <div class="input-group">
-                                <label>LATITUDE (DD)</label>
+                                <label>LAT (DD)</label>
                                 <input type="number" id="bullLat" step="any" value="-15.520278">
                             </div>
                             <div class="input-group">
-                                <label>LONGITUDE (DD)</label>
+                                <label>LON (DD)</label>
                                 <input type="number" id="bullLon" step="any" value="-49.987222">
                             </div>
-                        </div>
-                        <div class="input-group" style="margin-top: 10px;">
-                            <label>MAG VAR (DECLINAÇÃO)</label>
-                            <input type="number" id="magVar" step="any" value="-21.4" placeholder="-21.4°">
+                            <div class="input-group" style="flex: 0.8 !important;">
+                                <label>MAGVAR</label>
+                                <input type="number" id="magVar" step="any" value="-21.4">
+                            </div>
                         </div>
                     </div>
-                </section>
 
-                <section class="card threats-config">
-                    <div class="card-header">
-                        <h2>GERENCIAR AMEAÇAS</h2>
-                    </div>
-                    <div class="threats-grid" id="threats-config-list"></div>
-                    <div class="add-threat-row complex">
-                        <input type="text" id="new-threat-code" placeholder="CÓDIGO">
-                        <select id="new-threat-type">
-                            <option value="A/A">A/A</option>
-                            <option value="A/G">A/G</option>
-                        </select>
-                        <input type="number" id="new-threat-range" placeholder="VALOR (NM)">
-                        <button id="add-threat-config-btn" class="btn-secondary-outline">ADICIONAR</button>
+                    <!-- THREAT DATA -->
+                    <div class="card threat-management-card">
+                        <div class="mission-action-row">
+                            <button class="btn-mission-reset" onclick="resetThreats()">LIMPAR TUDO</button>
+                            <button class="btn-mission-default" onclick="loadDefaultMission(true)">RELOAD TINIA26</button>
+                        </div>
+
+                        <div class="threat-add-form-horizontal">
+                            <div class="input-group">
+                                <label>CÓDIGO</label>
+                                <input type="text" id="new-threat-code" placeholder="CÓDIGO">
+                            </div>
+                            <div class="input-group">
+                                <label>TIPO</label>
+                                <select id="new-threat-type">
+                                    <option value="A/A">A/A</option>
+                                    <option value="A/G">A/G</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label>RANGE</label>
+                                <input type="number" id="new-threat-range" placeholder="NM">
+                            </div>
+                            <button id="add-threat-config-btn" class="btn-add-threat-inline-horizontal">+</button>
+                        </div>
+
+                        <div class="threat-list-header">
+                            <span>ORDEM DE BATALHA</span>
+                            <span id="threat-count-badge">0</span>
+                        </div>
+                        <div class="threats-modern-grid" id="threats-config-list">
+                            <!-- Threats populated via JS -->
+                        </div>
                     </div>
                 </section>
             </div>
         </main>
 
         <footer class="tactical-footer">
-            <p>FPT</p>
+            <p>FPT • BRAA TACTICAL v5.3</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
     </div>
 
-    <!-- CUSTOM TACTICAL KEYPAD -->
+    <!-- KEYPAD -->
     <div id="tactical-keypad" class="keypad-overlay">
         <div class="keypad-header">
-            <span id="keypad-title">ID ALVO</span>
+            <div class="keypad-title-wrapper">
+                <span id="keypad-title">RADIAL</span>
+                <span id="keypad-context-info"></span>
+            </div>
             <button class="keypad-close" onclick="closeKeypad()">✕</button>
         </div>
         <div class="keypad-display">
@@ -242,7 +268,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=42')
+                navigator.serviceWorker.register('sw.js?v=53')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();
