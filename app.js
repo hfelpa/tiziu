@@ -217,9 +217,18 @@ function toDDM(decimal, isLat) {
 /**
  * KEYPAD LOGIC
  */
-function openKeypad(id, plotIndex = null) {
+function openKeypad(id, plotIndex = null, element = null) {
     state.activeInputId = id; state.activePlotIndex = plotIndex;
     let currentVal = ""; let label = ""; let contextVal = "";
+    
+    // Highlight active element
+    document.querySelectorAll('.editing-active').forEach(el => el.classList.remove('editing-active'));
+    if (!element && plotIndex === null) element = document.getElementById(id);
+    if (element) {
+        const group = element.closest('.input-group');
+        if (group) group.classList.add('editing-active');
+        else element.classList.add('editing-active');
+    }
     
     if (id === 'targetThreat' || id === 'threatCode') {
         label = 'AMEAÇA';
@@ -317,17 +326,25 @@ window.keypadNav = (dir) => {
         const sequence = ["threatCode", "radial", "dist"]; 
         const curIdx = sequence.indexOf(state.activeInputId); 
         let nextIdx = (curIdx + dir + sequence.length) % sequence.length; 
-        openKeypad(sequence[nextIdx], state.activePlotIndex); 
+        const nextElement = document.querySelector(`input[onclick*="openKeypad('${sequence[nextIdx]}', ${state.activePlotIndex})"]`);
+        openKeypad(sequence[nextIdx], state.activePlotIndex, nextElement); 
     } else { 
         const curIdx = INPUT_SEQUENCE.indexOf(state.activeInputId); 
         let nextIdx = (curIdx + dir + INPUT_SEQUENCE.length) % INPUT_SEQUENCE.length; 
-        openKeypad(INPUT_SEQUENCE[nextIdx]); 
+        const nextElement = document.getElementById(INPUT_SEQUENCE[nextIdx]);
+        openKeypad(INPUT_SEQUENCE[nextIdx], null, nextElement); 
     } 
 };
 window.confirmKeypad = (shouldAdd) => { updateActiveField(); if (shouldAdd && state.activePlotIndex === null) addPlot(); closeKeypad(); };
-window.closeKeypad = () => { el.keypad.style.display = 'none'; el.keypadBackdrop.style.display = 'none'; state.activeInputId = null; state.activePlotIndex = null; };
+window.closeKeypad = () => { 
+    el.keypad.style.display = 'none'; 
+    el.keypadBackdrop.style.display = 'none'; 
+    state.activeInputId = null; 
+    state.activePlotIndex = null; 
+    document.querySelectorAll('.editing-active').forEach(el => el.classList.remove('editing-active'));
+};
 
-document.querySelectorAll('.custom-keyboard-input').forEach(input => { input.addEventListener('click', () => openKeypad(input.id)); });
+document.querySelectorAll('.custom-keyboard-input').forEach(input => { input.addEventListener('click', () => openKeypad(input.id, null, input)); });
 
 /**
  * MISSION LOADING
@@ -463,9 +480,9 @@ function renderHistory() {
                         <tbody>
                             ${items.map(plot => `
                                 <tr>
-                                    <td><input type="text" value="${plot.radial}" readonly onclick="openKeypad('radial', ${plot.originalIndex})"></td>
-                                    <td><input type="text" value="${plot.dist}" readonly onclick="openKeypad('dist', ${plot.originalIndex})"></td>
-                                    <td><input type="text" value="${plot.threatCode || '-'}" readonly onclick="openKeypad('threatCode', ${plot.originalIndex})"></td>
+                                    <td><input type="text" value="${plot.radial}" readonly onclick="openKeypad('radial', ${plot.originalIndex}, this)"></td>
+                                    <td><input type="text" value="${plot.dist}" readonly onclick="openKeypad('dist', ${plot.originalIndex}, this)"></td>
+                                    <td><input type="text" value="${plot.threatCode || '-'}" readonly onclick="openKeypad('threatCode', ${plot.originalIndex}, this)"></td>
                                     <td><button class="btn-tiny" onclick="removePlot(${plot.originalIndex})">REMOVER</button></td>
                                 </tr>
                             `).join('')}
