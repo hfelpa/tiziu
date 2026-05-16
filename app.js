@@ -232,12 +232,15 @@ function openKeypad(id, plotIndex = null, element = null) {
     
     if (plotIndex === null) {
         document.body.classList.add('keypad-focused-plot-be');
-        const targetCard = document.querySelector('.card.target');
-        if (targetCard) {
-            targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        window.scrollTo(0, 0);
+        setTimeout(() => {
+            if (typeof drawTacticalDisplay === 'function') drawTacticalDisplay();
+        }, 150);
     } else {
         document.body.classList.remove('keypad-focused-plot-be');
+        setTimeout(() => {
+            if (typeof drawTacticalDisplay === 'function') drawTacticalDisplay();
+        }, 150);
     }
     
     if (id === 'targetThreat' || id === 'threatCode') {
@@ -353,6 +356,9 @@ window.closeKeypad = () => {
     state.activePlotIndex = null; 
     document.body.classList.remove('keypad-focused-plot-be');
     document.querySelectorAll('.editing-active').forEach(el => el.classList.remove('editing-active'));
+    setTimeout(() => {
+        if (typeof drawTacticalDisplay === 'function') drawTacticalDisplay();
+    }, 150);
 };
 
 document.querySelectorAll('.custom-keyboard-input').forEach(input => { input.addEventListener('click', () => openKeypad(input.id, null, input)); });

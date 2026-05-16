@@ -423,6 +423,16 @@ input.editing-active {
 .btn-tiny { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 10px 15px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.8rem; cursor: pointer; }
 
 /* FOCUS ON PLOT BE BLUR AND HIGHLIGHT EFFECT */
+body.keypad-focused-plot-be {
+    overflow: hidden !important;
+    height: 100vh !important;
+}
+body.keypad-focused-plot-be .app-container {
+    overflow: hidden !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+}
+
 body.keypad-focused-plot-be header,
 body.keypad-focused-plot-be nav {
     height: 0 !important;
@@ -434,21 +444,28 @@ body.keypad-focused-plot-be nav {
     pointer-events: none !important;
 }
 
-body.keypad-focused-plot-be .plotter-section,
 body.keypad-focused-plot-be .history-section,
 body.keypad-focused-plot-be footer {
-    filter: blur(5px) grayscale(0.5);
-    opacity: 0.2;
-    pointer-events: none;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 
 body.keypad-focused-plot-be .card.target,
-body.keypad-focused-plot-be .result-panel.compact {
+body.keypad-focused-plot-be .result-panel.compact,
+body.keypad-focused-plot-be .plotter-section {
     position: relative !important;
     z-index: 2005 !important; /* Above backdrop (1999) but below keypad (2010) */
     box-shadow: 0 0 35px rgba(0, 255, 65, 0.35) !important;
     border: 2px solid var(--primary-color) !important;
     background: #050505 !important;
+    opacity: 1 !important;
+    filter: none !important;
+    pointer-events: auto !important;
 }
 
 /* COMPACTING PLOT BE & RESULTS */
@@ -502,6 +519,33 @@ body.keypad-focused-plot-be .value-small {
 body.keypad-focused-plot-be .mgrs-item {
     margin-top: 4px !important;
     padding: 4px 10px !important;
+}
+
+/* COMPACTING TACTICAL DISPLAY AS CIRCULAR BADGE */
+body.keypad-focused-plot-be .plotter-section {
+    width: 250px !important;
+    height: 250px !important;
+    padding: 6px !important;
+    margin: 0 auto 8px auto !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    overflow: hidden !important;
+}
+body.keypad-focused-plot-be .plotter-section .card-header {
+    display: none !important;
+}
+body.keypad-focused-plot-be .plotter-container {
+    width: 236px !important;
+    height: 236px !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+}
+body.keypad-focused-plot-be #tactical-canvas {
+    width: 236px !important;
+    height: 236px !important;
+    border-radius: 50% !important;
 }
 
 /* COMPACTING KEYPAD OVERLAY */
