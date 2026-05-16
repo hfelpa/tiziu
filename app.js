@@ -3,8 +3,8 @@
  * Core Logic & Math
  */
 
-/* Version: 33.0.0 - Time: 1926 */
-const CACHE_NAME = 'braa-tactical-v33';
+/* Version: 37.0.0 - Time: 1940 */
+const CACHE_NAME = 'braa-tactical-v37';
 
 // MGRS LIBRARY (Mini-bundle)
 const mgrs = (function() {
@@ -52,7 +52,7 @@ const mgrs = (function() {
         const T = Math.tan(LatRad) * Math.tan(LatRad);
         const C = eccPrimeSquared * Math.cos(LatRad) * Math.cos(LatRad);
         const A = Math.cos(LatRad) * (LongRad - LongOriginRad);
-        const M = a * ((1 - ECC_SQUARED / 4 - 3 * ECC_SQUARED * ECC_SQUARED / 64 - 5 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 256) * LatRad - (3 * ECC_SQUARED / 8 + 3 * ECC_SQUARED * ECC_SQUARED / 32 + 45 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 1024) * Math.sin(2 * LatRad) + (15 * ECC_SQUARED / 256 + 45 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 1024) * Math.sin(4 * LatRad) - (35 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 3072) * Math.sin(6 * LatRad));
+        const M = a * ((1 - ECC_SQUARED / 4 - 3 * ECC_SQUARED * ECC_SQUARED / 64 - 5 * ECC_SQUARED * ECC_SQUARED / 256) * LatRad - (3 * ECC_SQUARED / 8 + 3 * ECC_SQUARED * ECC_SQUARED / 32 + 45 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 1024) * Math.sin(2 * LatRad) + (15 * ECC_SQUARED / 256 + 45 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 1024) * Math.sin(4 * LatRad) - (35 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 3072) * Math.sin(6 * LatRad));
         const UTMEasting = (SCALE_FACTOR * N * (A + (1 - T + C) * A * A * A / 6 + (5 - 18 * T + T * T + 72 * C - 58 * eccPrimeSquared) * A * A * A * A * A / 120) + EASTING_OFFSET);
         let UTMNorthing = (SCALE_FACTOR * (M + N * Math.tan(LatRad) * (A * A / 2 + (5 - T + 9 * C + 4 * C * C) * A * A * A * A / 24 + (61 - 58 * T + T * T + 600 * C - 330 * eccPrimeSquared) * A * A * A * A * A * A / 720)));
         if (Lat < 0) UTMNorthing += NORTHING_OFFFSET;
@@ -236,7 +236,7 @@ function calculateBullCoord() {
  * THREATS & HISTORY
  */
 function updateThreatDropdowns() {
-    const options = `<option value="">NENHUMA</option>` + 
+    const options = `<option value="">-</option>` + 
         state.threats.map(t => `<option value="${t.code}">${t.code}</option>`).join('');
     el.threatSelect.innerHTML = options;
     renderThreatConfig();
@@ -320,7 +320,7 @@ function renderHistory() {
                                     <td><input type="number" value="${plot.dist}" onchange="updatePlot(${plot.originalIndex}, 'dist', this.value)"></td>
                                     <td>
                                         <select onchange="updatePlot(${plot.originalIndex}, 'threatCode', this.value)">
-                                            <option value="">NENHUMA</option>
+                                            <option value="">-</option>
                                             ${state.threats.map(t => `<option value="${t.code}" ${t.code === plot.threatCode ? 'selected' : ''}>${t.code}</option>`).join('')}
                                         </select>
                                     </td>
