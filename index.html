@@ -1,18 +1,24 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TIZIU - Tactical Calculator</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%2300ff41' d='M20,60 C35,62 48,55 58,42 C62,37 66,28 72,25 C78,22 86,22 92,26 C88,29 82,31 80,36 C78,41 81,46 84,50 C74,48 65,52 57,59 C47,68 40,78 28,79 C34,71 34,65 20,60 Z'/%3E%3C/svg%3E">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>TIZIU</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%2300ff41' d='M20,60 C35,62 48,55 58,42 C62,37 66,28 72,25 C78,22 86,22 92,26 C88,29 82,31 80,36 C78,41 81,46 84,50 C74,48 65,52 57,59 C47,68 40,78 28,79 C34,71 34,65 20,60 Z'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
     <link rel="apple-touch-icon" href="https://img.icons8.com/ios-filled/512/00ff41/bird.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;700&display=swap"
+        rel="stylesheet">
 </head>
+
 <body class="tactical-theme">
     <!-- KEYPAD BACKDROP -->
     <div id="keypad-backdrop" class="keypad-backdrop" onclick="closeKeypad()"></div>
@@ -26,7 +32,8 @@
             </div>
             <div class="header-status-group">
                 <span id="gps-status" class="status-indicator offline" onclick="initGPS()">GPS: OFF</span>
-                <span id="compass-status" class="status-indicator offline" onclick="activateSensors()">BÚSSOLA: OFF</span>
+                <span id="compass-status" class="status-indicator offline" onclick="activateSensors()">BÚSSOLA:
+                    OFF</span>
             </div>
         </header>
 
@@ -35,9 +42,12 @@
             <div id="calc-page" class="page active">
                 <!-- UNIFIED INPUT: PLOT BE -->
                 <section class="card target">
-                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div class="card-header"
+                        style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                         <h2 id="bull-badge-main">PLOT BE [SILVER]</h2>
-                        <select id="active-bullseye-select" class="select-small" style="max-width: 140px; background: rgba(0, 255, 65, 0.1); border: 1px solid var(--primary-color); color: var(--primary-color); font-weight: bold; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.85rem;" onchange="selectActiveBullseye(this.value)">
+                        <select id="active-bullseye-select" class="select-small"
+                            style="max-width: 140px; background: rgba(0, 255, 65, 0.1); border: 1px solid var(--primary-color); color: var(--primary-color); font-weight: bold; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.85rem;"
+                            onchange="selectActiveBullseye(this.value)">
                             <option value="SILVER">SILVER</option>
                         </select>
                     </div>
@@ -48,11 +58,13 @@
                         </div>
                         <div class="input-group rad-group">
                             <label>RADIAL</label>
-                            <input type="text" id="targetRadial" placeholder="360°" readonly class="custom-keyboard-input">
+                            <input type="text" id="targetRadial" placeholder="360°" readonly
+                                class="custom-keyboard-input">
                         </div>
                         <div class="input-group dist-group">
                             <label>DIST</label>
-                            <input type="text" id="targetDist" placeholder="0 NM" readonly class="custom-keyboard-input">
+                            <input type="text" id="targetDist" placeholder="0 NM" readonly
+                                class="custom-keyboard-input">
                         </div>
                         <div class="input-group threat-group">
                             <label>AMEAÇA</label>
@@ -142,12 +154,18 @@
                     <div class="card bullseye-card compact-bull" style="padding: 15px 20px !important;">
                         <div class="grid-horizontal-mission">
                             <div class="input-group" style="text-align: left;">
-                                <label style="font-family: var(--font-sans); font-size: 0.75rem; color: #888; letter-spacing: 1px; text-transform: uppercase;">LAT</label>
-                                <div id="ownLatDisplay" style="font-family: var(--font-mono); font-size: 1.3rem; color: var(--primary-color); font-weight: bold; margin-top: 6px; letter-spacing: 0.5px;">---</div>
+                                <label
+                                    style="font-family: var(--font-sans); font-size: 0.75rem; color: #888; letter-spacing: 1px; text-transform: uppercase;">LAT</label>
+                                <div id="ownLatDisplay"
+                                    style="font-family: var(--font-mono); font-size: 1.3rem; color: var(--primary-color); font-weight: bold; margin-top: 6px; letter-spacing: 0.5px;">
+                                    ---</div>
                             </div>
                             <div class="input-group" style="text-align: left;">
-                                <label style="font-family: var(--font-sans); font-size: 0.75rem; color: #888; letter-spacing: 1px; text-transform: uppercase;">LON</label>
-                                <div id="ownLonDisplay" style="font-family: var(--font-mono); font-size: 1.3rem; color: var(--primary-color); font-weight: bold; margin-top: 6px; letter-spacing: 0.5px;">---</div>
+                                <label
+                                    style="font-family: var(--font-sans); font-size: 0.75rem; color: #888; letter-spacing: 1px; text-transform: uppercase;">LON</label>
+                                <div id="ownLonDisplay"
+                                    style="font-family: var(--font-mono); font-size: 1.3rem; color: var(--primary-color); font-weight: bold; margin-top: 6px; letter-spacing: 0.5px;">
+                                    ---</div>
                             </div>
                         </div>
                     </div>
@@ -158,13 +176,18 @@
                     <div class="section-header-row">
                         <h3 class="section-title">02. GERENCIAMENTO DE MISSÃO</h3>
                     </div>
-                                 <div class="mission-upload-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <div class="mission-upload-container"
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
                         <input type="file" id="mission-file-input" accept=".json,.csv,.txt" hidden>
-                        <button class="btn-import-mission btn-green" onclick="document.getElementById('mission-file-input').click()" style="width: 100%;">IMPORTAR CENÁRIO</button>
-                        <button class="btn-import-mission btn-green" onclick="exportState()" style="width: 100%;">EXPORTAR CENÁRIO</button>
-                        
+                        <button class="btn-import-mission btn-green"
+                            onclick="document.getElementById('mission-file-input').click()"
+                            style="width: 100%;">IMPORTAR CENÁRIO</button>
+                        <button class="btn-import-mission btn-green" onclick="exportState()"
+                            style="width: 100%;">EXPORTAR CENÁRIO</button>
+
                         <input type="file" id="gpx-file-input" accept=".gpx" hidden>
-                        <button class="btn-import-mission btn-purple" style="grid-column: span 2; width: 100%;" onclick="document.getElementById('gpx-file-input').click()">IMPORTAR ROTA .GPX</button>
+                        <button class="btn-import-mission btn-purple" style="grid-column: span 2; width: 100%;"
+                            onclick="document.getElementById('gpx-file-input').click()">IMPORTAR ROTA .GPX</button>
                     </div>
 
 
@@ -172,7 +195,8 @@
                     <!-- LIST OF BULLSEYES TABLE & REGISTRATION FORM -->
                     <div class="card bullseye-card compact-bull" style="margin-bottom: 15px; padding: 15px !important;">
                         <div style="overflow-x: auto; width: 100%;">
-                            <table class="tactical-table" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
+                            <table class="tactical-table"
+                                style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem;">
                                 <thead>
                                     <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
                                         <th style="padding: 8px 6px; color: var(--primary-color);">BULLSEYE</th>
@@ -187,16 +211,18 @@
                                 </tbody>
                             </table>
                         </div>
-                        
+
                         <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 15px 0;">
-                        
+
                         <div class="card-header-inner" style="margin-bottom: 10px;">
-                            <span style="font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">NOVO BULLSEYE</span>
+                            <span style="font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">NOVO
+                                BULLSEYE</span>
                         </div>
                         <div class="threat-add-form-horizontal">
                             <div class="input-group">
                                 <label>NOME</label>
-                                <input type="text" id="newBullName" placeholder="GOLD" style="text-transform: uppercase;">
+                                <input type="text" id="newBullName" placeholder="GOLD"
+                                    style="text-transform: uppercase;">
                             </div>
                             <div class="input-group">
                                 <label>LAT (DD)</label>
@@ -210,21 +236,27 @@
                                 <label>MAGVAR</label>
                                 <input type="number" id="newBullMagVar" step="any" placeholder="-21.4">
                             </div>
-                            <button id="add-bull-btn" class="btn-add-threat-inline-horizontal" onclick="addBullseyeConfig()">+</button>
+                            <button id="add-bull-btn" class="btn-add-threat-inline-horizontal"
+                                onclick="addBullseyeConfig()">+</button>
                         </div>
                     </div>
 
                     <!-- CONFIGURAÇÃO DE START TARGET ID -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 10px 14px; border-radius: 8px; margin-bottom: 15px;">
-                        <span style="font-size: 0.8rem; font-weight: bold; color: #fff; letter-spacing: 0.5px;">PRIMEIRO ID DO ALVO (START ID)</span>
-                        <input type="number" id="start-target-id-input" value="71" min="1" style="max-width: 80px; text-align: center; font-family: var(--font-mono); font-weight: bold; border-radius: 6px; border: 1px solid var(--primary-color); background: rgba(0, 255, 65, 0.05); color: var(--primary-color); padding: 5px;" onchange="updateStartTargetId(this.value)">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 10px 14px; border-radius: 8px; margin-bottom: 15px;">
+                        <span style="font-size: 0.8rem; font-weight: bold; color: #fff; letter-spacing: 0.5px;">PRIMEIRO
+                            ID DO ALVO (START ID)</span>
+                        <input type="number" id="start-target-id-input" value="71" min="1"
+                            style="max-width: 80px; text-align: center; font-family: var(--font-mono); font-weight: bold; border-radius: 6px; border: 1px solid var(--primary-color); background: rgba(0, 255, 65, 0.05); color: var(--primary-color); padding: 5px;"
+                            onchange="updateStartTargetId(this.value)">
                     </div>
 
                     <!-- THREAT DATA -->
                     <div class="card threat-management-card">
                         <div class="mission-action-row">
                             <button class="btn-mission-reset" onclick="resetThreats()">LIMPAR TUDO</button>
-                            <button class="btn-mission-default" onclick="loadDefaultMission(true)">RELOAD TINIA26</button>
+                            <button class="btn-mission-default" onclick="loadDefaultMission(true)">RELOAD
+                                TINIA26</button>
                         </div>
 
                         <div class="threat-add-form-horizontal">
@@ -320,7 +352,7 @@
                         console.log('SW Error', err);
                         initGPS();
                     });
-                
+
                 // Recarrega a página automaticamente quando um novo SW assume o controle
                 let refreshing = false;
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
@@ -335,4 +367,5 @@
         }
     </script>
 </body>
+
 </html>
