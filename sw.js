@@ -30,19 +30,20 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
     event.respondWith(
-        caches.match(event.request).then((response) => {
-            // Estratégia Stale-While-Revalidate para garantir que os arquivos mais recentes sejam buscados
-            const fetchPromise = fetch(event.request).then((networkResponse) => {
+        fetch(event.request)
+            .then((networkResponse) => {
+                // Se a rede retornar com sucesso, atualiza o cache
                 if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+                    const responseToCache = networkResponse.clone();
                     caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, networkResponse.clone());
+                        cache.put(event.request, responseToCache);
                     });
                 }
                 return networkResponse;
-            }).catch(() => {
-                // Se falhar (offline), silencia o erro
-            });
-            return response || fetchPromise;
-        })
+            })
+            .catch(() => {
+                // Se a rede falhar (offline), busca no cache
+                return caches.match(event.request);
+            })
     );
 });

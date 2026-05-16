@@ -272,7 +272,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=56')
+                navigator.serviceWorker.register('sw.js?v=57')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();
@@ -281,6 +281,15 @@
                         console.log('SW Error', err);
                         initGPS();
                     });
+                
+                // Recarrega a página automaticamente quando um novo SW assume o controle
+                let refreshing = false;
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    if (!refreshing) {
+                        window.location.reload();
+                        refreshing = true;
+                    }
+                });
             });
         } else {
             initGPS();
