@@ -19,7 +19,7 @@
                 <span id="gps-status" class="status-indicator offline">GPS: BUSCANDO...</span>
                 <span id="pwa-status" class="status-indicator">OFFLINE READY</span>
             </div>
-            <h1>BRAA TACTICAL <span class="v2">v3.5</span></h1>
+            <h1>BRAA TACTICAL <span class="v2">v3.6</span></h1>
         </header>
 
         <!-- NAVIGATION MENU -->
@@ -40,15 +40,16 @@
                         <div class="grid-4-main">
                             <div class="input-group">
                                 <label>ID ALVO</label>
-                                <input type="text" id="targetId" placeholder="ID" value="1" inputmode="numeric">
+                                <!-- Using type="tel" and pattern to force iOS Number Pad -->
+                                <input type="tel" id="targetId" placeholder="ID" value="1" inputmode="numeric" pattern="[0-9]*">
                             </div>
                             <div class="input-group">
                                 <label>RADIAL</label>
-                                <input type="number" id="targetRadial" placeholder="360°" inputmode="numeric">
+                                <input type="tel" id="targetRadial" placeholder="360°" inputmode="numeric" pattern="[0-9]*">
                             </div>
                             <div class="input-group">
                                 <label>DIST</label>
-                                <input type="number" id="targetDist" placeholder="0 NM" inputmode="numeric">
+                                <input type="tel" id="targetDist" placeholder="0 NM" inputmode="numeric" pattern="[0-9]*">
                             </div>
                             <div class="input-group">
                                 <label>AMEAÇA</label>
@@ -229,7 +230,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=35')
+                navigator.serviceWorker.register('sw.js?v=36')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();

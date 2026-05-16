@@ -1,5 +1,5 @@
-/* Version: 35.0.0 - Time: 1929 */
-const CACHE_NAME = 'braa-tactical-v35';
+/* Version: 36.0.0 - Time: 1938 */
+const CACHE_NAME = 'braa-tactical-v36';
 const ASSETS = [
     './',
     './index.html',
