@@ -9,7 +9,7 @@ O **TIZIU** é um software desenvolvido para auxiliar a formar a consciência si
 O **TIZIU** foi desenvolvido para funcionar 100% offline em iPads e iPhones na nacele em voo, sem depender de internet ou rede celular. Siga o passo a passo de instalação:
 
 ### 1. No Safari (iOS / iPadOS)
-1. Abra o Safari e acesse o endereço do aplicativo **TIZIU** (hfelpa.github.io/tiziu/).
+1. Abra o Safari e acesse o endereço do aplicativo **[TIZIU](https://hfelpa.github.io/tiziu/)**
 2. Toque no botão de **Compartilhar** (ícone de um quadrado com uma seta apontando para cima).
 3. Selecione a opção **Adicionar à Tela de Início**.
 4. Confirme o nome do aplicativo e toque em **Adicionar**. Um ícone com a silhueta do passarinho Tiziu será adicionado à sua tela de início.
