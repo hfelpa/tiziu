@@ -120,6 +120,7 @@ const state = {
     lastFixTime: 0,
     plots: [],
     targetPos: null,
+    originalPlotPos: null,
     rangeScale: 40,
     orientation: 'HEADING', // HEADING or NORTH
     threats: [],
@@ -232,12 +233,38 @@ function openKeypad(id, plotIndex = null, element = null) {
     
     if (plotIndex === null) {
         document.body.classList.add('keypad-focused-plot-be');
+        document.body.classList.add('keypad-mode-new');
+        document.body.classList.remove('keypad-mode-edit');
         window.scrollTo(0, 0);
         setTimeout(() => {
             if (typeof drawTacticalDisplay === 'function') drawTacticalDisplay();
         }, 150);
     } else {
-        document.body.classList.remove('keypad-focused-plot-be');
+        document.body.classList.add('keypad-focused-plot-be');
+        document.body.classList.add('keypad-mode-edit');
+        document.body.classList.remove('keypad-mode-new');
+        
+        // Save original plot position if not already saved in this session
+        if (!state.originalPlotPos) {
+            const plot = state.plots[plotIndex];
+            state.originalPlotPos = {
+                lat: plot.lat,
+                lon: plot.lon,
+                radial: plot.radial,
+                dist: plot.dist,
+                threatCode: plot.threatCode,
+                threatRange: plot.threatRange
+            };
+        }
+
+        // Highlight active history group
+        document.querySelectorAll('.editing-active-group').forEach(el => el.classList.remove('editing-active-group'));
+        if (element) {
+            const histGroup = element.closest('.history-group');
+            if (histGroup) histGroup.classList.add('editing-active-group');
+        }
+
+        window.scrollTo(0, 0);
         setTimeout(() => {
             if (typeof drawTacticalDisplay === 'function') drawTacticalDisplay();
         }, 150);
@@ -256,8 +283,13 @@ function openKeypad(id, plotIndex = null, element = null) {
         state.threatPage = 0;
         renderThreatKeypad();
         
-        el.keypad.classList.remove('editing');
-        el.keypadEnterBtn.textContent = 'ENTER';
+        if (plotIndex !== null) {
+            el.keypad.classList.add('editing');
+            el.keypadEnterBtn.textContent = 'CORRIGIR';
+        } else {
+            el.keypad.classList.remove('editing');
+            el.keypadEnterBtn.textContent = 'ENTER';
+        }
         el.keypad.style.display = 'flex';
         el.keypadBackdrop.style.display = 'block';
         return;
@@ -354,8 +386,13 @@ window.closeKeypad = () => {
     el.keypadBackdrop.style.display = 'none'; 
     state.activeInputId = null; 
     state.activePlotIndex = null; 
+    state.targetPos = null; // Clear preview
+    state.originalPlotPos = null; // Clear comparison
     document.body.classList.remove('keypad-focused-plot-be');
+    document.body.classList.remove('keypad-mode-new');
+    document.body.classList.remove('keypad-mode-edit');
     document.querySelectorAll('.editing-active').forEach(el => el.classList.remove('editing-active'));
+    document.querySelectorAll('.editing-active-group').forEach(el => el.classList.remove('editing-active-group'));
     setTimeout(() => {
         if (typeof drawTacticalDisplay === 'function') drawTacticalDisplay();
     }, 150);
@@ -474,6 +511,7 @@ function addPlot() {
     if (!state.targetPos) return;
     const threatCode = document.getElementById('targetThreat').value; const threat = state.threats.find(t => t.code === threatCode); const targetId = el.targetId.value || "1";
     state.plots.push({ ...state.targetPos, targetId: targetId, threatCode: threatCode && threatCode !== '-' ? threatCode : null, threatRange: threat ? threat.range : null, threatType: threat ? threat.type : null, timestamp: Date.now() });
+    state.targetPos = null; // Clear preview
     const usedIds = new Set(state.plots.map(p => p.targetId)); let nextId = 1; while (usedIds.has(nextId.toString())) { nextId++; }
     el.targetId.value = nextId.toString(); renderHistory(); drawTacticalDisplay();
 }
@@ -616,11 +654,34 @@ function drawTacticalDisplay() {
     });
 
     const magVar = parseFloat(el.magVar.value) || 0;
-    state.plots.forEach(plot => {
+    state.plots.forEach((plot, idx) => {
         const d = getDistance(state.ownPos.lat, state.ownPos.lon, plot.lat, plot.lon); const b = getBearing(state.ownPos.lat, state.ownPos.lon, plot.lat, plot.lon);
         const x = centerX + Math.sin(toRad(b)) * (d * pxPerNM); const y = centerY - Math.cos(toRad(b)) * (d * pxPerNM);
         const isLatest = latestById[plot.targetId] === plot;
-        if (isLatest) {
+        
+        const isEditingThis = state.activePlotIndex === idx;
+        if (isEditingThis) {
+            // Draw blue dotted target preview for currently edited existing plot
+            ctx.strokeStyle = '#00e5ff'; // Sleek cyan/blue edit-color
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([2, 3]); // Nice dotted pattern
+            
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(x - 10, y); ctx.lineTo(x + 10, y);
+            ctx.moveTo(x, y - 10); ctx.lineTo(x, y + 10);
+            ctx.stroke();
+
+            if (plot.threatRange) {
+                ctx.beginPath();
+                ctx.arc(x, y, plot.threatRange * pxPerNM, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+        } else if (isLatest) {
             ctx.fillStyle = '#ffb000'; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
             
             ctx.font = 'bold 11px JetBrains Mono';
@@ -643,6 +704,68 @@ function drawTacticalDisplay() {
             }
         } else { ctx.fillStyle = 'rgba(255, 176, 0, 0.35)'; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill(); }
     });
+
+    // DRAW PREVIEW (GHOST TARGET IN EDIT)
+    if (state.targetPos) {
+        const d = getDistance(state.ownPos.lat, state.ownPos.lon, state.targetPos.lat, state.targetPos.lon);
+        const b = getBearing(state.ownPos.lat, state.ownPos.lon, state.targetPos.lat, state.targetPos.lon);
+        const x = centerX + Math.sin(toRad(b)) * (d * pxPerNM);
+        const y = centerY - Math.cos(toRad(b)) * (d * pxPerNM);
+
+        // Draw orange dotted preview
+        ctx.strokeStyle = '#ffb000';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([2, 3]); // Beautiful dotted pattern
+        
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x - 10, y); ctx.lineTo(x + 10, y);
+        ctx.moveTo(x, y - 10); ctx.lineTo(x, y + 10);
+        ctx.stroke();
+
+        // Draw dotted threat ring if threat selected
+        const threatCode = document.getElementById('targetThreat').value;
+        const threat = state.threats.find(t => t.code === threatCode);
+        if (threat && threat.range) {
+            ctx.beginPath();
+            ctx.arc(x, y, threat.range * pxPerNM, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        
+        ctx.setLineDash([]);
+    }
+
+    // DRAW ORIGINAL POSITION OF THE PLOT UNDER EDIT (FOR COMPARISON)
+    if (state.originalPlotPos) {
+        const d = getDistance(state.ownPos.lat, state.ownPos.lon, state.originalPlotPos.lat, state.originalPlotPos.lon);
+        const b = getBearing(state.ownPos.lat, state.ownPos.lon, state.originalPlotPos.lat, state.originalPlotPos.lon);
+        const x = centerX + Math.sin(toRad(b)) * (d * pxPerNM);
+        const y = centerY - Math.cos(toRad(b)) * (d * pxPerNM);
+
+        // Draw orange/yellow dotted preview (original position before edit)
+        ctx.strokeStyle = 'rgba(255, 176, 0, 0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([2, 4]); // Different dotted pattern
+        
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x - 8, y); ctx.lineTo(x + 8, y);
+        ctx.moveTo(x, y - 8); ctx.lineTo(x, y + 8);
+        ctx.stroke();
+
+        if (state.originalPlotPos.threatRange) {
+            ctx.beginPath();
+            ctx.arc(x, y, state.originalPlotPos.threatRange * pxPerNM, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        ctx.setLineDash([]);
+    }
 
     ctx.restore();
 
