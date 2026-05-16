@@ -101,11 +101,11 @@ Como o aplicativo roda instalado como PWA em iPads, o navegador Safari é extrem
 
 1.  **Incremente a versão do cache** no arquivo `sw.js` (variável `CACHE_NAME` e o cabeçalho do arquivo):
     ```javascript
-    /* Version: 7.7.7 */
-    const CACHE_NAME = 'braa-tactical-v7.7.7';
+    /* Version: 7.7.8 */
+    const CACHE_NAME = 'braa-tactical-v7.7.8';
     ```
 2.  **Incremente o parâmetro de query string** no registro do service worker no final do arquivo `index.html`:
     ```javascript
-    navigator.serviceWorker.register('sw.js?v=7.7.7')
+    navigator.serviceWorker.register('sw.js?v=7.7.8')
     ```
 Isso força o iPad a invalidar instantaneamente o cache local antigo e baixar as atualizações na próxima abertura do aplicativo.

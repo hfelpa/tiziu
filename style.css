@@ -144,6 +144,38 @@ h1 .v2 {
     color: #666;
 }
 
+main {
+    transition: filter 0.5s ease;
+}
+
+main.compass-blurred {
+    filter: blur(8px);
+    pointer-events: none;
+    user-select: none;
+}
+
+.header-status-group .status-indicator.pulse-highlight {
+    animation: compass-pulse 1.2s infinite alternate;
+    border-color: #ff00ff !important;
+    background: rgba(255, 0, 255, 0.2) !important;
+    color: #fff !important;
+    font-weight: bold;
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.6);
+    text-shadow: 0 0 5px #fff;
+    z-index: 100;
+}
+
+@keyframes compass-pulse {
+    0% {
+        box-shadow: 0 0 6px rgba(255, 0, 255, 0.4);
+        transform: scale(1);
+    }
+    100% {
+        box-shadow: 0 0 22px rgba(255, 0, 255, 1);
+        transform: scale(1.06);
+    }
+}
+
 /* CARDS & PAGES */
 .page { display: none; }
 .page.active { display: block; }

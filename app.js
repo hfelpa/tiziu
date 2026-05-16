@@ -1142,6 +1142,25 @@ function updatePosition(pos) {
     el.gpsStatus.textContent = `GPS: LIVE [${timeStr}]`; el.gpsStatus.classList.remove('offline'); el.gpsStatus.classList.add('online'); calculateBRAA();
 }
 
+window.updateCompassStatusUI = () => {
+    const mainEl = document.querySelector('main');
+    if (state.sensorsActive) {
+        if (mainEl) mainEl.classList.remove('compass-blurred');
+        if (el.compassStatus) {
+            el.compassStatus.innerHTML = "BÚSSOLA: ATIVA";
+            el.compassStatus.classList.remove('offline', 'pulse-highlight');
+            el.compassStatus.classList.add('online');
+        }
+    } else {
+        if (mainEl) mainEl.classList.add('compass-blurred');
+        if (el.compassStatus) {
+            el.compassStatus.innerHTML = "ATIVAR BÚSSOLA 🧭";
+            el.compassStatus.classList.remove('online');
+            el.compassStatus.classList.add('offline', 'pulse-highlight');
+        }
+    }
+};
+
 window.activateSensors = (isAuto = false) => {
     console.log("Tentando ativar sensores... Auto:", isAuto);
     if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -1150,11 +1169,7 @@ window.activateSensors = (isAuto = false) => {
                 if (permissionState === 'granted') {
                     window.addEventListener('deviceorientation', handleOrientation, true);
                     state.sensorsActive = true;
-                    if(el.compassStatus) {
-                        el.compassStatus.innerHTML = "BÚSSOLA: ATIVA";
-                        el.compassStatus.classList.remove('offline');
-                        el.compassStatus.classList.add('online');
-                    }
+                    window.updateCompassStatusUI();
                 } else if (!isAuto) {
                     alert('Permissão de orientação negada pelo usuário.');
                 }
@@ -1170,11 +1185,7 @@ window.activateSensors = (isAuto = false) => {
         window.addEventListener('deviceorientation', handleOrientation, true);
         window.addEventListener('deviceorientationabsolute', handleOrientation, true);
         state.sensorsActive = true;
-        if(el.compassStatus) {
-            el.compassStatus.innerHTML = "BÚSSOLA: ATIVA";
-            el.compassStatus.classList.remove('offline');
-            el.compassStatus.classList.add('online');
-        }
+        window.updateCompassStatusUI();
     }
 };
 
@@ -1239,6 +1250,7 @@ if (el.gpxFileInput) el.gpxFileInput.addEventListener('change', handleGpxFile);
 loadDefaultMission(false);
 initGPS();
 window.activateSensors(true);
+window.updateCompassStatusUI();
 
 function animLoop() {
     drawTacticalDisplay();
