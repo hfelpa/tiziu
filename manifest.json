@@ -1,14 +1,14 @@
 {
-  "name": "BRAA Tactical Calculator",
-  "short_name": "BRAA Tac",
+  "name": "TIZIU Tactical Calculator",
+  "short_name": "TIZIU",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#050505",
-  "theme_color": "#ffb000",
-  "description": "Calculadora BRAA Offline para Aviação Tática",
+  "theme_color": "#00ff41",
+  "description": "Calculadora TIZIU Offline para Aviação Tática",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/1924/1924768.png",
+      "src": "https://img.icons8.com/ios-filled/512/00ff41/bird.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

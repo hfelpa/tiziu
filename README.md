@@ -1,6 +1,6 @@
-# BRAA Tactical - Simulador de Navegação e Alertas de Ameaças ✈️
+# TIZIU - Simulador de Navegação e Alertas de Ameaças ✈️
 
-O **BRAA Tactical** é um aplicativo PWA (Progressive Web App) desenvolvido especificamente para simulação de aviação militar e navegação aérea tática. Ele foi projetado com foco em dispositivos móveis/tablets (como o iPad em condições de voo), apresentando uma interface escura de alta fidelidade e ergonomia de inserção ultrarápida com teclado numérico tático integrado.
+O **TIZIU** é um aplicativo PWA (Progressive Web App) desenvolvido especificamente para simulação de aviação militar e navegação aérea tática. Ele foi projetado com foco em dispositivos móveis/tablets (como o iPad em condições de voo), apresentando uma interface escura de alta fidelidade e ergonomia de inserção ultrarápida com teclado numérico tático integrado.
 
 ---
 
@@ -35,7 +35,7 @@ O **BRAA Tactical** é um aplicativo PWA (Progressive Web App) desenvolvido espe
 
 ## 📂 Formatos de Arquivos de Missão
 
-O BRAA Tactical suporta a importação de cenários para facilitar a preparação de voo. Na página de configurações, você pode carregar arquivos nos seguintes formatos:
+O TIZIU suporta a importação de cenários para facilitar a preparação de voo. Na página de configurações, você pode carregar arquivos nos seguintes formatos:
 
 ### 1. Arquivo de Texto Simples (.txt)
 O formato mais rápido para construir e compartilhar cenários. Cada linha define o Bullseye ou uma ameaça, usando espaços, tabulações ou vírgulas como separadores.
@@ -96,11 +96,11 @@ Como o aplicativo roda instalado como PWA em iPads, o navegador Safari é extrem
 
 1.  **Incremente a versão do cache** no arquivo `sw.js` (variável `CACHE_NAME` e o cabeçalho do arquivo):
     ```javascript
-    /* Version: 75.0.0 */
-    const CACHE_NAME = 'braa-tactical-v75';
+    /* Version: 7.7.2 */
+    const CACHE_NAME = 'braa-tactical-v7.7.2';
     ```
 2.  **Incremente o parâmetro de query string** no registro do service worker no final do arquivo `index.html`:
     ```javascript
-    navigator.serviceWorker.register('sw.js?v=75')
+    navigator.serviceWorker.register('sw.js?v=7.7.2')
     ```
 Isso força o iPad a invalidar instantaneamente o cache local antigo e baixar as atualizações na próxima abertura do aplicativo.

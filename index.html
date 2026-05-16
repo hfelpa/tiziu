@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BRAA Tactical Calculator</title>
+    <title>TIZIU - Tactical Calculator</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%2300ff41' d='M20,60 C35,62 48,55 58,42 C62,37 66,28 72,25 C78,22 86,22 92,26 C88,29 82,31 80,36 C78,41 81,46 84,50 C74,48 65,52 57,59 C47,68 40,78 28,79 C34,71 34,65 20,60 Z'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/ios-filled/512/00ff41/bird.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
@@ -22,7 +23,7 @@
                 <span id="gps-status" class="status-indicator offline" onclick="initGPS()">GPS: OFF</span>
                 <span id="compass-status" class="status-indicator offline" onclick="activateSensors()">BÚSSOLA: OFF (CLIQUE)</span>
             </div>
-            <h1>BRAA TACTICAL <span class="v2">v5.7</span></h1>
+            <h1>TIZIU</h1>
         </header>
 
         <!-- NAVIGATION MENU -->
@@ -45,7 +46,7 @@
                     <div class="plot-input-row-horizontal">
                         <div class="input-group id-group">
                             <label>ID</label>
-                            <input type="text" id="targetId" value="1" readonly class="custom-keyboard-input">
+                            <input type="text" id="targetId" value="71" readonly class="custom-keyboard-input">
                         </div>
                         <div class="input-group rad-group">
                             <label>RADIAL</label>
@@ -214,6 +215,12 @@
                         </div>
                     </div>
 
+                    <!-- CONFIGURAÇÃO DE START TARGET ID -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 10px 14px; border-radius: 8px; margin-bottom: 15px;">
+                        <span style="font-size: 0.8rem; font-weight: bold; color: #fff; letter-spacing: 0.5px;">PRIMEIRO ID DO ALVO (START ID)</span>
+                        <input type="number" id="start-target-id-input" value="71" min="1" style="max-width: 80px; text-align: center; font-family: var(--font-mono); font-weight: bold; border-radius: 6px; border: 1px solid var(--primary-color); background: rgba(0, 255, 65, 0.05); color: var(--primary-color); padding: 5px;" onchange="updateStartTargetId(this.value)">
+                    </div>
+
                     <!-- THREAT DATA -->
                     <div class="card threat-management-card">
                         <div class="mission-action-row">
@@ -253,7 +260,7 @@
         </main>
 
         <footer class="tactical-footer">
-            <p>FPT • BRAA TACTICAL v5.6</p>
+            <p>FPT • TIZIU v7.7.2</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
     </div>
@@ -305,7 +312,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=76')
+                navigator.serviceWorker.register('sw.js?v=7.7.2')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();

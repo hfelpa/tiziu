@@ -640,3 +640,226 @@ body.keypad-mode-edit #active-bullseye-select {
     border-color: var(--edit-color) !important;
     color: var(--edit-color) !important;
 }
+
+/* CUSTOM HIGH-END PLOT HISTORY STYLES */
+.history-groups-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.history-group {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.history-group:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.history-group.editing-active-group {
+    border-color: var(--edit-color) !important;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.2) !important;
+}
+
+.history-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.history-group-header:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.history-group-title {
+    font-weight: 800;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+.badge-select-id {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    background: rgba(0, 255, 65, 0.08);
+    color: var(--primary-color);
+    border: 1px solid rgba(0, 255, 65, 0.25);
+    border-radius: 4px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.badge-plots-count {
+    font-size: 0.75rem;
+    color: #bbb;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-weight: bold;
+}
+
+.toggle-icon {
+    font-size: 0.8rem;
+    color: #888;
+    transition: transform 0.25s ease;
+    display: inline-block;
+    padding: 4px;
+}
+
+.history-group.collapsed .history-group-content {
+    display: none !important;
+}
+
+.history-group.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.history-group-content {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* INDIVIDUAL PLOT ROWS */
+.plot-history-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    padding: 8px 10px;
+    gap: 10px;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.plot-history-row:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.plot-pills-container {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex: 1;
+}
+
+/* CUSTOM INTERACTIVE PILLS */
+.history-pill {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: center;
+    padding: 6px 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-weight: bold;
+    user-select: none;
+    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s, color 0.2s;
+}
+
+.radial-pill, .dist-pill {
+    background: rgba(0, 255, 65, 0.03);
+    border: 1px solid rgba(0, 255, 65, 0.15);
+    color: var(--primary-color);
+}
+
+.radial-pill:hover, .dist-pill:hover {
+    background: rgba(0, 255, 65, 0.08);
+    border-color: rgba(0, 255, 65, 0.35);
+}
+
+/* THREAT PILL STYLING BY TYPE */
+.threat-pill.none {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #666;
+}
+.threat-pill.none:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #aaa;
+}
+
+.threat-pill.aa {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(200, 200, 200, 0.25);
+    color: #ccc;
+}
+.threat-pill.aa:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(200, 200, 200, 0.45);
+}
+
+.threat-pill.ag {
+    background: rgba(255, 176, 0, 0.06);
+    border: 1px solid rgba(255, 176, 0, 0.3);
+    color: var(--secondary-color);
+}
+.threat-pill.ag:hover {
+    background: rgba(255, 176, 0, 0.12);
+    border-color: rgba(255, 176, 0, 0.5);
+}
+
+.history-pill-label {
+    font-size: 0.55rem;
+    text-transform: uppercase;
+    color: #888;
+    letter-spacing: 0.5px;
+    font-weight: normal;
+}
+
+.history-pill-value {
+    font-size: 0.85rem;
+}
+
+/* ACTIVE HIGHLIGHT STATE DURING EDITING */
+.history-pill.editing-active {
+    box-shadow: 0 0 12px rgba(0, 229, 255, 0.5) !important;
+    border-color: var(--edit-color) !important;
+    color: var(--edit-color) !important;
+    background: rgba(0, 229, 255, 0.15) !important;
+}
+
+.history-pill.editing-active .history-pill-label {
+    color: var(--edit-color) !important;
+    opacity: 0.8;
+}
+
+/* REMOVE ROW BUTTON */
+.btn-remove-plot {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--danger-color);
+    color: var(--danger-color);
+    background: rgba(255, 59, 48, 0.08);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.btn-remove-plot:hover {
+    background: rgba(255, 59, 48, 0.2);
+    border-color: #ff453a;
+}

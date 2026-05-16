@@ -121,6 +121,7 @@ const state = {
     plots: [],
     targetPos: null,
     originalPlotPos: null,
+    startTargetId: 71,
     rangeScale: 40,
     orientation: 'HEADING', // HEADING or NORTH
     threats: [],
@@ -375,7 +376,7 @@ window.keypadNav = (dir) => {
         const sequence = ["threatCode", "radial", "dist"]; 
         const curIdx = sequence.indexOf(state.activeInputId); 
         let nextIdx = (curIdx + dir + sequence.length) % sequence.length; 
-        const nextElement = document.querySelector(`input[onclick*="openKeypad('${sequence[nextIdx]}', ${state.activePlotIndex})"]`);
+        const nextElement = document.querySelector(`[onclick*="openKeypad('${sequence[nextIdx]}', ${state.activePlotIndex})"]`);
         openKeypad(sequence[nextIdx], state.activePlotIndex, nextElement); 
     } else { 
         const curIdx = INPUT_SEQUENCE.indexOf(state.activeInputId); 
@@ -717,12 +718,27 @@ function selectTargetId(id) { el.targetId.value = id; }
 
 function addPlot() {
     if (!state.targetPos) return;
-    const threatCode = document.getElementById('targetThreat').value; const threat = state.threats.find(t => t.code === threatCode); const targetId = el.targetId.value || "1";
+    const threatCode = document.getElementById('targetThreat').value; const threat = state.threats.find(t => t.code === threatCode); const targetId = el.targetId.value || "71";
     state.plots.push({ ...state.targetPos, targetId: targetId, threatCode: threatCode && threatCode !== '-' ? threatCode : null, threatRange: threat ? threat.range : null, threatType: threat ? threat.type : null, timestamp: Date.now() });
     state.targetPos = null; // Clear preview
-    const usedIds = new Set(state.plots.map(p => p.targetId)); let nextId = 1; while (usedIds.has(nextId.toString())) { nextId++; }
+    const usedIds = new Set(state.plots.map(p => p.targetId)); let nextId = state.startTargetId || 1; while (usedIds.has(nextId.toString())) { nextId++; }
     el.targetId.value = nextId.toString(); renderHistory(); drawTacticalDisplay();
 }
+
+window.updateStartTargetId = (val) => {
+    const parsed = parseInt(val) || 1;
+    state.startTargetId = Math.max(1, parsed);
+    
+    // Auto-update next target ID input field if it's currently free and below the new start ID
+    const usedIds = new Set(state.plots.map(p => p.targetId));
+    let nextId = state.startTargetId;
+    while (usedIds.has(nextId.toString())) {
+        nextId++;
+    }
+    if (el.targetId) {
+        el.targetId.value = nextId.toString();
+    }
+};
 
 function renderHistory() {
     const groups = state.plots.reduce((acc, plot, index) => { if (!acc[plot.targetId]) acc[plot.targetId] = []; acc[plot.targetId].push({ ...plot, originalIndex: index }); return acc; }, {});
@@ -731,26 +747,42 @@ function renderHistory() {
         return `
             <div class="history-group">
                 <div class="history-group-header">
-                    <div onclick="selectTargetPlot('${id}')" style="flex:1; display:flex; justify-content:space-between; align-items:center;">
-                        <span>ID: ${id} <span style="font-size:0.6rem; opacity:0.5;">(CLIQUE PARA SELECIONAR)</span></span>
-                        <span class="badge-count">${items.length} PLOTS</span>
+                    <div onclick="selectTargetPlot('${id}')" style="flex:1; display:flex; align-items:center; gap:8px;">
+                        <span class="history-group-title">ALVO ID: ${id}</span>
+                        <span class="badge-select-id">SELECIONAR</span>
                     </div>
-                    <span class="toggle-icon" onclick="this.parentElement.parentElement.classList.toggle('collapsed')">▼</span>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <span class="badge-plots-count">${items.length} PLOTS</span>
+                        <span class="toggle-icon" onclick="this.parentElement.parentElement.parentElement.classList.toggle('collapsed')">▼</span>
+                    </div>
                 </div>
                 <div class="history-group-content">
-                    <table class="tactical-table">
-                        <thead><tr><th>RAD</th><th>DIST</th><th>AMEAÇA</th><th>AÇÕES</th></tr></thead>
-                        <tbody>
-                            ${items.map(plot => `
-                                <tr>
-                                    <td><input type="text" value="${plot.radial}" readonly onclick="openKeypad('radial', ${plot.originalIndex}, this)"></td>
-                                    <td><input type="text" value="${plot.dist}" readonly onclick="openKeypad('dist', ${plot.originalIndex}, this)"></td>
-                                    <td><input type="text" value="${plot.threatCode || '-'}" readonly onclick="openKeypad('threatCode', ${plot.originalIndex}, this)"></td>
-                                    <td><button class="btn-tiny" onclick="removePlot(${plot.originalIndex})">REMOVER</button></td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                    ${items.map(plot => `
+                        <div class="plot-history-row">
+                            <div class="plot-pills-container">
+                                <!-- RADIAL PILL -->
+                                <div class="history-pill radial-pill" onclick="openKeypad('radial', ${plot.originalIndex}, this)">
+                                    <span class="history-pill-label">RADIAL</span>
+                                    <span class="history-pill-value">${plot.radial.toString().padStart(3, '0')}°</span>
+                                </div>
+                                
+                                <!-- DISTANCE PILL -->
+                                <div class="history-pill dist-pill" onclick="openKeypad('dist', ${plot.originalIndex}, this)">
+                                    <span class="history-pill-label">DIST</span>
+                                    <span class="history-pill-value">${plot.dist} NM</span>
+                                </div>
+                                
+                                <!-- THREAT PILL -->
+                                <div class="history-pill threat-pill ${plot.threatCode ? (plot.threatType === 'A/A' ? 'aa' : 'ag') : 'none'}" onclick="openKeypad('threatCode', ${plot.originalIndex}, this)">
+                                    <span class="history-pill-label">AMEAÇA</span>
+                                    <span class="history-pill-value">${plot.threatCode || '-'}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- REMOVE BUTTON -->
+                            <button class="btn-remove-plot" onclick="removePlot(${plot.originalIndex})">×</button>
+                        </div>
+                    `).join('')}
                 </div>
             </div>
         `;
