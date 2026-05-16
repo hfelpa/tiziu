@@ -365,6 +365,17 @@ input:focus, select:focus { border-color: var(--primary-color); outline: none; b
 .key-btn { background: #222; border: 1px solid #444; color: #fff; padding: 22px; font-size: 2.2rem; font-family: var(--font-mono); border-radius: 8px; cursor: pointer; }
 .action-clr { color: var(--danger-color); }
 .action-del { color: var(--secondary-color); }
+
+/* THREAT GRID BTNS */
+.threat-key-btn {
+    background: #222; border: 1px solid #444; color: #fff;
+    padding: 15px 5px; border-radius: 8px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.threat-key-btn .t-code { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700; color: var(--primary-color); }
+.threat-key-btn .t-rng { font-size: 0.75rem; color: #888; margin-top: 5px; }
+.threat-key-btn.t-empty { background: transparent; border-style: dashed; border-color: rgba(255,255,255,0.1); cursor: default; }
+
 .keypad-footer-grid { display: grid; grid-template-columns: 80px 1fr 80px; gap: 15px; }
 .nav-btn-keypad { background: #333; color: var(--secondary-color); border-color: #555; font-size: 2.5rem; display: flex; justify-content: center; align-items: center; }
 .action-ent { background: var(--primary-color); color: #000; font-weight: 700; font-size: 1.8rem !important; border: none !important; }

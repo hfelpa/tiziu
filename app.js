@@ -127,10 +127,11 @@ const state = {
     activeInputId: null,
     activePlotIndex: null,
     keypadValue: "",
-    sensorsActive: false
+    sensorsActive: false,
+    threatPage: 0
 };
 
-const INPUT_SEQUENCE = ["targetId", "targetRadial", "targetDist"];
+const INPUT_SEQUENCE = ["targetThreat", "targetId", "targetRadial", "targetDist"];
 
 // UI Elements
 const el = {
@@ -219,6 +220,31 @@ function toDDM(decimal, isLat) {
 function openKeypad(id, plotIndex = null) {
     state.activeInputId = id; state.activePlotIndex = plotIndex;
     let currentVal = ""; let label = ""; let contextVal = "";
+    
+    if (id === 'targetThreat' || id === 'threatCode') {
+        label = 'AMEAÇA';
+        contextVal = plotIndex !== null ? 'SELECIONE NOVA AMEAÇA' : 'SELECIONE AMEAÇA';
+        el.keypadTitle.textContent = label;
+        el.keypadContextInfo.textContent = contextVal;
+        
+        document.querySelector('.keypad-grid:not(#keypad-threat-grid)').style.display = 'none';
+        document.getElementById('keypad-preview').style.display = 'none';
+        document.getElementById('keypad-threat-grid').style.display = 'grid';
+        
+        state.threatPage = 0;
+        renderThreatKeypad();
+        
+        el.keypad.classList.remove('editing');
+        el.keypadEnterBtn.textContent = 'ENTER';
+        el.keypad.style.display = 'flex';
+        el.keypadBackdrop.style.display = 'block';
+        return;
+    }
+    
+    document.querySelector('.keypad-grid:not(#keypad-threat-grid)').style.display = 'grid';
+    document.getElementById('keypad-preview').style.display = 'inline';
+    document.getElementById('keypad-threat-grid').style.display = 'none';
+
     if (plotIndex !== null) {
         const plot = state.plots[plotIndex]; currentVal = plot[id] ? plot[id].toString() : ""; label = id === 'radial' ? 'RADIAL' : 'DISTÂNCIA'; contextVal = `CORRIGINDO REGISTRO (ATUAL: ${currentVal})`;
         el.keypad.classList.add('editing'); el.keypadEnterBtn.textContent = 'CORRIGIR';
@@ -231,13 +257,73 @@ function openKeypad(id, plotIndex = null) {
     state.keypadValue = currentVal; el.keypadTitle.textContent = label; el.keypadContextInfo.textContent = contextVal; el.keypadPreview.textContent = currentVal; el.keypad.style.display = 'flex'; el.keypadBackdrop.style.display = 'block';
 }
 
+function renderThreatKeypad() {
+    const grid = document.getElementById('keypad-threat-grid');
+    const ITEMS_PER_PAGE = 6;
+    const start = state.threatPage * ITEMS_PER_PAGE;
+    const pageThreats = state.threats.slice(start, start + ITEMS_PER_PAGE);
+    const hasNext = start + ITEMS_PER_PAGE < state.threats.length;
+    const hasPrev = state.threatPage > 0;
+    
+    let html = '';
+    pageThreats.forEach(t => {
+        html += `<button class="threat-key-btn" onclick="selectThreatInput('${t.code}')"><span class="t-code">${t.code}</span><span class="t-rng">${t.range} NM</span></button>`;
+    });
+    
+    // Fill empty slots to maintain grid layout
+    for (let i = pageThreats.length; i < ITEMS_PER_PAGE; i++) {
+        html += `<div class="threat-key-btn t-empty"></div>`;
+    }
+    
+    if (state.threats.length > ITEMS_PER_PAGE) {
+        html += `<button class="threat-key-btn" style="background:#333; color:#aaa; font-size:1.5rem;" onclick="changeThreatPage(-1)" ${!hasPrev ? 'disabled style="opacity:0.3;"' : ''}>❮</button>`;
+        html += `<button class="threat-key-btn" style="background:#333; color:#aaa; font-size:1.5rem;" onclick="selectThreatInput('')"><span class="t-code">-</span><span class="t-rng">NENHUMA</span></button>`;
+        html += `<button class="threat-key-btn" style="background:#333; color:#aaa; font-size:1.5rem;" onclick="changeThreatPage(1)" ${!hasNext ? 'disabled style="opacity:0.3;"' : ''}>❯</button>`;
+    } else {
+        html += `<div class="threat-key-btn t-empty"></div>`;
+        html += `<button class="threat-key-btn" style="background:#333; color:#aaa; font-size:1.5rem;" onclick="selectThreatInput('')"><span class="t-code">-</span><span class="t-rng">NENHUMA</span></button>`;
+        html += `<div class="threat-key-btn t-empty"></div>`;
+    }
+    
+    grid.innerHTML = html;
+}
+
+window.changeThreatPage = (dir) => {
+    state.threatPage += dir;
+    renderThreatKeypad();
+};
+
+window.selectThreatInput = (code) => {
+    state.keypadValue = code;
+    updateActiveField();
+    
+    // If we are in the main insertion flow, move to ID next
+    if (state.activePlotIndex === null) {
+        keypadNav(1); // Auto advance
+    } else {
+        closeKeypad(); // If editing a history plot, just close
+    }
+};
+
 function updateActiveField() {
     if (state.activePlotIndex !== null) { updatePlot(state.activePlotIndex, state.activeInputId, state.keypadValue); }
     else if (state.activeInputId) { document.getElementById(state.activeInputId).value = state.keypadValue; calculateBRAA(); calculateBullCoord(); }
 }
 
 window.keyInput = (char) => { if (char === 'CLR') state.keypadValue = ""; else if (char === 'DEL') state.keypadValue = state.keypadValue.slice(0, -1); else { if (state.keypadValue.length < 6) state.keypadValue += char; } el.keypadPreview.textContent = state.keypadValue; updateActiveField(); };
-window.keypadNav = (dir) => { updateActiveField(); if (state.activePlotIndex !== null) { const sequence = ["radial", "dist"]; const curIdx = sequence.indexOf(state.activeInputId); let nextIdx = (curIdx + dir + sequence.length) % sequence.length; openKeypad(sequence[nextIdx], state.activePlotIndex); } else { const curIdx = INPUT_SEQUENCE.indexOf(state.activeInputId); let nextIdx = (curIdx + dir + INPUT_SEQUENCE.length) % INPUT_SEQUENCE.length; openKeypad(INPUT_SEQUENCE[nextIdx]); } };
+window.keypadNav = (dir) => { 
+    updateActiveField(); 
+    if (state.activePlotIndex !== null) { 
+        const sequence = ["threatCode", "radial", "dist"]; 
+        const curIdx = sequence.indexOf(state.activeInputId); 
+        let nextIdx = (curIdx + dir + sequence.length) % sequence.length; 
+        openKeypad(sequence[nextIdx], state.activePlotIndex); 
+    } else { 
+        const curIdx = INPUT_SEQUENCE.indexOf(state.activeInputId); 
+        let nextIdx = (curIdx + dir + INPUT_SEQUENCE.length) % INPUT_SEQUENCE.length; 
+        openKeypad(INPUT_SEQUENCE[nextIdx]); 
+    } 
+};
 window.confirmKeypad = (shouldAdd) => { updateActiveField(); if (shouldAdd && state.activePlotIndex === null) addPlot(); closeKeypad(); };
 window.closeKeypad = () => { el.keypad.style.display = 'none'; el.keypadBackdrop.style.display = 'none'; state.activeInputId = null; state.activePlotIndex = null; };
 
@@ -334,8 +420,7 @@ function calculateBullCoord() {
  * THREATS & HISTORY
  */
 function updateThreatDropdowns() {
-    const options = `<option value="">-</option>` + state.threats.map(t => `<option value="${t.code}">${t.code}</option>`).join('');
-    el.threatSelect.innerHTML = options; renderThreatConfig();
+    renderThreatConfig();
 }
 
 function renderThreatConfig() {
@@ -353,8 +438,8 @@ function selectTargetId(id) { el.targetId.value = id; }
 
 function addPlot() {
     if (!state.targetPos) return;
-    const threatCode = el.threatSelect.value; const threat = state.threats.find(t => t.code === threatCode); const targetId = el.targetId.value || "1";
-    state.plots.push({ ...state.targetPos, targetId: targetId, threatCode: threatCode || null, threatRange: threat ? threat.range : null, threatType: threat ? threat.type : null, timestamp: Date.now() });
+    const threatCode = document.getElementById('targetThreat').value; const threat = state.threats.find(t => t.code === threatCode); const targetId = el.targetId.value || "1";
+    state.plots.push({ ...state.targetPos, targetId: targetId, threatCode: threatCode && threatCode !== '-' ? threatCode : null, threatRange: threat ? threat.range : null, threatType: threat ? threat.type : null, timestamp: Date.now() });
     const usedIds = new Set(state.plots.map(p => p.targetId)); let nextId = 1; while (usedIds.has(nextId.toString())) { nextId++; }
     el.targetId.value = nextId.toString(); renderHistory(); drawTacticalDisplay();
 }
@@ -380,7 +465,7 @@ function renderHistory() {
                                 <tr>
                                     <td><input type="text" value="${plot.radial}" readonly onclick="openKeypad('radial', ${plot.originalIndex})"></td>
                                     <td><input type="text" value="${plot.dist}" readonly onclick="openKeypad('dist', ${plot.originalIndex})"></td>
-                                    <td><select onchange="updatePlot(${plot.originalIndex}, 'threatCode', this.value)"><option value="">-</option>${state.threats.map(t => `<option value="${t.code}" ${t.code === plot.threatCode ? 'selected' : ''}>${t.code}</option>`).join('')}</select></td>
+                                    <td><input type="text" value="${plot.threatCode || '-'}" readonly onclick="openKeypad('threatCode', ${plot.originalIndex})"></td>
                                     <td><button class="btn-tiny" onclick="removePlot(${plot.originalIndex})">REMOVER</button></td>
                                 </tr>
                             `).join('')}

@@ -54,9 +54,7 @@
                         </div>
                         <div class="input-group threat-group">
                             <label>AMEAÇA</label>
-                            <select id="threat-select">
-                                <option value="">-</option>
-                            </select>
+                            <input type="text" id="targetThreat" placeholder="-" readonly class="custom-keyboard-input">
                         </div>
                         <button id="add-plot-btn" class="btn-add-plot-inline-horizontal">+</button>
                     </div>
@@ -257,6 +255,9 @@
             <button class="key-btn" onclick="keyInput('0')">0</button>
             <button class="key-btn action-del" onclick="keyInput('DEL')">DEL</button>
         </div>
+        <div id="keypad-threat-grid" class="keypad-grid" style="display:none;">
+            <!-- Threat buttons populated via JS -->
+        </div>
         <div class="keypad-footer-grid">
             <button class="key-btn nav-btn-keypad" onclick="keypadNav(-1)">❮</button>
             <button class="key-btn action-ent" onclick="confirmKeypad(true)">ENTER</button>
@@ -272,7 +273,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=57')
+                navigator.serviceWorker.register('sw.js?v=58')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();
