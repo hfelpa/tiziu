@@ -18,11 +18,12 @@
 
     <div class="app-container">
         <header>
-            <div class="status-bar">
-                <span id="gps-status" class="status-indicator offline">GPS: BUSCANDO...</span>
-                <span id="pwa-status" class="status-indicator">OFFLINE READY</span>
+            <div class="status-bar-container">
+                <div id="gps-status" class="status-bar-btn">
+                    GPS: OFF • CLIQUE PARA ATIVAR SENSORES
+                </div>
             </div>
-            <h1>BRAA TACTICAL <span class="v2">v5.3</span></h1>
+            <h1>BRAA TACTICAL <span class="v2">v5.6</span></h1>
         </header>
 
         <!-- NAVIGATION MENU -->
@@ -222,7 +223,7 @@
         </main>
 
         <footer class="tactical-footer">
-            <p>FPT • BRAA TACTICAL v5.3</p>
+            <p>FPT • BRAA TACTICAL v5.6</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
     </div>
@@ -268,12 +269,10 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=53')
+                navigator.serviceWorker.register('sw.js?v=56')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();
-                        calculateBRAA();
-                        calculateBullCoord();
                     })
                     .catch(err => {
                         console.log('SW Error', err);

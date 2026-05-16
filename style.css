@@ -44,28 +44,37 @@ header {
     padding: 10px 0;
 }
 
-.status-bar {
+/* SENSOR BUTTON STYLE */
+.status-bar-container {
     display: flex;
-    justify-content: space-between;
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    margin-bottom: 5px;
+    justify-content: center;
+    margin-bottom: 15px;
 }
 
-.status-indicator {
-    padding: 6px 12px;
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    cursor: pointer;
-}
-
-.status-indicator.online {
+.status-bar-btn {
+    background: rgba(0, 255, 65, 0.1);
+    border: 1px solid var(--primary-color);
     color: var(--primary-color);
-    box-shadow: 0 0 5px var(--primary-color);
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+    transition: all 0.3s;
+    width: 100%;
 }
 
-.status-indicator.offline {
-    color: var(--danger-color);
+.status-bar-btn:active {
+    background: var(--primary-color);
+    color: #000;
+}
+
+.status-bar-btn.online {
+    color: var(--edit-color);
+    border-color: var(--edit-color);
+    background: rgba(0, 229, 255, 0.1);
 }
 
 h1 {

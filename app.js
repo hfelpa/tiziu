@@ -3,8 +3,8 @@
  * Core Logic & Math
  */
 
-/* Version: 55.0.0 - Time: 2056 */
-const CACHE_NAME = 'braa-tactical-v55';
+/* Version: 56.0.0 - Time: 2101 */
+const CACHE_NAME = 'braa-tactical-v56';
 
 const MISSIONS = {
     TINIA26: {
@@ -417,7 +417,7 @@ function drawTacticalDisplay() {
     // DRAW AZIMUTH LINES
     ctx.beginPath(); ctx.moveTo(centerX, 0); ctx.lineTo(centerX, size); ctx.moveTo(0, centerY); ctx.lineTo(size, centerY); ctx.stroke();
 
-    // BILLBOARDED SCALE LABELS (Discreet)
+    // BILLBOARDED SCALE LABELS
     ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'; ctx.font = '9px JetBrains Mono';
     [0.25, 0.5, 0.75, 1.0].forEach(r => {
         const ringRadius = (scale * r) * pxPerNM;
@@ -434,7 +434,6 @@ function drawTacticalDisplay() {
 
     if (!state.ownPos.lat) { ctx.restore(); return; }
 
-    // HISTORY TRACES
     const latestById = {}; state.plots.forEach(p => { if (!latestById[p.targetId] || p.timestamp > latestById[p.targetId].timestamp) latestById[p.targetId] = p; });
     const groups = {}; state.plots.forEach(p => { if (!groups[p.targetId]) groups[p.targetId] = []; groups[p.targetId].push(p); });
     
@@ -461,20 +460,14 @@ function drawTacticalDisplay() {
         if (isLatest) {
             ctx.fillStyle = '#ffb000'; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
             
-            // BILLBOARDED LABEL
             ctx.font = 'bold 11px JetBrains Mono';
             const braaBrg = Math.round((b - magVar + 360) % 360).toString().padStart(3, '0'); const braaRng = Math.round(d);
-            const line1 = `${plot.targetId} ${plot.threatCode || ''} ${braaBrg}/${braaRng}`;
-            const line2 = `(${plot.radial}/${plot.dist})`;
+            const line1 = `${plot.targetId} ${plot.threatCode || ''} ${braaBrg}/${braaRng}`; const line2 = `(${plot.radial}/${plot.dist})`;
             const alertLabel = plot.threatType === 'A/A' ? 'PUMP CRIT' : '';
-            
             const m1 = ctx.measureText(line1); const m2 = ctx.measureText(line2); const boxW = Math.max(m1.width, m2.width) + 8;
             const boxH = alertLabel ? 36 : 26;
             
-            ctx.save();
-            ctx.translate(x + 10, y - 10);
-            ctx.rotate(-rotationRad); // COUNTER-ROTATE LABEL
-            
+            ctx.save(); ctx.translate(x + 10, y - 10); ctx.rotate(-rotationRad);
             ctx.fillStyle = 'rgba(0, 0, 0, 0.85)'; ctx.fillRect(0, 0, boxW, boxH);
             ctx.fillStyle = '#ffb000'; ctx.fillText(line1, 4, 12);
             ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.font = '9px JetBrains Mono'; ctx.fillText(line2, 4, 22);
@@ -488,14 +481,11 @@ function drawTacticalDisplay() {
         } else { ctx.fillStyle = 'rgba(255, 176, 0, 0.35)'; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill(); }
     });
 
-    ctx.restore(); // Restore from world rotation
-
-    // DRAW USER ICON (STATIC CENTER)
-    ctx.save();
-    ctx.translate(centerX, centerY);
-    if (state.orientation === 'NORTH') { ctx.rotate(toRad(currentHeading)); }
-    ctx.fillStyle = '#00FF41'; ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(8, 11); ctx.lineTo(0, 6); ctx.lineTo(-8, 11); ctx.closePath(); ctx.fill();
     ctx.restore();
+
+    ctx.save(); ctx.translate(centerX, centerY);
+    if (state.orientation === 'NORTH') { ctx.rotate(toRad(currentHeading)); }
+    ctx.fillStyle = '#00FF41'; ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(8, 11); ctx.lineTo(0, 6); ctx.lineTo(-8, 11); ctx.closePath(); ctx.fill(); ctx.restore();
 }
 
 /**
@@ -535,28 +525,39 @@ function updatePosition(pos) {
     el.gpsStatus.textContent = `GPS: LIVE [${timeStr}]`; el.gpsStatus.classList.remove('offline'); el.gpsStatus.classList.add('online'); calculateBRAA();
 }
 
-window.requestSensors = () => {
+// THE DIRECT HANDLER REQUIRED BY SAFARI
+window.activateSensors = () => {
+    console.log("Tentando ativar sensores...");
     if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
         DeviceOrientationEvent.requestPermission()
-            .then(response => { 
-                if (response === 'granted') { 
-                    window.addEventListener('deviceorientation', handleOrientation, true); 
+            .then(permissionState => {
+                if (permissionState === 'granted') {
+                    window.addEventListener('deviceorientation', handleOrientation, true);
                     state.sensorsActive = true;
-                    el.gpsStatus.style.boxShadow = '0 0 15px var(--edit-color)';
-                } else { alert("Permissão de sensores negada."); }
+                    el.gpsStatus.innerHTML = "GPS: LIVE (COMPASS ON)";
+                    el.gpsStatus.style.color = "#00e5ff";
+                    el.gpsStatus.style.textShadow = "0 0 10px #00e5ff";
+                } else {
+                    alert('Permissão de orientação negada pelo usuário.');
+                }
             })
-            .catch(err => { alert("Erro ao solicitar sensores: " + err); });
-    } else { 
-        window.addEventListener('deviceorientationabsolute', handleOrientation, true); 
-        window.addEventListener('deviceorientation', handleOrientation, true); 
+            .catch(err => {
+                console.error(err);
+                alert('Erro ao solicitar sensores. Verifique se está usando HTTPS.');
+            });
+    } else {
+        // Fallback for non-iOS or older versions
+        window.addEventListener('deviceorientation', handleOrientation, true);
+        window.addEventListener('deviceorientationabsolute', handleOrientation, true);
         state.sensorsActive = true;
+        el.gpsStatus.innerHTML = "GPS: LIVE (COMPASS ON)";
     }
 };
 
 function handleOrientation(event) {
     let heading = null;
-    if (event.webkitCompassHeading) { heading = event.webkitCompassHeading; } // iOS
-    else if (event.absolute && event.alpha) { heading = 360 - event.alpha; } // Android absolute
+    if (event.webkitCompassHeading) { heading = event.webkitCompassHeading; }
+    else if (event.absolute && event.alpha) { heading = 360 - event.alpha; }
     if (heading !== null) { state.ownPos.compass = heading; drawTacticalDisplay(); }
 }
 
@@ -574,11 +575,12 @@ function initGPS() {
 
 setInterval(() => { if (Date.now() - state.lastFixTime > 15000) initGPS(); }, 20000);
 
-// EXPLICIT SENSOR ACTIVATION
-el.gpsStatus.addEventListener('click', () => { 
-    initGPS(); 
-    requestSensors(); 
-});
+// DIRECT CLICK ON HEADER FOR SENSORS
+el.gpsStatus.onclick = (e) => {
+    e.preventDefault();
+    initGPS();
+    window.activateSensors();
+};
 
 document.querySelectorAll('input:not([readonly])').forEach(input => input.addEventListener('input', () => { calculateBRAA(); calculateBullCoord(); }));
 el.navBtns.forEach(btn => btn.addEventListener('click', () => { el.navBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active'); el.pages.forEach(p => p.classList.remove('active')); document.getElementById(btn.getAttribute('data-page')).classList.add('active'); if (btn.getAttribute('data-page') === 'calc-page') setTimeout(drawTacticalDisplay, 100); }));
