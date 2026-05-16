@@ -148,6 +148,7 @@ const el = {
     resBearing: document.getElementById('resBearing'),
     resRange: document.getElementById('resRange'),
     gpsStatus: document.getElementById('gps-status'),
+    compassStatus: document.getElementById('compass-status'),
     navBtns: document.querySelectorAll('.nav-btn'),
     pages: document.querySelectorAll('.page'),
     bullResLat: document.getElementById('bullResLat'),
@@ -166,6 +167,7 @@ const el = {
     newThreatRange: document.getElementById('new-threat-range'),
     addThreatConfigBtn: document.getElementById('add-threat-config-btn'),
     missionFileInput: document.getElementById('mission-file-input'),
+    gpxFileInput: document.getElementById('gpx-file-input'),
     keypad: document.getElementById('tactical-keypad'),
     keypadBackdrop: document.getElementById('keypad-backdrop'),
     keypadTitle: document.getElementById('keypad-title'),
@@ -262,6 +264,30 @@ function handleMissionFile(event) {
             });
             if (newThreats.length > 0) { state.threats = newThreats; updateThreatDropdowns(); }
         } catch(err) { console.error("Erro ao ler arquivo."); }
+    };
+    reader.readAsText(file);
+}
+
+function handleGpxFile(event) {
+    const file = event.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const content = e.target.result;
+        try {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(content, "text/xml");
+            const trkpts = xmlDoc.getElementsByTagName("trkpt");
+            const wpts = xmlDoc.getElementsByTagName("wpt");
+            const points = trkpts.length > 0 ? trkpts : wpts;
+            state.route = [];
+            for (let i = 0; i < points.length; i++) {
+                const lat = parseFloat(points[i].getAttribute("lat"));
+                const lon = parseFloat(points[i].getAttribute("lon"));
+                if (!isNaN(lat) && !isNaN(lon)) state.route.push({ lat, lon });
+            }
+            if (state.route.length > 0) alert(`Rota carregada com ${state.route.length} pontos.`);
+            drawTacticalDisplay();
+        } catch(err) { console.error("Erro ao ler arquivo GPX.", err); }
     };
     reader.readAsText(file);
 }
@@ -434,6 +460,24 @@ function drawTacticalDisplay() {
 
     if (!state.ownPos.lat) { ctx.restore(); return; }
 
+    // DRAW GPX ROUTE
+    if (state.route && state.route.length > 0) {
+        ctx.strokeStyle = '#ff00ff';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        for (let i = 0; i < state.route.length; i++) {
+            const pt = state.route[i];
+            const d = getDistance(state.ownPos.lat, state.ownPos.lon, pt.lat, pt.lon);
+            const b = getBearing(state.ownPos.lat, state.ownPos.lon, pt.lat, pt.lon);
+            const x = centerX + Math.sin(toRad(b)) * (d * pxPerNM);
+            const y = centerY - Math.cos(toRad(b)) * (d * pxPerNM);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
     const latestById = {}; state.plots.forEach(p => { if (!latestById[p.targetId] || p.timestamp > latestById[p.targetId].timestamp) latestById[p.targetId] = p; });
     const groups = {}; state.plots.forEach(p => { if (!groups[p.targetId]) groups[p.targetId] = []; groups[p.targetId].push(p); });
     
@@ -534,9 +578,11 @@ window.activateSensors = () => {
                 if (permissionState === 'granted') {
                     window.addEventListener('deviceorientation', handleOrientation, true);
                     state.sensorsActive = true;
-                    el.gpsStatus.innerHTML = "GPS: LIVE (COMPASS ON)";
-                    el.gpsStatus.style.color = "#00e5ff";
-                    el.gpsStatus.style.textShadow = "0 0 10px #00e5ff";
+                    if(el.compassStatus) {
+                        el.compassStatus.innerHTML = "BÚSSOLA: ATIVA";
+                        el.compassStatus.classList.remove('offline');
+                        el.compassStatus.classList.add('online');
+                    }
                 } else {
                     alert('Permissão de orientação negada pelo usuário.');
                 }
@@ -550,7 +596,11 @@ window.activateSensors = () => {
         window.addEventListener('deviceorientation', handleOrientation, true);
         window.addEventListener('deviceorientationabsolute', handleOrientation, true);
         state.sensorsActive = true;
-        el.gpsStatus.innerHTML = "GPS: LIVE (COMPASS ON)";
+        if(el.compassStatus) {
+            el.compassStatus.innerHTML = "BÚSSOLA: ATIVA";
+            el.compassStatus.classList.remove('offline');
+            el.compassStatus.classList.add('online');
+        }
     }
 };
 
@@ -592,6 +642,7 @@ el.addThreatConfigBtn.addEventListener('click', () => {
     if (code && !isNaN(range)) { state.threats.push({ code, type, range }); el.newThreatCode.value = ''; updateThreatDropdowns(); }
 });
 el.missionFileInput.addEventListener('change', handleMissionFile);
+if (el.gpxFileInput) el.gpxFileInput.addEventListener('change', handleGpxFile);
 
 // INITIAL LOAD
 loadDefaultMission(false);

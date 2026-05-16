@@ -18,12 +18,11 @@
 
     <div class="app-container">
         <header>
-            <div class="status-bar-container">
-                <div id="gps-status" class="status-bar-btn">
-                    GPS: OFF • CLIQUE PARA ATIVAR SENSORES
-                </div>
+            <div class="status-bar">
+                <span id="gps-status" class="status-indicator offline" onclick="initGPS()">GPS: OFF</span>
+                <span id="compass-status" class="status-indicator offline" onclick="activateSensors()">BÚSSOLA: OFF (CLIQUE)</span>
             </div>
-            <h1>BRAA TACTICAL <span class="v2">v5.6</span></h1>
+            <h1>BRAA TACTICAL <span class="v2">v5.7</span></h1>
         </header>
 
         <!-- NAVIGATION MENU -->
@@ -157,10 +156,14 @@
                 <section class="settings-section">
                     <div class="section-header-row">
                         <h3 class="section-title">02. GERENCIAMENTO DE MISSÃO</h3>
-                        <div class="mission-upload-container">
-                            <input type="file" id="mission-file-input" accept=".json,.csv,.txt" hidden>
-                            <button class="btn-import-mission" onclick="document.getElementById('mission-file-input').click()">IMPORTAR .TXT</button>
-                        </div>
+                    </div>
+                    
+                    <div class="mission-upload-container" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <input type="file" id="mission-file-input" accept=".json,.csv,.txt" hidden>
+                        <button class="btn-import-mission" onclick="document.getElementById('mission-file-input').click()" style="flex: 1;">IMPORTAR .TXT</button>
+                        
+                        <input type="file" id="gpx-file-input" accept=".gpx" hidden>
+                        <button class="btn-import-mission" style="flex: 1; border-color: #ff00ff; color: #ff00ff; background: rgba(255, 0, 255, 0.1);" onclick="document.getElementById('gpx-file-input').click()">IMPORTAR .GPX</button>
                     </div>
 
                     <!-- BULLSEYE DATA -->
