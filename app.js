@@ -163,8 +163,6 @@ const el = {
     resMGRS: document.getElementById('resMGRS'),
     canvas: document.getElementById('tactical-canvas'),
     addPlotBtn: document.getElementById('add-plot-btn'),
-    rangeScale: document.getElementById('range-scale'),
-    plotterOrientation: document.getElementById('plotter-orientation'),
     threatSelect: document.getElementById('threat-select'),
     historyGroups: document.getElementById('history-groups'),
     threatsConfigList: document.getElementById('threats-config-list'),
@@ -1144,9 +1142,8 @@ function updatePosition(pos) {
     el.gpsStatus.textContent = `GPS: LIVE [${timeStr}]`; el.gpsStatus.classList.remove('offline'); el.gpsStatus.classList.add('online'); calculateBRAA();
 }
 
-// THE DIRECT HANDLER REQUIRED BY SAFARI
-window.activateSensors = () => {
-    console.log("Tentando ativar sensores...");
+window.activateSensors = (isAuto = false) => {
+    console.log("Tentando ativar sensores... Auto:", isAuto);
     if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
         DeviceOrientationEvent.requestPermission()
             .then(permissionState => {
@@ -1158,16 +1155,18 @@ window.activateSensors = () => {
                         el.compassStatus.classList.remove('offline');
                         el.compassStatus.classList.add('online');
                     }
-                } else {
+                } else if (!isAuto) {
                     alert('Permissão de orientação negada pelo usuário.');
                 }
             })
             .catch(err => {
-                console.error(err);
-                alert('Erro ao solicitar sensores. Verifique se está usando HTTPS.');
+                console.error("Erro nos sensores:", err);
+                if (!isAuto) {
+                    alert('Erro ao solicitar sensores. Verifique se está usando HTTPS.');
+                }
             });
     } else {
-        // Fallback for non-iOS or older versions
+        // Fallback for non-iOS or older versions (like Android)
         window.addEventListener('deviceorientation', handleOrientation, true);
         window.addEventListener('deviceorientationabsolute', handleOrientation, true);
         state.sensorsActive = true;
@@ -1210,8 +1209,25 @@ el.gpsStatus.onclick = (e) => {
 document.querySelectorAll('input:not([readonly])').forEach(input => input.addEventListener('input', () => { calculateBRAA(); calculateBullCoord(); }));
 el.navBtns.forEach(btn => btn.addEventListener('click', () => { el.navBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active'); el.pages.forEach(p => p.classList.remove('active')); document.getElementById(btn.getAttribute('data-page')).classList.add('active'); if (btn.getAttribute('data-page') === 'calc-page') setTimeout(drawTacticalDisplay, 100); }));
 el.addPlotBtn.addEventListener('click', addPlot);
-el.rangeScale.addEventListener('change', (e) => { state.rangeScale = parseInt(e.target.value); drawTacticalDisplay(); });
-el.plotterOrientation.addEventListener('change', (e) => { state.orientation = e.target.value; drawTacticalDisplay(); });
+// Orientation segmented control
+document.querySelectorAll('#orientation-segmented .segment-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('#orientation-segmented .segment-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.orientation = btn.getAttribute('data-val');
+        drawTacticalDisplay();
+    });
+});
+
+// Range segmented control
+document.querySelectorAll('#range-segmented .segment-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('#range-segmented .segment-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.rangeScale = parseInt(btn.getAttribute('data-val'));
+        drawTacticalDisplay();
+    });
+});
 el.addThreatConfigBtn.addEventListener('click', () => {
     const code = el.newThreatCode.value.toUpperCase(); const type = el.newThreatType.value; const range = parseFloat(el.newThreatRange.value);
     if (code && !isNaN(range)) { state.threats.push({ code, type, range }); el.newThreatCode.value = ''; updateThreatDropdowns(); }
@@ -1222,6 +1238,7 @@ if (el.gpxFileInput) el.gpxFileInput.addEventListener('change', handleGpxFile);
 // INITIAL LOAD
 loadDefaultMission(false);
 initGPS();
+window.activateSensors(true);
 
 function animLoop() {
     drawTacticalDisplay();

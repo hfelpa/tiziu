@@ -105,16 +105,17 @@
                     <div class="card-header">
                         <h2>DISPLAY TÁTICO</h2>
                         <div class="plotter-controls-grid">
-                            <select id="plotter-orientation" class="select-small">
-                                <option value="HEADING">HEADING UP</option>
-                                <option value="NORTH">NORTH UP</option>
-                            </select>
-                            <select id="range-scale" class="select-small">
-                                <option value="20">20 NM</option>
-                                <option value="40" selected>40 NM</option>
-                                <option value="80">80 NM</option>
-                                <option value="160">160 NM</option>
-                            </select>
+                            <div class="segmented-control" id="orientation-segmented">
+                                <button class="segment-btn active" data-val="HEADING">HDG UP</button>
+                                <button class="segment-btn" data-val="NORTH">N UP</button>
+                            </div>
+                            <div class="segmented-control" id="range-segmented">
+                                <button class="segment-btn" data-val="20">20</button>
+                                <button class="segment-btn active" data-val="40">40</button>
+                                <button class="segment-btn" data-val="80">80</button>
+                                <button class="segment-btn" data-val="160">160</button>
+                                <span class="segment-label">NM</span>
+                            </div>
                         </div>
                     </div>
                     <div class="plotter-container">
@@ -258,7 +259,7 @@
         </main>
 
         <footer class="tactical-footer">
-            <p>FPT • TIZIU v7.7.5</p>
+            <p>FPT • TIZIU v7.7.7</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
     </div>
@@ -310,7 +311,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=7.7.5')
+                navigator.serviceWorker.register('sw.js?v=7.7.7')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();

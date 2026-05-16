@@ -240,15 +240,46 @@ h1 .v2 {
 /* PLOTTER CONTROLS */
 .plotter-controls-grid {
     display: flex;
-    gap: 5px;
+    gap: 8px;
+    align-items: center;
 }
 
-.select-small {
-    height: 32px !important;
-    padding: 2px 8px !important;
-    font-size: 0.75rem !important;
-    width: auto !important;
-    background: rgba(255, 255, 255, 0.05);
+.segmented-control {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 2px;
+    gap: 2px;
+}
+
+.segment-btn {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.segment-btn.active {
+    background: var(--primary-color);
+    color: #000;
+    box-shadow: 0 0 8px rgba(0, 255, 65, 0.3);
+}
+
+.segment-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: #666;
+    padding-right: 6px;
+    padding-left: 2px;
+    font-weight: 700;
 }
 
 /* SETTINGS SPECIFIC */
