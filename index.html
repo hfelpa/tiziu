@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>BRAA Tactical Calculator</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body class="tactical-theme">
-    <!-- KEYPAD BACKDROP (for clicking outside) -->
+    <!-- KEYPAD BACKDROP -->
     <div id="keypad-backdrop" class="keypad-backdrop" onclick="closeKeypad()"></div>
 
     <div class="app-container">
@@ -22,7 +22,7 @@
                 <span id="gps-status" class="status-indicator offline">GPS: BUSCANDO...</span>
                 <span id="pwa-status" class="status-indicator">OFFLINE READY</span>
             </div>
-            <h1>BRAA TACTICAL <span class="v2">v4.0</span></h1>
+            <h1>BRAA TACTICAL <span class="v2">v4.2</span></h1>
         </header>
 
         <!-- NAVIGATION MENU -->
@@ -138,7 +138,6 @@
 
             <!-- PAGE 2: SETTINGS (OWN SHIP & BULLSEYE & THREATS) -->
             <div id="settings-page" class="page">
-                <!-- SHARED SECTION: OWN SHIP (NON-EDITABLE) -->
                 <section class="card own-ship-display">
                     <div class="card-header">
                         <h2>CHECK DE FIDELIDADE (GPS)</h2>
@@ -155,7 +154,6 @@
                     </div>
                 </section>
 
-                <!-- SHARED SECTION: BULLSEYE (BE SILVER) - COLLAPSED BY DEFAULT -->
                 <section class="card bullseye collapsed" id="bullseye-card">
                     <div class="card-header" id="bullseye-header" onclick="this.parentElement.classList.toggle('collapsed')" style="cursor: pointer;">
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -182,14 +180,11 @@
                     </div>
                 </section>
 
-                <!-- THREAT MANAGEMENT SECTION -->
                 <section class="card threats-config">
                     <div class="card-header">
                         <h2>GERENCIAR AMEAÇAS</h2>
                     </div>
-                    <div class="threats-grid" id="threats-config-list">
-                        <!-- Populate via JS -->
-                    </div>
+                    <div class="threats-grid" id="threats-config-list"></div>
                     <div class="add-threat-row complex">
                         <input type="text" id="new-threat-code" placeholder="CÓDIGO">
                         <select id="new-threat-type">
@@ -239,7 +234,7 @@
         </div>
     </div>
 
-    <!-- Hidden native inputs for math logic compatibility -->
+    <!-- Hidden native inputs -->
     <input type="hidden" id="ownLat" value="">
     <input type="hidden" id="ownLon" value="">
 
@@ -247,7 +242,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=40')
+                navigator.serviceWorker.register('sw.js?v=42')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();

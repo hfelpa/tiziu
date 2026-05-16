@@ -13,6 +13,7 @@
     margin: 0;
     padding: 0;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation; /* PREVENT DOUBLE TAP ZOOM */
 }
 
 body {
@@ -211,7 +212,7 @@ input:focus, select:focus { border-color: var(--primary-color); outline: none; b
     margin-bottom: 12px;
 }
 
-#keypad-title { font-family: var(--font-mono); color: var(--primary-color); font-weight: 700; font-size: 1.1rem; }
+#keypad-title { font-family: var(--font-mono); color: var(--primary-color); font-weight: 700; font-size: 1.6rem; letter-spacing: 2px; }
 .keypad-close { background: #333; color: #fff; border: none; width: 45px; height: 45px; border-radius: 8px; font-weight: 700; font-size: 1.2rem; cursor: pointer; }
 
 .keypad-display {

@@ -3,8 +3,8 @@
  * Core Logic & Math
  */
 
-/* Version: 41.0.0 - Time: 1955 */
-const CACHE_NAME = 'braa-tactical-v41';
+/* Version: 42.0.0 - Time: 2000 */
+const CACHE_NAME = 'braa-tactical-v42';
 
 // MGRS LIBRARY (Mini-bundle)
 const mgrs = (function() {
@@ -195,7 +195,7 @@ function toDDM(decimal, isLat) {
 }
 
 /**
- * CUSTOM KEYPAD LOGIC (REAL-TIME SYNC)
+ * CUSTOM KEYPAD LOGIC
  */
 function openKeypad(id) {
     state.activeInputId = id;
@@ -353,7 +353,7 @@ function renderHistory() {
         return `
             <div class="history-group">
                 <div class="history-group-header">
-                    <div onclick="selectTargetId('${id}')" style="flex:1; display:flex; justify-content:space-between; align-items:center;">
+                    <div onclick="selectTargetPlot('${id}')" style="flex:1; display:flex; justify-content:space-between; align-items:center;">
                         <span>ID: ${id} <span style="font-size:0.6rem; opacity:0.5;">(CLIQUE PARA SELECIONAR)</span></span>
                         <span class="badge-count">${items.length} PLOTS</span>
                     </div>
@@ -406,6 +406,7 @@ window.updatePlot = (index, field, value) => {
 window.removePlot = (index) => { state.plots.splice(index, 1); renderHistory(); drawTacticalDisplay(); };
 window.deleteThreat = deleteThreat;
 window.selectTargetId = selectTargetId;
+window.selectTargetPlot = (id) => { selectTargetId(id); openKeypad('targetRadial'); };
 
 /**
  * TACTICAL DISPLAY
@@ -426,18 +427,12 @@ function drawTacticalDisplay() {
     const centerX = size / 2; const centerY = size / 2;
     const scale = state.rangeScale; const pxPerNM = (size / 2) / scale;
     ctx.clearRect(0, 0, size, size);
-
-    // Grid
     ctx.strokeStyle = 'rgba(0, 255, 65, 0.15)'; ctx.lineWidth = 1;
     [0.25, 0.5, 0.75, 1.0].forEach(r => { ctx.beginPath(); ctx.arc(centerX, centerY, (scale * r) * pxPerNM, 0, Math.PI * 2); ctx.stroke(); });
     ctx.beginPath(); ctx.moveTo(centerX, 0); ctx.lineTo(centerX, size); ctx.moveTo(0, centerY); ctx.lineTo(size, centerY); ctx.stroke();
-
     if (!state.ownPos.lat) return;
-
     const latestById = {};
     state.plots.forEach(p => { if (!latestById[p.targetId] || p.timestamp > latestById[p.targetId].timestamp) latestById[p.targetId] = p; });
-
-    // Tracking Segments
     const groups = {};
     state.plots.forEach(p => { if (!groups[p.targetId]) groups[p.targetId] = []; groups[p.targetId].push(p); });
     Object.values(groups).forEach(group => {
@@ -454,8 +449,6 @@ function drawTacticalDisplay() {
         }
         ctx.setLineDash([]);
     });
-
-    // Plots
     state.plots.forEach(plot => {
         const d = getDistance(state.ownPos.lat, state.ownPos.lon, plot.lat, plot.lon);
         const b = getBearing(state.ownPos.lat, state.ownPos.lon, plot.lat, plot.lon);
@@ -474,8 +467,6 @@ function drawTacticalDisplay() {
             }
         } else { ctx.fillStyle = 'rgba(255, 176, 0, 0.35)'; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill(); }
     });
-
-    // Own Ship
     ctx.save(); ctx.translate(centerX, centerY); ctx.rotate(toRad(state.ownPos.heading));
     ctx.fillStyle = '#00FF41'; ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(8, 11); ctx.lineTo(0, 6); ctx.lineTo(-8, 11); ctx.closePath(); ctx.fill(); ctx.restore();
 }
@@ -499,7 +490,7 @@ el.canvas.addEventListener('click', (e) => {
         const dist = Math.sqrt((clickX - x)**2 + (clickY - y)**2);
         if (dist < 25) foundId = plot.targetId;
     });
-    if (foundId) { selectTargetId(foundId); openKeypad('targetId'); }
+    if (foundId) { selectTargetPlot(foundId); }
 });
 
 /**
