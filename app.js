@@ -3,8 +3,8 @@
  * Core Logic & Math
  */
 
-/* Version: 54.0.0 - Time: 2051 */
-const CACHE_NAME = 'braa-tactical-v54';
+/* Version: 55.0.0 - Time: 2056 */
+const CACHE_NAME = 'braa-tactical-v55';
 
 const MISSIONS = {
     TINIA26: {
@@ -126,7 +126,8 @@ const state = {
     route: [],
     activeInputId: null,
     activePlotIndex: null,
-    keypadValue: ""
+    keypadValue: "",
+    sensorsActive: false
 };
 
 const INPUT_SEQUENCE = ["targetId", "targetRadial", "targetDist"];
@@ -397,7 +398,6 @@ function drawTacticalDisplay() {
     const centerX = size / 2; const centerY = size / 2;
     const scale = state.rangeScale; const pxPerNM = (size / 2) / scale;
     
-    // HEADING logic: Prioritize physical compass if available, fallback to GPS track
     const currentHeading = (state.ownPos.compass !== null) ? state.ownPos.compass : (state.ownPos.heading || 0);
     const rotationRad = (state.orientation === 'HEADING') ? -toRad(currentHeading) : 0;
 
@@ -407,22 +407,34 @@ function drawTacticalDisplay() {
     ctx.rotate(rotationRad);
     ctx.translate(-centerX, -centerY);
 
-    // DRAW RINGS & DISCREET LABELS
+    // DRAW RINGS
     ctx.strokeStyle = 'rgba(0, 255, 65, 0.12)'; ctx.lineWidth = 1;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'; ctx.font = '9px JetBrains Mono';
     [0.25, 0.5, 0.75, 1.0].forEach(r => {
         const ringRadius = (scale * r) * pxPerNM;
         ctx.beginPath(); ctx.arc(centerX, centerY, ringRadius, 0, Math.PI * 2); ctx.stroke();
-        ctx.fillText(`${Math.round(scale * r)} NM`, centerX + 5, centerY - ringRadius + 12);
     });
 
-    // DRAW AZIMUTH LINES & LABELS
+    // DRAW AZIMUTH LINES
     ctx.beginPath(); ctx.moveTo(centerX, 0); ctx.lineTo(centerX, size); ctx.moveTo(0, centerY); ctx.lineTo(size, centerY); ctx.stroke();
-    ctx.fillText('000°', centerX + 4, 15); ctx.fillText('180°', centerX + 4, size - 8);
-    ctx.fillText('270°', 4, centerY - 4); ctx.fillText('090°', size - 25, centerY - 4);
+
+    // BILLBOARDED SCALE LABELS (Discreet)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'; ctx.font = '9px JetBrains Mono';
+    [0.25, 0.5, 0.75, 1.0].forEach(r => {
+        const ringRadius = (scale * r) * pxPerNM;
+        const lx = centerX + 5; const ly = centerY - ringRadius + 12;
+        ctx.save(); ctx.translate(lx, ly); ctx.rotate(-rotationRad); ctx.fillText(`${Math.round(scale * r)} NM`, 0, 0); ctx.restore();
+    });
+
+    // BILLBOARDED AZIMUTH LABELS
+    const azLabels = [{a:0, t:'000°', y:15}, {a:180, t:'180°', y:size-8}, {a:270, t:'270°', x:15}, {a:90, t:'090°', x:size-25}];
+    azLabels.forEach(l => {
+        const lx = l.x !== undefined ? l.x : centerX; const ly = l.y !== undefined ? l.y : centerY;
+        ctx.save(); ctx.translate(lx, ly); ctx.rotate(-rotationRad); ctx.fillText(l.t, 0, 0); ctx.restore();
+    });
 
     if (!state.ownPos.lat) { ctx.restore(); return; }
 
+    // HISTORY TRACES
     const latestById = {}; state.plots.forEach(p => { if (!latestById[p.targetId] || p.timestamp > latestById[p.targetId].timestamp) latestById[p.targetId] = p; });
     const groups = {}; state.plots.forEach(p => { if (!groups[p.targetId]) groups[p.targetId] = []; groups[p.targetId].push(p); });
     
@@ -448,14 +460,31 @@ function drawTacticalDisplay() {
         const isLatest = latestById[plot.targetId] === plot;
         if (isLatest) {
             ctx.fillStyle = '#ffb000'; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+            
+            // BILLBOARDED LABEL
             ctx.font = 'bold 11px JetBrains Mono';
             const braaBrg = Math.round((b - magVar + 360) % 360).toString().padStart(3, '0'); const braaRng = Math.round(d);
-            const line1 = `${plot.targetId} ${plot.threatCode || ''} ${braaBrg}/${braaRng}`; const line2 = `(${plot.radial}/${plot.dist})`;
+            const line1 = `${plot.targetId} ${plot.threatCode || ''} ${braaBrg}/${braaRng}`;
+            const line2 = `(${plot.radial}/${plot.dist})`;
+            const alertLabel = plot.threatType === 'A/A' ? 'PUMP CRIT' : '';
+            
             const m1 = ctx.measureText(line1); const m2 = ctx.measureText(line2); const boxW = Math.max(m1.width, m2.width) + 8;
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.75)'; ctx.fillRect(x + 10, y - 10, boxW, 26);
-            ctx.fillStyle = '#ffb000'; ctx.fillText(line1, x + 14, y + 2); ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.font = '9px JetBrains Mono'; ctx.fillText(line2, x + 14, y + 12);
-            const alertLabel = plot.threatType === 'A/A' ? 'PUMP CRIT' : ''; if (alertLabel) { ctx.fillStyle = 'rgba(255, 0, 0, 0.9)'; ctx.font = 'bold 10px JetBrains Mono'; ctx.fillText(alertLabel, x + 14, y + 23); }
-            if (plot.threatRange) { ctx.strokeStyle = plot.threatType === 'A/A' ? 'rgba(255, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.4)'; ctx.setLineDash(plot.threatType === 'A/A' ? [2, 2] : []); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, plot.threatRange * pxPerNM, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]); }
+            const boxH = alertLabel ? 36 : 26;
+            
+            ctx.save();
+            ctx.translate(x + 10, y - 10);
+            ctx.rotate(-rotationRad); // COUNTER-ROTATE LABEL
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.85)'; ctx.fillRect(0, 0, boxW, boxH);
+            ctx.fillStyle = '#ffb000'; ctx.fillText(line1, 4, 12);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.font = '9px JetBrains Mono'; ctx.fillText(line2, 4, 22);
+            if (alertLabel) { ctx.fillStyle = 'rgba(255, 0, 0, 0.9)'; ctx.font = 'bold 10px JetBrains Mono'; ctx.fillText(alertLabel, 4, 33); }
+            ctx.restore();
+            
+            if (plot.threatRange) {
+                ctx.strokeStyle = plot.threatType === 'A/A' ? 'rgba(255, 0, 0, 0.8)' : 'rgba(255, 255, 255, 0.4)';
+                ctx.setLineDash(plot.threatType === 'A/A' ? [2, 2] : []); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, plot.threatRange * pxPerNM, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+            }
         } else { ctx.fillStyle = 'rgba(255, 176, 0, 0.35)'; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill(); }
     });
 
@@ -506,13 +535,23 @@ function updatePosition(pos) {
     el.gpsStatus.textContent = `GPS: LIVE [${timeStr}]`; el.gpsStatus.classList.remove('offline'); el.gpsStatus.classList.add('online'); calculateBRAA();
 }
 
-function initCompass() {
+window.requestSensors = () => {
     if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
         DeviceOrientationEvent.requestPermission()
-            .then(response => { if (response === 'granted') { window.addEventListener('deviceorientation', handleOrientation, true); } })
-            .catch(console.error);
-    } else { window.addEventListener('deviceorientationabsolute', handleOrientation, true); window.addEventListener('deviceorientation', handleOrientation, true); }
-}
+            .then(response => { 
+                if (response === 'granted') { 
+                    window.addEventListener('deviceorientation', handleOrientation, true); 
+                    state.sensorsActive = true;
+                    el.gpsStatus.style.boxShadow = '0 0 15px var(--edit-color)';
+                } else { alert("Permissão de sensores negada."); }
+            })
+            .catch(err => { alert("Erro ao solicitar sensores: " + err); });
+    } else { 
+        window.addEventListener('deviceorientationabsolute', handleOrientation, true); 
+        window.addEventListener('deviceorientation', handleOrientation, true); 
+        state.sensorsActive = true;
+    }
+};
 
 function handleOrientation(event) {
     let heading = null;
@@ -527,7 +566,6 @@ function handleGPSError(err) {
 }
 
 function initGPS() {
-    initCompass();
     if (!navigator.geolocation) return; el.gpsStatus.textContent = "GPS: BUSCANDO..."; el.gpsStatus.classList.add('offline');
     const options = { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 };
     navigator.geolocation.getCurrentPosition(updatePosition, (err) => { if (err.code === 3) navigator.geolocation.getCurrentPosition(updatePosition, handleGPSError, { enableHighAccuracy: false, timeout: 10000 }); else handleGPSError(err); }, options);
@@ -535,7 +573,13 @@ function initGPS() {
 }
 
 setInterval(() => { if (Date.now() - state.lastFixTime > 15000) initGPS(); }, 20000);
-el.gpsStatus.addEventListener('click', () => { initGPS(); initCompass(); });
+
+// EXPLICIT SENSOR ACTIVATION
+el.gpsStatus.addEventListener('click', () => { 
+    initGPS(); 
+    requestSensors(); 
+});
+
 document.querySelectorAll('input:not([readonly])').forEach(input => input.addEventListener('input', () => { calculateBRAA(); calculateBullCoord(); }));
 el.navBtns.forEach(btn => btn.addEventListener('click', () => { el.navBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active'); el.pages.forEach(p => p.classList.remove('active')); document.getElementById(btn.getAttribute('data-page')).classList.add('active'); if (btn.getAttribute('data-page') === 'calc-page') setTimeout(drawTacticalDisplay, 100); }));
 el.addPlotBtn.addEventListener('click', addPlot);
