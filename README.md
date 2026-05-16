@@ -1,10 +1,10 @@
-# TIZIU - Consciência Situacional de Ameaças ✈️
+# TIZIU - Consciência Situacional de Ameaças
 
 O **TIZIU** é um software desenvolvido para auxiliar a formar a consciência situacional de ameaças no cenário tático. Ele é um aplicativo PWA (Progressive Web App) projetado com foco em dispositivos móveis/tablets (como o iPad em condições de voo), apresentando uma interface escura de alta fidelidade e ergonomia de inserção ultrarápida com teclado numérico tático integrado.
 
 ---
 
-## 🚀 Principais Funcionalidades
+## Principais Funcionalidades
 
 ### 1. Display Tático Circular (Radar)
 *   Visualização gráfica interativa da sua posição relativa aos alvos (plots) e ameaças cadastradas.
@@ -33,7 +33,7 @@ O **TIZIU** é um software desenvolvido para auxiliar a formar a consciência si
 
 ---
 
-## 📂 Formatos de Arquivos de Missão
+## Formatos de Arquivos de Missão
 
 O TIZIU suporta a importação de cenários para facilitar a preparação de voo. Na página de configurações, você pode carregar arquivos nos seguintes formatos:
 
@@ -94,7 +94,7 @@ Você pode exportar o estado completo atual do seu aplicativo (incluindo todos o
 
 ---
 
-## 🛠️ Desenvolvimento e Atualização (PWA no iOS/iPad)
+## Desenvolvimento e Atualização (PWA no iOS/iPad)
 
 ### Importante: Persistência de Cache do Service Worker
 Como o aplicativo roda instalado como PWA em iPads, o navegador Safari é extremamente agressivo com cache de arquivos locais. Toda vez que qualquer modificação for realizada no código fonte (`app.js`, `style.css`, ou `index.html`):
