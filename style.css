@@ -421,3 +421,30 @@ input.editing-active {
 /* FOOTER */
 .tactical-footer { text-align: center; padding: 40px 0; font-size: 0.8rem; opacity: 0.4; letter-spacing: 2px; }
 .btn-tiny { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; padding: 10px 15px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.8rem; cursor: pointer; }
+
+/* FOCUS ON PLOT BE BLUR AND HIGHLIGHT EFFECT */
+body.keypad-focused-plot-be header,
+body.keypad-focused-plot-be nav,
+body.keypad-focused-plot-be .plotter-section,
+body.keypad-focused-plot-be .history-section,
+body.keypad-focused-plot-be footer {
+    filter: blur(5px) grayscale(0.5);
+    opacity: 0.2;
+    pointer-events: none;
+    transition: filter 0.3s ease, opacity 0.3s ease;
+}
+
+body.keypad-focused-plot-be .card.target,
+body.keypad-focused-plot-be .result-panel.compact {
+    position: relative !important;
+    z-index: 2005 !important; /* Above backdrop (1999) but below keypad (2010) */
+    box-shadow: 0 0 35px rgba(0, 255, 65, 0.35) !important;
+    border: 2px solid var(--primary-color) !important;
+    background: #050505 !important;
+    transition: all 0.3s ease;
+}
+
+/* Smoothing filters reset */
+header, nav, .plotter-section, .history-section, footer, .card.target, .result-panel.compact {
+    transition: filter 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}

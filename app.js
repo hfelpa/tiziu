@@ -230,6 +230,16 @@ function openKeypad(id, plotIndex = null, element = null) {
         else element.classList.add('editing-active');
     }
     
+    if (plotIndex === null) {
+        document.body.classList.add('keypad-focused-plot-be');
+        const targetCard = document.querySelector('.card.target');
+        if (targetCard) {
+            targetCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    } else {
+        document.body.classList.remove('keypad-focused-plot-be');
+    }
+    
     if (id === 'targetThreat' || id === 'threatCode') {
         label = 'AMEAÇA';
         contextVal = plotIndex !== null ? 'SELECIONE NOVA AMEAÇA' : 'SELECIONE AMEAÇA';
@@ -341,6 +351,7 @@ window.closeKeypad = () => {
     el.keypadBackdrop.style.display = 'none'; 
     state.activeInputId = null; 
     state.activePlotIndex = null; 
+    document.body.classList.remove('keypad-focused-plot-be');
     document.querySelectorAll('.editing-active').forEach(el => el.classList.remove('editing-active'));
 };
 
