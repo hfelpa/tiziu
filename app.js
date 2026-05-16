@@ -3,8 +3,8 @@
  * Core Logic & Math
  */
 
-/* Version: 37.0.0 - Time: 1940 */
-const CACHE_NAME = 'braa-tactical-v37';
+/* Version: 41.0.0 - Time: 1955 */
+const CACHE_NAME = 'braa-tactical-v41';
 
 // MGRS LIBRARY (Mini-bundle)
 const mgrs = (function() {
@@ -52,8 +52,8 @@ const mgrs = (function() {
         const T = Math.tan(LatRad) * Math.tan(LatRad);
         const C = eccPrimeSquared * Math.cos(LatRad) * Math.cos(LatRad);
         const A = Math.cos(LatRad) * (LongRad - LongOriginRad);
-        const M = a * ((1 - ECC_SQUARED / 4 - 3 * ECC_SQUARED * ECC_SQUARED / 64 - 5 * ECC_SQUARED * ECC_SQUARED / 256) * LatRad - (3 * ECC_SQUARED / 8 + 3 * ECC_SQUARED * ECC_SQUARED / 32 + 45 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 1024) * Math.sin(2 * LatRad) + (15 * ECC_SQUARED / 256 + 45 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 1024) * Math.sin(4 * LatRad) - (35 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 3072) * Math.sin(6 * LatRad));
-        const UTMEasting = (SCALE_FACTOR * N * (A + (1 - T + C) * A * A * A / 6 + (5 - 18 * T + T * T + 72 * C - 58 * eccPrimeSquared) * A * A * A * A * A / 120) + EASTING_OFFSET);
+        const M = a * ((1 - ECC_SQUARED / 4 - 3 * ECC_SQUARED * ECC_SQUARED / 64 - 5 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 256) * LatRad - (3 * ECC_SQUARED / 8 + 3 * ECC_SQUARED * ECC_SQUARED / 32 + 45 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 1024) * Math.sin(2 * LatRad) + (15 * ECC_SQUARED / 256 + 45 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 1024) * Math.sin(4 * LatRad) - (35 * ECC_SQUARED * ECC_SQUARED * ECC_SQUARED / 3072) * Math.sin(6 * LatRad));
+        const UTMEasting = (SCALE_FACTOR * N * (A + (1 - T + C) * A * A * A / 6 + (5 - 18 * T + T * T + 72 * C - 58 * eccPrimeSquared) * A * A * A / 120) + EASTING_OFFSET);
         let UTMNorthing = (SCALE_FACTOR * (M + N * Math.tan(LatRad) * (A * A / 2 + (5 - T + 9 * C + 4 * C * C) * A * A * A * A / 24 + (61 - 58 * T + T * T + 600 * C - 330 * eccPrimeSquared) * A * A * A * A * A * A / 720)));
         if (Lat < 0) UTMNorthing += NORTHING_OFFFSET;
         return { northing: Math.trunc(UTMNorthing), easting: Math.trunc(UTMEasting), zoneNumber: ZoneNumber, zoneLetter: getLetterDesignator(Lat) };
@@ -114,8 +114,12 @@ const state = {
         { code: 'F5', type: 'A/A', range: 23 },
         { code: 'F39', type: 'A/A', range: 34 }
     ],
-    route: []
+    route: [],
+    activeInputId: null,
+    keypadValue: ""
 };
+
+const INPUT_SEQUENCE = ["targetId", "targetRadial", "targetDist"];
 
 // UI Elements
 const el = {
@@ -147,9 +151,10 @@ const el = {
     newThreatType: document.getElementById('new-threat-type'),
     newThreatRange: document.getElementById('new-threat-range'),
     addThreatConfigBtn: document.getElementById('add-threat-config-btn'),
-    gpxUpload: document.getElementById('gpx-upload'),
-    gpxStatusInfo: document.getElementById('gpx-status-info'),
-    clearGpxBtn: document.getElementById('clear-gpx-btn')
+    keypad: document.getElementById('tactical-keypad'),
+    keypadBackdrop: document.getElementById('keypad-backdrop'),
+    keypadTitle: document.getElementById('keypad-title'),
+    keypadPreview: document.getElementById('keypad-preview')
 };
 
 const ctx = el.canvas ? el.canvas.getContext('2d') : null;
@@ -188,6 +193,58 @@ function toDDM(decimal, isLat) {
     const degStr = isLat ? degrees.toString().padStart(2, '0') : degrees.toString().padStart(3, '0');
     return `${direction} ${degStr}° ${minutes.padStart(5, '0')}'`;
 }
+
+/**
+ * CUSTOM KEYPAD LOGIC (REAL-TIME SYNC)
+ */
+function openKeypad(id) {
+    state.activeInputId = id;
+    state.keypadValue = document.getElementById(id).value;
+    el.keypadTitle.textContent = document.getElementById(id).previousElementSibling.textContent;
+    el.keypadPreview.textContent = state.keypadValue;
+    el.keypad.style.display = 'flex';
+    el.keypadBackdrop.style.display = 'block';
+}
+
+function updateActiveField() {
+    if (state.activeInputId) {
+        document.getElementById(state.activeInputId).value = state.keypadValue;
+        calculateBRAA(); calculateBullCoord();
+    }
+}
+
+window.keyInput = (char) => {
+    if (char === 'CLR') state.keypadValue = "";
+    else if (char === 'DEL') state.keypadValue = state.keypadValue.slice(0, -1);
+    else {
+        if (state.keypadValue.length < 6) state.keypadValue += char;
+    }
+    el.keypadPreview.textContent = state.keypadValue;
+    updateActiveField();
+};
+
+window.keypadNav = (dir) => {
+    updateActiveField();
+    const curIdx = INPUT_SEQUENCE.indexOf(state.activeInputId);
+    let nextIdx = (curIdx + dir + INPUT_SEQUENCE.length) % INPUT_SEQUENCE.length;
+    openKeypad(INPUT_SEQUENCE[nextIdx]);
+};
+
+window.confirmKeypad = (shouldAdd) => {
+    updateActiveField();
+    if (shouldAdd) addPlot();
+    closeKeypad();
+};
+
+window.closeKeypad = () => {
+    el.keypad.style.display = 'none';
+    el.keypadBackdrop.style.display = 'none';
+    state.activeInputId = null;
+};
+
+document.querySelectorAll('.custom-keyboard-input').forEach(input => {
+    input.addEventListener('click', () => openKeypad(input.id));
+});
 
 /**
  * CORE LOGIC
@@ -259,7 +316,6 @@ function deleteThreat(index) {
 
 function selectTargetId(id) {
     el.targetId.value = id;
-    el.targetRadial.focus();
 }
 
 function addPlot() {
@@ -443,7 +499,7 @@ el.canvas.addEventListener('click', (e) => {
         const dist = Math.sqrt((clickX - x)**2 + (clickY - y)**2);
         if (dist < 25) foundId = plot.targetId;
     });
-    if (foundId) selectTargetId(foundId);
+    if (foundId) { selectTargetId(foundId); openKeypad('targetId'); }
 });
 
 /**
@@ -485,7 +541,7 @@ function initGPS() {
 setInterval(() => { if (Date.now() - state.lastFixTime > 15000) initGPS(); }, 20000);
 
 el.gpsStatus.addEventListener('click', initGPS);
-document.querySelectorAll('input').forEach(input => input.addEventListener('input', () => { calculateBRAA(); calculateBullCoord(); }));
+document.querySelectorAll('input:not([readonly])').forEach(input => input.addEventListener('input', () => { calculateBRAA(); calculateBullCoord(); }));
 el.navBtns.forEach(btn => btn.addEventListener('click', () => {
     el.navBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active');
     el.pages.forEach(p => p.classList.remove('active')); document.getElementById(btn.getAttribute('data-page')).classList.add('active');

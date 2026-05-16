@@ -89,9 +89,9 @@ h1 .v2 {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #888;
-    padding: 20px; /* Even larger */
+    padding: 20px;
     font-family: var(--font-mono);
-    font-size: 1.1rem; /* Even larger */
+    font-size: 1.1rem;
     cursor: pointer;
     transition: all 0.2s;
     border-radius: 8px;
@@ -132,39 +132,7 @@ h1 .v2 {
     letter-spacing: 2px;
 }
 
-/* FIDELITY CHECK STYLE */
-.fidelity-row {
-    background: rgba(255, 255, 255, 0.03);
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 5px solid var(--secondary-color);
-}
-
-.fidelity-item {
-    display: flex;
-    flex-direction: column;
-}
-
-.fidelity-item label {
-    font-size: 0.8rem;
-    color: #888;
-    margin-bottom: 5px;
-}
-
-.value-fidelity {
-    font-family: var(--font-mono);
-    font-size: 1.2rem;
-    color: var(--primary-color);
-    font-weight: 700;
-    user-select: none;
-}
-
-/* COLLAPSIBLE */
-.bullseye.collapsed .collapsible-content { display: none; }
-.bullseye.collapsed .toggle-icon { transform: rotate(-90deg); }
-.toggle-icon { transition: transform 0.2s; color: var(--secondary-color); font-size: 1.2rem; }
-
-/* INPUT ROW (HUGE FOR COCKPIT) */
+/* INPUT ROW */
 .plot-input-row {
     display: flex;
     gap: 15px;
@@ -173,7 +141,7 @@ h1 .v2 {
 
 .grid-4-main {
     display: grid;
-    grid-template-columns: 90px 1fr 1fr 1.2fr; /* Optimized for numeric-only input sizes */
+    grid-template-columns: 90px 1fr 1fr 1.2fr;
     gap: 12px;
     flex: 1;
 }
@@ -182,10 +150,10 @@ h1 .v2 {
     background: var(--secondary-color);
     color: #000;
     border: none;
-    width: 80px; /* HUGE */
-    height: 80px; /* HUGE */
+    width: 80px;
+    height: 80px;
     border-radius: 8px;
-    font-size: 3rem; /* HUGE */
+    font-size: 3rem;
     font-weight: 700;
     cursor: pointer;
     box-shadow: 0 0 20px rgba(255,176,0,0.5);
@@ -197,17 +165,115 @@ h1 .v2 {
 
 input, select {
     background: rgba(0, 0, 0, 0.8);
-    border: 3px solid rgba(255, 255, 255, 0.4); /* Extra thick border */
+    border: 3px solid rgba(255, 255, 255, 0.4);
     color: #fff;
-    padding: 16px 12px; /* Super padding */
+    padding: 16px 12px;
     font-family: var(--font-mono);
-    font-size: 1.4rem; /* Super font size */
+    font-size: 1.4rem;
     border-radius: 8px;
     width: 100%;
-    height: 70px; /* Consistent height */
+    height: 70px;
 }
 
+input[readonly] { cursor: pointer; border-color: rgba(0, 255, 65, 0.3); }
 input:focus, select:focus { border-color: var(--primary-color); outline: none; background: #111; }
+
+/* TACTICAL KEYPAD OVERLAY & BACKDROP */
+.keypad-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1999;
+    display: none;
+}
+
+.keypad-overlay {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #0a0a0a;
+    border-top: 5px solid var(--primary-color);
+    z-index: 2000;
+    display: none;
+    flex-direction: column;
+    padding: 15px;
+    box-shadow: 0 -15px 40px rgba(0,0,0,0.9);
+}
+
+.keypad-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+#keypad-title { font-family: var(--font-mono); color: var(--primary-color); font-weight: 700; font-size: 1.1rem; }
+.keypad-close { background: #333; color: #fff; border: none; width: 45px; height: 45px; border-radius: 8px; font-weight: 700; font-size: 1.2rem; cursor: pointer; }
+
+.keypad-display {
+    background: #000;
+    border: 2px solid #333;
+    padding: 15px;
+    margin-bottom: 12px;
+    text-align: right;
+    border-radius: 8px;
+}
+
+#keypad-preview {
+    font-family: var(--font-mono);
+    font-size: 2.8rem;
+    color: var(--primary-color);
+    text-shadow: 0 0 12px var(--primary-color);
+}
+
+.keypad-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.key-btn {
+    background: #222;
+    border: 1px solid #444;
+    color: #fff;
+    padding: 22px;
+    font-size: 2.2rem;
+    font-family: var(--font-mono);
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.action-clr { color: #ff4444; }
+.action-del { color: var(--secondary-color); }
+
+.keypad-footer-grid {
+    display: grid;
+    grid-template-columns: 80px 1fr 80px;
+    gap: 15px;
+}
+
+.nav-btn-keypad {
+    background: #333;
+    color: var(--secondary-color);
+    border-color: #555;
+    font-size: 2.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.action-ent {
+    background: var(--primary-color);
+    color: #000;
+    font-weight: 700;
+    font-size: 1.8rem !important;
+    border: none !important;
+}
 
 /* RESULTS (SIDE BY SIDE) */
 .result-panel.compact {
@@ -286,7 +352,7 @@ input:focus, select:focus { border-color: var(--primary-color); outline: none; b
 
 .value-mgrs {
     font-family: var(--font-mono);
-    font-size: 1rem; /* Larger */
+    font-size: 1rem;
     color: var(--secondary-color);
     letter-spacing: 2px;
 }
@@ -305,6 +371,33 @@ input:focus, select:focus { border-color: var(--primary-color); outline: none; b
 .tactical-table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.85rem; }
 .tactical-table th, .tactical-table td { padding: 12px 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); text-align: left; }
 .tactical-table input, .tactical-table select { padding: 8px; font-size: 0.85rem; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); height: auto; }
+
+/* FIDELITY CHECK STYLE */
+.fidelity-row {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 5px solid var(--secondary-color);
+}
+
+.fidelity-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.fidelity-item label {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.value-fidelity {
+    font-family: var(--font-mono);
+    font-size: 1.2rem;
+    color: var(--primary-color);
+    font-weight: 700;
+    user-select: none;
+}
 
 /* FOOTER */
 .tactical-footer { text-align: center; padding: 40px 0; font-size: 0.8rem; opacity: 0.4; letter-spacing: 2px; }

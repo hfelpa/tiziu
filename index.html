@@ -13,13 +13,16 @@
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body class="tactical-theme">
+    <!-- KEYPAD BACKDROP (for clicking outside) -->
+    <div id="keypad-backdrop" class="keypad-backdrop" onclick="closeKeypad()"></div>
+
     <div class="app-container">
         <header>
             <div class="status-bar">
                 <span id="gps-status" class="status-indicator offline">GPS: BUSCANDO...</span>
                 <span id="pwa-status" class="status-indicator">OFFLINE READY</span>
             </div>
-            <h1>BRAA TACTICAL <span class="v2">v3.7</span></h1>
+            <h1>BRAA TACTICAL <span class="v2">v4.0</span></h1>
         </header>
 
         <!-- NAVIGATION MENU -->
@@ -40,15 +43,15 @@
                         <div class="grid-4-main">
                             <div class="input-group">
                                 <label>ID ALVO</label>
-                                <input type="number" id="targetId" placeholder="ID" value="1" inputmode="numeric" pattern="[0-9]*">
+                                <input type="text" id="targetId" placeholder="ID" value="1" readonly class="custom-keyboard-input">
                             </div>
                             <div class="input-group">
                                 <label>RADIAL</label>
-                                <input type="number" id="targetRadial" placeholder="360°" inputmode="numeric" pattern="[0-9]*">
+                                <input type="text" id="targetRadial" placeholder="360°" readonly class="custom-keyboard-input">
                             </div>
                             <div class="input-group">
                                 <label>DIST</label>
-                                <input type="number" id="targetDist" placeholder="0 NM" inputmode="numeric" pattern="[0-9]*">
+                                <input type="text" id="targetDist" placeholder="0 NM" readonly class="custom-keyboard-input">
                             </div>
                             <div class="input-group">
                                 <label>AMEAÇA</label>
@@ -197,21 +200,6 @@
                         <button id="add-threat-config-btn" class="btn-secondary-outline">ADICIONAR</button>
                     </div>
                 </section>
-
-                <!-- GPX ROUTE MANAGEMENT -->
-                <section class="card gpx-config">
-                    <div class="card-header">
-                        <h2>ROTA (GPX)</h2>
-                    </div>
-                    <div class="input-group">
-                        <label>SUBIR ARQUIVO GPX</label>
-                        <input type="file" id="gpx-upload" accept=".gpx">
-                    </div>
-                    <div id="gpx-status-info" style="font-size: 0.6rem; margin-top: 5px; opacity: 0.6;">
-                        Nenhuma rota carregada.
-                    </div>
-                    <button id="clear-gpx-btn" class="btn-tiny" style="margin-top: 10px;">LIMPAR ROTA</button>
-                </section>
             </div>
         </main>
 
@@ -219,6 +207,36 @@
             <p>FPT</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
+    </div>
+
+    <!-- CUSTOM TACTICAL KEYPAD -->
+    <div id="tactical-keypad" class="keypad-overlay">
+        <div class="keypad-header">
+            <span id="keypad-title">ID ALVO</span>
+            <button class="keypad-close" onclick="closeKeypad()">✕</button>
+        </div>
+        <div class="keypad-display">
+            <span id="keypad-preview"></span>
+        </div>
+        <div class="keypad-grid">
+            <button class="key-btn" onclick="keyInput('1')">1</button>
+            <button class="key-btn" onclick="keyInput('2')">2</button>
+            <button class="key-btn" onclick="keyInput('3')">3</button>
+            <button class="key-btn" onclick="keyInput('4')">4</button>
+            <button class="key-btn" onclick="keyInput('5')">5</button>
+            <button class="key-btn" onclick="keyInput('6')">6</button>
+            <button class="key-btn" onclick="keyInput('7')">7</button>
+            <button class="key-btn" onclick="keyInput('8')">8</button>
+            <button class="key-btn" onclick="keyInput('9')">9</button>
+            <button class="key-btn action-clr" onclick="keyInput('CLR')">CLR</button>
+            <button class="key-btn" onclick="keyInput('0')">0</button>
+            <button class="key-btn action-del" onclick="keyInput('DEL')">DEL</button>
+        </div>
+        <div class="keypad-footer-grid">
+            <button class="key-btn nav-btn-keypad" onclick="keypadNav(-1)">❮</button>
+            <button class="key-btn action-ent" onclick="confirmKeypad(true)">ENTER</button>
+            <button class="key-btn nav-btn-keypad" onclick="keypadNav(1)">❯</button>
+        </div>
     </div>
 
     <!-- Hidden native inputs for math logic compatibility -->
@@ -229,7 +247,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=37')
+                navigator.serviceWorker.register('sw.js?v=40')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();
