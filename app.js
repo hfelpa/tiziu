@@ -16,6 +16,7 @@ const MISSIONS = {
             { code: 'R70', type: 'A/G', range: 3.5 },
             { code: 'S7', type: 'A/G', range: 10 },
             { code: 'SPY', type: 'A/G', range: 18 },
+            { code: 'MIS', type: 'A/G', range: 3 },
             { code: 'SA23', type: 'A/G', range: 108 },
             { code: 'F5', type: 'A/A', range: 23 },
             { code: 'F39', type: 'A/A', range: 34 }
@@ -842,13 +843,34 @@ function selectTargetId(id) {
 
 function addPlot() {
     if (!state.targetPos) return;
-    const threatCode = document.getElementById('targetThreat').value; const threat = state.threats.find(t => t.code === threatCode); const targetId = el.targetId.value || "71";
-    state.plots.push({ ...state.targetPos, targetId: targetId, threatCode: threatCode && threatCode !== '-' ? threatCode : null, threatRange: threat ? threat.range : null, threatType: threat ? threat.type : null, timestamp: Date.now() });
+    const threatCode = document.getElementById('targetThreat').value; 
+    const threat = state.threats.find(t => t.code === threatCode); 
+    const targetId = el.targetId.value || "71";
+    
+    state.plots.push({ 
+        ...state.targetPos, 
+        targetId: targetId, 
+        threatCode: threatCode && threatCode !== '-' ? threatCode : null, 
+        threatRange: threat ? threat.range : null, 
+        threatType: threat ? threat.type : null, 
+        timestamp: Date.now() 
+    });
+    
     state.targetPos = null; // Clear preview
-    const usedIds = new Set(state.plots.map(p => p.targetId)); let nextId = state.startTargetId || 1; while (usedIds.has(nextId.toString())) { nextId++; }
+    
+    // Clear inputs for next plot
+    el.targetRadial.value = "";
+    el.targetDist.value = "";
+    calculateBRAA();
+    
+    const usedIds = new Set(state.plots.map(p => p.targetId)); 
+    let nextId = state.startTargetId || 1; 
+    while (usedIds.has(nextId.toString())) { nextId++; }
+    
     el.targetId.value = nextId.toString();
     syncThreatFromLastPlot(nextId.toString());
-    renderHistory(); drawTacticalDisplay();
+    renderHistory(); 
+    drawTacticalDisplay();
 }
 
 window.updateStartTargetId = (val) => {
