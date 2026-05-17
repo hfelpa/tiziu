@@ -4,23 +4,23 @@ O **TIZIU** é um software desenvolvido para auxiliar a formar a consciência si
 
 ---
 
-## Como Instalar e Utilizar Offline
+## Como Instalar e Utilizar Offline (Sem Internet) ✈️
 
-O **TIZIU** foi desenvolvido para funcionar 100% offline em iPads e iPhones na nacele em voo, sem depender de internet ou rede celular. Siga o passo a passo de instalação:
+O **TIZIU** foi desenvolvido para funcionar 100% offline em iPads e iPhones no cockpit em voo, sem depender de internet ou rede celular. Siga o passo a passo de instalação:
 
 ### 1. No Safari (iOS / iPadOS)
-1. Abra o Safari e acesse o endereço do aplicativo **[TIZIU](https://hfelpa.github.io/tiziu/)**
+1. Abra o Safari e acesse o endereço do aplicativo **TIZIU**.
 2. Toque no botão de **Compartilhar** (ícone de um quadrado com uma seta apontando para cima).
 3. Selecione a opção **Adicionar à Tela de Início**.
 4. Confirme o nome do aplicativo e toque em **Adicionar**. Um ícone com a silhueta do passarinho Tiziu será adicionado à sua tela de início.
 
 ### 2. Primeira Inicialização (Essencial)
 *   **Abra o aplicativo pela primeira vez a partir da tela de início ainda conectado ao Wi-Fi.**
-*   Esta abertura inicial é crucial para que o Service Worker baixe e armazene de forma permanente todos os arquivos locais na memória do dispositivo.
+*   Esta abertura inicial é crucial para que o Service Worker baixe e armazene de forma permanente todos os arquivos locais (`index.html`, `app.js`, `style.css` e fontes) na memória segura do dispositivo.
 
 ### 3. Utilização em Voo
 *   **Nas próximas vezes, a conexão com a internet NÃO é mais necessária.**
-*   Você pode ativar o **Modo Avião** e abrir o aplicativo a partir do ícone na tela de início. O **TIZIU** iniciará instantaneamente, e o georreferenciamento continuará operando de forma 100% offline no cockpit.
+*   Você pode ativar o **Modo Avião** e abrir o aplicativo a partir do ícone na tela de início. O **TIZIU** iniciará instantaneamente, e o georreferenciamento por satélite (GPS) e bússola continuarão operando de forma 100% offline no cockpit.
 
 ---
 
@@ -121,11 +121,11 @@ Como o aplicativo roda instalado como PWA em iPads, o navegador Safari é extrem
 
 1.  **Incremente a versão do cache** no arquivo `sw.js` (variável `CACHE_NAME` e o cabeçalho do arquivo):
     ```javascript
-    /* Version: 7.7.9 */
-    const CACHE_NAME = 'braa-tactical-v7.7.9';
+    /* Version: 1.0.0-beta.1 */
+    const CACHE_NAME = 'braa-tactical-v1.0.0-beta.1';
     ```
 2.  **Incremente o parâmetro de query string** no registro do service worker no final do arquivo `index.html`:
     ```javascript
-    navigator.serviceWorker.register('sw.js?v=7.7.9')
+    navigator.serviceWorker.register('sw.js?v=1.0.0-beta.1')
     ```
 Isso força o iPad a invalidar instantaneamente o cache local antigo e baixar as atualizações na próxima abertura do aplicativo.
