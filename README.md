@@ -1,6 +1,6 @@
 # TIZIU - Consciência Situacional de Ameaças
 
-O **TIZIU** é um software desenvolvido para auxiliar a formar a consciência situacional de ameaças no cenário tático. Ele é um aplicativo PWA (Progressive Web App) projetado com foco em dispositivos móveis/tablets (como o iPad em condições de voo), apresentando uma interface escura de alta fidelidade e ergonomia de inserção ultrarápida com teclado numérico tático integrado.
+O **TIZIU** é um software desenvolvido para auxiliar a formar a consciência situacional de ameaças no cenário tático. Ele é um aplicativo PWA (Progressive Web App) projetado com foco em dispositivos móveis/tablets (como o iPad em condições de voo).
 
 ---
 
