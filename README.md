@@ -4,7 +4,7 @@ O **TIZIU** é um software desenvolvido para auxiliar a formar a consciência si
 
 ---
 
-## Como Instalar e Utilizar Offline (Sem Internet) ✈️
+## Como instalar e utilizar Offline
 
 O **TIZIU** foi desenvolvido para funcionar 100% offline em iPads e iPhones no cockpit em voo, sem depender de internet ou rede celular. Siga o passo a passo de instalação:
 
