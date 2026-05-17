@@ -28,8 +28,8 @@ O **TIZIU** foi desenvolvido para funcionar 100% offline em iPads e iPhones no c
 
 ### 1. Display Tático Circular (Radar)
 *   Visualização gráfica interativa da sua posição relativa aos alvos (plots) e ameaças cadastradas.
-*   **Modo de Orientação**: Alternação instantânea entre orientação relativa à proa (**HEADING**) ou ao norte geográfico (**NORTH**).
-*   **Escala Dinâmica**: Zoom ajustável em tempo real (10, 20, 40, 80 e 160 NM).
+*   **Modo de Orientação**: Alternação instantânea entre orientação relativa à proa (**HDG UP**) ou ao norte magnético (**N UP**).
+*   **Escala Dinâmica**: Zoom ajustável em tempo real (20, 40, 80 e 160 NM).
 *   **Modo de Edição Avançado**: Ao editar um plot histórico, o radar exibe a posição anterior (original) em pontilhado laranja para permitir comparação direta em tempo real, enquanto a nova posição projetada é mostrada em ciano.
 
 ### 2. Teclado Numérico Customizado e Zero Scroll Lock
