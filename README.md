@@ -26,11 +26,11 @@ O **TIZIU** foi desenvolvido para funcionar 100% offline em iPads e iPhones no c
 
 ## Principais Funcionalidades
 
-### 1. Display Tático Circular (Radar)
+### 1. Display Tático Circular
 *   **DISPLAY TÁTICO**: Visualização gráfica interativa da sua posição relativa aos alvos (plots) e ameaças cadastradas.
 *   **Modo de Orientação**: Alternação instantânea entre orientação relativa à proa (**HEADING**) ou ao norte magnético (**NORTH**).
 *   **Escala Dinâmica**: Zoom ajustável em tempo real (20, 40, 80 e 160 NM).
-*   **Modo de Edição Avançado**: Ao editar um plot histórico, o radar exibe a posição anterior (original) em pontilhado laranja para permitir comparação direta em tempo real, enquanto a nova posição projetada é mostrada em ciano.
+*   **Modo de Edição Avançado**: Ao editar um plot histórico, o display exibe a posição anterior (original) em pontilhado laranja para permitir comparação direta em tempo real, enquanto a nova posição projetada é mostrada em ciano.
 *   **Bloqueio de Foco (Blur)**: Na inicialização, se a bússola/GPS não estiverem ativos, o sistema desfoca (blur) toda a interface e destaca exclusivamente o botão de ativação com uma pulsação magenta, obrigando o engajamento operacional da bússola antes do uso.
 
 ### 2. Teclado Numérico Customizado e Zero Scroll Lock
@@ -41,7 +41,7 @@ O **TIZIU** foi desenvolvido para funcionar 100% offline em iPads e iPhones no c
 ### 3. Sistema Multi-Bullseye Inteligente
 *   **Seletor Tático**: Alterne instantaneamente o Bullseye ativo por meio do dropdown no cabeçalho do painel principal.
 *   **Banco de Dados Integrado**: Cadastre, ative e remova pontos de Bullseye diretamente na aba de configurações. O Bullseye ativo exibe uma marcação visual (`⭐`) e tag `"ATIVO"`.
-*   Ajustar ou alternar o Bullseye ativo recalcula imediatamente todas as coordenadas `PLOT BE` e representações gráficas no radar.
+*   Ajustar ou alternar o Bullseye ativo recalcula imediatamente todas as coordenadas `PLOT BE` e representações gráficas no display.
 
 ### 4. Gerenciador de Ameaças Dinâmico
 *   Cadastre ameaças aéreas (**A/A**) ou de superfície (**A/G**) na aba de configurações.
@@ -106,7 +106,7 @@ Ideal para guardar a estrutura completa do app de forma programática.
 ---
 
 ### 3. Arquivo GPX (.gpx)
-Você pode carregar arquivos de rota tradicionais de GPS (`.gpx`). O aplicativo irá ler os `trackpoints` (`<trkpt>`) ou `waypoints` (`<wpt>`) e desenhará a rota de voo como uma linha roxa tracejada de alta fidelidade no radar tático.
+Você pode carregar arquivos de rota tradicionais de GPS (`.gpx`). O aplicativo irá ler os `trackpoints` (`<trkpt>`) ou `waypoints` (`<wpt>`) e desenhará a rota de voo como uma linha roxa tracejada de alta fidelidade no display tático.
 
 ---
 
