@@ -1,11 +1,11 @@
 {
-  "name": "TIZIU Tactical Calculator",
+  "name": "TIZIU SA",
   "short_name": "TIZIU",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#00ff41",
-  "description": "Calculadora TIZIU Offline para Aviação Tática",
+  "description": "Consciência situacional de ameaças em contexto operacional",
   "icons": [
     {
       "src": "https://img.icons8.com/ios-filled/512/00ff41/bird.png",

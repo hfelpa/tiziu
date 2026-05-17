@@ -1,5 +1,5 @@
-/* Version: 1.0.0-beta.1 */
-const CACHE_NAME = 'braa-tactical-v1.0.0-beta.1';
+/* Version: 1.0.0-beta.2 */
+const CACHE_NAME = 'tiziu-v1.0.0-beta.2';
 const ASSETS = [
     './',
     './index.html',

@@ -6,7 +6,7 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>TIZIU</title>
-    
+
     <!-- Open Graph for Link Preview -->
     <meta property="og:title" content="TIZIU">
     <meta property="og:description" content="Consciência Situacional de Ameaças">
@@ -51,7 +51,13 @@
                 <section class="card target">
                     <div class="card-header"
                         style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                        <h2 id="bull-badge-main">PLOT BE [SILVER]</h2>
+                        <h2 style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                            <span id="bull-badge-main">PLOT BE [SILVER]</span>
+                            <span style="display: flex; flex-direction: column; gap: 4px; margin-top: -2px;">
+                                <span id="own-bull-pos-badge" style="font-size: 0.75rem; background: rgba(0, 255, 65, 0.15); color: var(--primary-color); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--primary-color); font-family: var(--font-mono); letter-spacing: 0.5px; opacity: 0.9; line-height: 1; text-align: center;">OWN: ---/---</span>
+                                <span id="alpha-check-badge" style="font-size: 0.75rem; background: rgba(255, 176, 0, 0.15); color: #ffb000; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffb000; font-family: var(--font-mono); letter-spacing: 0.5px; opacity: 0.9; line-height: 1; text-align: center;">ALPHA: ---/---</span>
+                            </span>
+                        </h2>
                         <select id="active-bullseye-select" class="select-small"
                             style="max-width: 140px; background: rgba(0, 255, 65, 0.1); border: 1px solid var(--primary-color); color: var(--primary-color); font-weight: bold; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.85rem;"
                             onchange="selectActiveBullseye(this.value)">
@@ -59,6 +65,7 @@
                         </select>
                     </div>
                     <div class="plot-input-row-horizontal">
+                        <button class="btn-clear-plot" onclick="clearPlotFields()" style="background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.4); color: #ff3b30; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; letter-spacing: 1px; width: 60px; height: 60px; flex-shrink: 0; box-shadow: 0 0 10px rgba(255, 59, 48, 0.2);">CLR</button>
                         <div class="input-group id-group">
                             <label>ID</label>
                             <input type="text" id="targetId" value="71" readonly class="custom-keyboard-input">
@@ -298,7 +305,7 @@
         </main>
 
         <footer class="tactical-footer">
-            <p>FPT • TIZIU v1.0.0-beta.1</p>
+            <p>FPT • TIZIU v1.0.0-beta.2</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
     </div>
@@ -334,7 +341,7 @@
         </div>
         <div class="keypad-footer-grid">
             <button class="key-btn nav-btn-keypad" onclick="keypadNav(-1)">❮</button>
-            <button class="key-btn action-ent" onclick="confirmKeypad(true)">ENTER</button>
+            <button class="key-btn action-ent" onclick="confirmKeypad(true)" style="background: var(--secondary-color); color: #000; font-size: 2.2rem; font-weight: bold; box-shadow: 0 0 15px rgba(255, 176, 0, 0.4);">+</button>
             <button class="key-btn nav-btn-keypad" onclick="keypadNav(1)">❯</button>
         </div>
     </div>
@@ -350,7 +357,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=1.0.0-beta.1')
+                navigator.serviceWorker.register('sw.js?v=1.0.0-beta.2')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();
