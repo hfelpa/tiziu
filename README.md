@@ -29,7 +29,7 @@ O **TIZIU** foi desenvolvido para funcionar 100% offline em iPads e iPhones no c
 ### 1. Display Tático Circular (Radar)
 *   **DISPLAY TÁTICO**: Visualização gráfica interativa da sua posição relativa aos alvos (plots) e ameaças cadastradas.
 *   **Modo de Orientação**: Alternação instantânea entre orientação relativa à proa (**HEADING**) ou ao norte magnético (**NORTH**).
-*   **Escala Dinâmica**: Zoom ajustável em tempo real (10, 20, 40, 80 e 160 NM).
+*   **Escala Dinâmica**: Zoom ajustável em tempo real (20, 40, 80 e 160 NM).
 *   **Modo de Edição Avançado**: Ao editar um plot histórico, o radar exibe a posição anterior (original) em pontilhado laranja para permitir comparação direta em tempo real, enquanto a nova posição projetada é mostrada em ciano.
 *   **Bloqueio de Foco (Blur)**: Na inicialização, se a bússola/GPS não estiverem ativos, o sistema desfoca (blur) toda a interface e destaca exclusivamente o botão de ativação com uma pulsação magenta, obrigando o engajamento operacional da bússola antes do uso.
 
@@ -56,7 +56,7 @@ O **TIZIU** foi desenvolvido para funcionar 100% offline em iPads e iPhones no c
 
 ## Formatos de Arquivos de Missão
 
-O TIZIU suporta a importação de cenários para facilitar a preparação de voo. Na página de configurações, você pode carregar arquivos nos seguintes formatos:
+O TIZIU suporta a importação de cenários para facilitar a preparação de voo. Na página de configurações, o botão **IMPORTAR CENÁRIO** processa inteligentemente qualquer arquivo dos seguintes formatos:
 
 ### 1. Arquivo de Texto Simples (.txt)
 O formato mais rápido para construir e compartilhar cenários. Cada linha define o Bullseye ou uma ameaça, usando espaços, tabulações ou vírgulas como separadores.
@@ -111,7 +111,7 @@ Você pode carregar arquivos de rota tradicionais de GPS (`.gpx`). O aplicativo 
 ---
 
 ### 4. Arquivo de Salvamento de Sessão Completa (.json)
-Você pode exportar o estado completo atual do seu aplicativo (incluindo todos os alvos plotados em tempo real, banco de dados de ameaças cadastradas, bullseyes ativos e configurações de offsets) para um único arquivo de backup `.json`. Para fazer isso, utilize os botões **EXPORTAR CENÁRIO** e **IMPORTAR CENÁRIO** integrados na aba de configurações. Isso permite pausar a simulação e retomá-la perfeitamente a qualquer momento offline.
+Você pode exportar o estado completo atual do seu aplicativo (incluindo todos os alvos plotados em tempo real, banco de dados de ameaças cadastradas, bullseyes ativos e configurações de offsets) para um único arquivo de backup `.json`. Para fazer isso, utilize os botões **EXPORTAR CENÁRIO** e **IMPORTAR CENÁRIO** integrados na aba de configurações (o botão importar reconhece automaticamente se o arquivo é um texto simples ou um salvamento completo). Isso permite pausar a simulação e retomá-la perfeitamente a qualquer momento offline.
 
 ---
 
