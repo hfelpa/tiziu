@@ -112,9 +112,3 @@ E atualize o número da versão no rodapé do `index.html`.
 - Service Worker para cache offline
 - API de Geolocalização e `DeviceOrientationEvent` (bússola magnética via `webkitCompassHeading`)
 - MGRS codificado localmente (sem dependências externas)
-
----
-
-## Licença
-
-Uso restrito. Desenvolvido pela **FPT** para emprego operacional interno.
