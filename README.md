@@ -1,15 +1,15 @@
 # TIZIU - Consciência Situacional de Ameaças
 
-O **TIZIU** é um software desenvolvido para auxiliar a formar a consciência situacional de ameaças no cenário tático. Ele é um aplicativo PWA (Progressive Web App) projetado com foco em dispositivos móveis/tablets (como o iPad em condições de voo).
+O **TIZIU** é um software desenvolvido para auxiliar a formar a consciência situacional de ameaças no cenário tático. Ele é um aplicativo PWA (Progressive Web App) projetado com foco em dispositivos móveis/tablets (como o iPad em condições de voo), apresentando uma interface escura de alta fidelidade e ergonomia de inserção ultrarápida com teclado numérico tático integrado.
 
 ---
 
-## Como instalar e utilizar Offline
+## Como Instalar e Utilizar Offline (Sem Internet) ✈️
 
 O **TIZIU** foi desenvolvido para funcionar 100% offline em iPads e iPhones no cockpit em voo, sem depender de internet ou rede celular. Siga o passo a passo de instalação:
 
 ### 1. No Safari (iOS / iPadOS)
-1. Abra o Safari e acesse o endereço do aplicativo **[TIZIU](hfelpa.github.io/tiziu/)**.
+1. Abra o Safari e acesse o endereço do aplicativo **TIZIU**.
 2. Toque no botão de **Compartilhar** (ícone de um quadrado com uma seta apontando para cima).
 3. Selecione a opção **Adicionar à Tela de Início**.
 4. Confirme o nome do aplicativo e toque em **Adicionar**. Um ícone com a silhueta do passarinho Tiziu será adicionado à sua tela de início.
@@ -27,10 +27,11 @@ O **TIZIU** foi desenvolvido para funcionar 100% offline em iPads e iPhones no c
 ## Principais Funcionalidades
 
 ### 1. Display Tático Circular (Radar)
-*   Visualização gráfica interativa da sua posição relativa aos alvos (plots) e ameaças cadastradas.
-*   **Modo de Orientação**: Alternação instantânea entre orientação relativa à proa (**HDG UP**) ou ao norte magnético (**N UP**).
-*   **Escala Dinâmica**: Zoom ajustável em tempo real (20, 40, 80 e 160 NM).
+*   **DISPLAY TÁTICO**: Visualização gráfica interativa da sua posição relativa aos alvos (plots) e ameaças cadastradas.
+*   **Modo de Orientação**: Alternação instantânea entre orientação relativa à proa (**HEADING**) ou ao norte magnético (**NORTH**).
+*   **Escala Dinâmica**: Zoom ajustável em tempo real (10, 20, 40, 80 e 160 NM).
 *   **Modo de Edição Avançado**: Ao editar um plot histórico, o radar exibe a posição anterior (original) em pontilhado laranja para permitir comparação direta em tempo real, enquanto a nova posição projetada é mostrada em ciano.
+*   **Bloqueio de Foco (Blur)**: Na inicialização, se a bússola/GPS não estiverem ativos, o sistema desfoca (blur) toda a interface e destaca exclusivamente o botão de ativação com uma pulsação magenta, obrigando o engajamento operacional da bússola antes do uso.
 
 ### 2. Teclado Numérico Customizado e Zero Scroll Lock
 *   Teclado tático de alta fidelidade que evita o teclado nativo do sistema operacional, acelerando a digitação rápida em voo.
@@ -110,7 +111,7 @@ Você pode carregar arquivos de rota tradicionais de GPS (`.gpx`). O aplicativo 
 ---
 
 ### 4. Arquivo de Salvamento de Sessão Completa (.json)
-Você pode exportar o estado completo atual do seu aplicativo (incluindo todos os alvos plotados em tempo real, banco de dados de ameaças cadastradas, bullseyes ativos e configurações de offsets) para um único arquivo de backup `.json`. Para fazer isso, utilize os botões **EXPORTAR SALVAMENTO** e **IMPORTAR SALVAMENTO** integrados no gerenciador de missão. Isso permite pausar a simulação e retomá-la perfeitamente a qualquer momento offline.
+Você pode exportar o estado completo atual do seu aplicativo (incluindo todos os alvos plotados em tempo real, banco de dados de ameaças cadastradas, bullseyes ativos e configurações de offsets) para um único arquivo de backup `.json`. Para fazer isso, utilize os botões **EXPORTAR CENÁRIO** e **IMPORTAR CENÁRIO** integrados na aba de configurações. Isso permite pausar a simulação e retomá-la perfeitamente a qualquer momento offline.
 
 ---
 
