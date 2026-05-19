@@ -3,8 +3,8 @@
  * Core Logic & Math
  */
 
-/* Version: 1.0.0-beta.2 */
-const CACHE_NAME = 'tiziu-v1.0.0-beta.2';
+/* Version: 1.0.0-beta.12 */
+const CACHE_NAME = 'tiziu-v1.0.0-beta.12';
 
 const MISSIONS = {
     TINIA26: {
@@ -18,8 +18,8 @@ const MISSIONS = {
             { code: 'SPY', type: 'A/G', range: 18 },
             { code: 'MIS', type: 'A/G', range: 3 },
             { code: 'SA23', type: 'A/G', range: 108 },
-            { code: 'F5', type: 'A/A', range: 23 },
-            { code: 'F39', type: 'A/A', range: 34 }
+            { code: 'F5', type: 'A/A', range: 25 },
+            { code: 'F39', type: 'A/A', range: 35 }
         ]
     }
 };
@@ -135,10 +135,65 @@ const state = {
     activePlotIndex: null,
     keypadValue: "",
     sensorsActive: false,
+    plotMode: 'BE', // 'BE' or 'COORD'
     threatPage: 0
 };
 
-const INPUT_SEQUENCE = ["targetThreat", "targetId", "targetRadial", "targetDist"];
+const INPUT_SEQUENCE_BE = ["targetId", "targetRadial", "targetDist", "targetThreat"];
+const INPUT_SEQUENCE_COORD = ["targetId", "targetLat", "targetLon", "targetThreat"];
+
+function getActiveInputSequence() {
+    return state.plotMode === 'COORD' ? INPUT_SEQUENCE_COORD : INPUT_SEQUENCE_BE;
+}
+
+// Format raw string to GG° MM.MM' for realtime typing feedback
+function formatCoordinateRealtime(str, isLon) {
+    if (!str) return "";
+    let maxLen = isLon ? 7 : 6;
+    let degLen = isLon ? 3 : 2;
+
+    let padded = str.padEnd(maxLen, '_');
+
+    let deg = padded.slice(0, degLen);
+    let minWhole = padded.slice(degLen, degLen + 2);
+    let minDec = padded.slice(degLen + 2, degLen + 4);
+
+    let dir = isLon ? 'W' : 'S';
+    return `${dir} ${deg}° ${minWhole}.${minDec}'`;
+}
+
+function isCoordinateInvalid(str, isLon) {
+    if (!str) return false;
+    let degLen = isLon ? 3 : 2;
+    if (str.length >= degLen) {
+        let deg = parseInt(str.slice(0, degLen), 10);
+        if (isLon && deg > 180) return true;
+        if (!isLon && deg > 90) return true;
+        if (isLon && deg === 180 && str.length > degLen && parseInt(str.slice(degLen), 10) > 0) return true;
+        if (!isLon && deg === 90 && str.length > degLen && parseInt(str.slice(degLen), 10) > 0) return true;
+    }
+    if (str.length >= degLen + 2) {
+        let minWhole = parseInt(str.slice(degLen, degLen + 2), 10);
+        if (minWhole >= 60) return true;
+    }
+    return false;
+}
+
+// Parse string (e.g. 'S 15° 30.50'') into decimal degrees (-15.5083...)
+function parseCoordinateInput(formattedStr, isLon) {
+    if (!formattedStr) return NaN;
+    let str = formattedStr.replace(/\D/g, '');
+    if (!str || str.length === 0) return NaN;
+    let maxLen = isLon ? 7 : 6;
+    let padded = str.padEnd(maxLen, '0');
+    let degLen = isLon ? 3 : 2;
+    let deg = parseInt(padded.slice(0, degLen), 10);
+    let minWhole = parseInt(padded.slice(degLen, degLen + 2), 10);
+    let minDec = parseInt(padded.slice(degLen + 2, degLen + 4), 10);
+
+    let decimalDegrees = deg + (minWhole + minDec / 100) / 60;
+    return -decimalDegrees; // South/West are negative
+}
 
 // UI Elements
 const el = {
@@ -163,6 +218,10 @@ const el = {
     bullResLat: document.getElementById('bullResLat'),
     bullResLon: document.getElementById('bullResLon'),
     resMGRS: document.getElementById('resMGRS'),
+    bullResRadial: document.getElementById('bullResRadial'),
+    bullResDist: document.getElementById('bullResDist'),
+    targetLat: document.getElementById('targetLat'),
+    targetLon: document.getElementById('targetLon'),
     canvas: document.getElementById('tactical-canvas'),
     addPlotBtn: document.getElementById('add-plot-btn'),
     threatSelect: document.getElementById('threat-select'),
@@ -334,11 +393,31 @@ function openKeypad(id, plotIndex = null, element = null) {
         el.keypad.classList.add('editing'); el.keypadEnterBtn.textContent = 'CORRIGIR';
     } else {
         const targetElement = document.getElementById(id); currentVal = targetElement.value; label = targetElement.previousElementSibling.textContent;
+        if (id === 'targetLat' || id === 'targetLon') {
+            currentVal = currentVal.replace(/\D/g, '');
+        }
         const targetId = el.targetId.value; const lastPlot = state.plots.filter(p => p.targetId === targetId).slice(-1)[0];
         if (lastPlot) { const lastVal = (id === 'targetRadial') ? lastPlot.radial : (id === 'targetDist' ? lastPlot.dist : ""); if (lastVal !== "") contextVal = `ÚLTIMO PLOT: ${lastVal}`; }
         el.keypad.classList.remove('editing'); el.keypadEnterBtn.textContent = 'ENTER';
     }
-    state.keypadValue = currentVal; el.keypadTitle.textContent = label; el.keypadContextInfo.textContent = contextVal; el.keypadPreview.textContent = currentVal; el.keypad.style.display = 'flex'; el.keypadBackdrop.style.display = 'block';
+    state.keypadValue = currentVal; el.keypadTitle.textContent = label; el.keypadContextInfo.textContent = contextVal;
+
+    if (id === 'targetLat' || id === 'targetLon') {
+        const isLon = id === 'targetLon';
+        el.keypadPreview.textContent = formatCoordinateRealtime(state.keypadValue, isLon);
+        if (isCoordinateInvalid(state.keypadValue, isLon)) el.keypadPreview.style.color = '#ff3b30';
+        else el.keypadPreview.style.color = '';
+    } else {
+        el.keypadPreview.textContent = currentVal;
+        if (id === 'targetRadial' || id === 'radial') {
+            const rad = parseFloat(state.keypadValue);
+            if (!isNaN(rad) && (rad < 0 || rad > 360)) el.keypadPreview.style.color = '#ff3b30';
+            else el.keypadPreview.style.color = '';
+        } else {
+            el.keypadPreview.style.color = '';
+        }
+    }
+    el.keypad.style.display = 'flex'; el.keypadBackdrop.style.display = 'block';
 }
 
 function renderThreatKeypad() {
@@ -405,11 +484,23 @@ function updateActiveField() {
     if (state.activePlotIndex !== null) {
         updatePlot(state.activePlotIndex, state.activeInputId, state.keypadValue);
     } else if (state.activeInputId) {
-        document.getElementById(state.activeInputId).value = state.keypadValue;
+        if (state.activeInputId === 'targetLat' || state.activeInputId === 'targetLon') {
+            const isLon = state.activeInputId === 'targetLon';
+            const inputEl = document.getElementById(state.activeInputId);
+            inputEl.value = formatCoordinateRealtime(state.keypadValue, isLon);
+            if (isCoordinateInvalid(state.keypadValue, isLon)) {
+                inputEl.style.color = '#ff3b30';
+            } else {
+                inputEl.style.color = '';
+            }
+        } else {
+            document.getElementById(state.activeInputId).value = state.keypadValue;
+        }
+
         if (state.activeInputId === 'targetId') {
             syncThreatFromLastPlot(state.keypadValue);
         }
-        
+
         if (state.activeInputId === 'targetRadial' || state.activeInputId === 'radial') {
             const inputEl = document.getElementById(state.activeInputId);
             const rad = parseFloat(state.keypadValue);
@@ -419,36 +510,73 @@ function updateActiveField() {
                 inputEl.style.color = '';
             }
         }
-        
+
         calculateBRAA();
         calculateBullCoord();
     }
 }
 
 window.keyInput = (char) => {
+    let maxLen = 6;
+    if (state.activeInputId === 'targetLon' || state.activeInputId === 'lon') maxLen = 7;
+    if (state.activeInputId === 'targetRadial' || state.activeInputId === 'radial') maxLen = 3;
+    if (state.activeInputId === 'targetDist' || state.activeInputId === 'dist') maxLen = 3;
+
     if (char === 'CLR') {
         state.keypadValue = "";
     } else if (char === 'DEL') {
         state.keypadValue = state.keypadValue.slice(0, -1);
     } else {
-        if (state.keypadValue.length < 6) {
+        if (state.keypadValue.length < maxLen) {
             state.keypadValue += char;
         }
     }
-    el.keypadPreview.textContent = state.keypadValue;
-    
-    if (state.activeInputId === 'targetRadial' || state.activeInputId === 'radial') {
-        const rad = parseFloat(state.keypadValue);
-        if (!isNaN(rad) && (rad < 0 || rad > 360)) {
+
+    if (state.activeInputId === 'targetLat' || state.activeInputId === 'targetLon') {
+        const isLon = state.activeInputId === 'targetLon';
+        el.keypadPreview.textContent = formatCoordinateRealtime(state.keypadValue, isLon);
+        if (isCoordinateInvalid(state.keypadValue, isLon)) {
             el.keypadPreview.style.color = '#ff3b30';
         } else {
             el.keypadPreview.style.color = '';
         }
     } else {
-        el.keypadPreview.style.color = '';
+        el.keypadPreview.textContent = state.keypadValue;
+        if (state.activeInputId === 'targetRadial' || state.activeInputId === 'radial') {
+            const rad = parseFloat(state.keypadValue);
+            if (!isNaN(rad) && (rad < 0 || rad > 360)) {
+                el.keypadPreview.style.color = '#ff3b30';
+            } else {
+                el.keypadPreview.style.color = '';
+            }
+        } else {
+            el.keypadPreview.style.color = '';
+        }
     }
-    
+
     updateActiveField();
+
+    // Auto advance
+    if (char !== 'CLR' && char !== 'DEL' && state.keypadValue.length === maxLen) {
+        let shouldAdvance = true;
+        if (state.activeInputId === 'targetRadial' || state.activeInputId === 'radial') {
+            const rad = parseFloat(state.keypadValue);
+            if (!isNaN(rad) && (rad < 0 || rad > 360)) {
+                shouldAdvance = false;
+            }
+        } else if (state.activeInputId === 'targetLat' || state.activeInputId === 'targetLon') {
+            const isLon = state.activeInputId === 'targetLon';
+            if (isCoordinateInvalid(state.keypadValue, isLon)) {
+                shouldAdvance = false;
+            }
+        }
+
+        if (shouldAdvance && ['targetRadial', 'radial', 'targetLat', 'targetLon'].includes(state.activeInputId)) {
+            setTimeout(() => {
+                keypadNav(1);
+            }, 100);
+        }
+    }
 };
 
 window.keypadNav = (dir) => {
@@ -460,10 +588,11 @@ window.keypadNav = (dir) => {
         const nextElement = document.querySelector(`[onclick*="openKeypad('${sequence[nextIdx]}', ${state.activePlotIndex})"]`);
         openKeypad(sequence[nextIdx], state.activePlotIndex, nextElement);
     } else {
-        const curIdx = INPUT_SEQUENCE.indexOf(state.activeInputId);
-        let nextIdx = (curIdx + dir + INPUT_SEQUENCE.length) % INPUT_SEQUENCE.length;
-        const nextElement = document.getElementById(INPUT_SEQUENCE[nextIdx]);
-        openKeypad(INPUT_SEQUENCE[nextIdx], null, nextElement);
+        const sequence = getActiveInputSequence();
+        const curIdx = sequence.indexOf(state.activeInputId);
+        let nextIdx = (curIdx + dir + sequence.length) % sequence.length;
+        const nextElement = document.getElementById(sequence[nextIdx]);
+        openKeypad(sequence[nextIdx], null, nextElement);
     }
 };
 
@@ -656,17 +785,17 @@ window.updateOwnBullPosition = () => {
     }
     const d = getDistance(bull.lat, bull.lon, state.ownPos.lat, state.ownPos.lon);
     const b = getBearing(bull.lat, bull.lon, state.ownPos.lat, state.ownPos.lon);
-    
+
     let radOwnNum = Math.round((b - bull.magVar + 360) % 360);
     if (radOwnNum === 0) radOwnNum = 360;
     const radOwnStr = radOwnNum.toString().padStart(3, '0');
-    
+
     let radAlphaNum = (radOwnNum + 180) % 360;
     if (radAlphaNum === 0) radAlphaNum = 360;
     const radAlphaStr = radAlphaNum.toString().padStart(3, '0');
-    
+
     const dist = Math.round(d);
-    
+
     badgeOwn.textContent = `OWN: ${radOwnStr}/${dist}`;
     if (badgeAlpha) badgeAlpha.textContent = `ALPHA: ${radAlphaStr}/${dist}`;
 };
@@ -785,24 +914,62 @@ window.resetThreats = () => { if (confirm("Limpar todas as ameaças?")) { state.
  */
 function calculateBRAA() {
     const bullLat = parseFloat(el.bullLat.value); const bullLon = parseFloat(el.bullLon.value); const magVar = parseFloat(el.magVar.value) || 0;
-    const radial = parseFloat(el.targetRadial.value); const dist = parseFloat(el.targetDist.value);
     const ownLat = state.ownPos.lat; const ownLon = state.ownPos.lon;
-    if (ownLat === null || ownLon === null || isNaN(radial) || isNaN(dist)) { el.resBearing.textContent = "---°"; el.resRange.textContent = "---"; return; }
-    const trueRadial = (radial + magVar + 360) % 360; const targetPos = getDestPoint(bullLat, bullLon, trueRadial, dist);
+
+    let targetPos = null;
+    let radial = NaN, dist = NaN;
+
+    if (state.plotMode === 'BE') {
+        radial = parseFloat(el.targetRadial.value); dist = parseFloat(el.targetDist.value);
+        if (isNaN(radial) || isNaN(dist)) { el.resBearing.textContent = "---°"; el.resRange.textContent = "---"; return; }
+        const trueRadial = (radial + magVar + 360) % 360;
+        targetPos = getDestPoint(bullLat, bullLon, trueRadial, dist);
+    } else {
+        const tLat = parseCoordinateInput(el.targetLat.value, false);
+        const tLon = parseCoordinateInput(el.targetLon.value, true);
+        if (isNaN(tLat) || isNaN(tLon)) { el.resBearing.textContent = "---°"; el.resRange.textContent = "---"; return; }
+        targetPos = { lat: tLat, lon: tLon };
+    }
+
+    if (ownLat === null || ownLon === null || !targetPos) { el.resBearing.textContent = "---°"; el.resRange.textContent = "---"; return; }
+
     const trueBearingToTarget = getBearing(ownLat, ownLon, targetPos.lat, targetPos.lon);
     const magBearingToTarget = (trueBearingToTarget - magVar + 360) % 360;
     const rangeToTarget = getDistance(ownLat, ownLon, targetPos.lat, targetPos.lon);
     el.resBearing.textContent = Math.round(magBearingToTarget).toString().padStart(3, '0') + '°'; el.resRange.textContent = Math.round(rangeToTarget);
-    state.targetPos = { lat: targetPos.lat, lon: targetPos.lon, radial, dist }; drawTacticalDisplay();
+
+    if (state.plotMode === 'BE') {
+        state.targetPos = { lat: targetPos.lat, lon: targetPos.lon, radial, dist };
+    } else {
+        const tb = getBearing(bullLat, bullLon, targetPos.lat, targetPos.lon);
+        const tr = (tb - magVar + 360) % 360;
+        const d = getDistance(bullLat, bullLon, targetPos.lat, targetPos.lon);
+        state.targetPos = { lat: targetPos.lat, lon: targetPos.lon, radial: Math.round(tr), dist: Math.round(d) };
+    }
+    drawTacticalDisplay();
 }
 
 function calculateBullCoord() {
     const bullLat = parseFloat(el.bullLat.value); const bullLon = parseFloat(el.bullLon.value); const magVar = parseFloat(el.magVar.value) || 0;
-    const radial = parseFloat(el.targetRadial.value); const dist = parseFloat(el.targetDist.value);
-    if (isNaN(radial) || isNaN(dist)) { el.bullResLat.textContent = "S 00° 00.00'"; el.bullResLon.textContent = "W 000° 00.00'"; el.resMGRS.textContent = "---"; return; }
-    const trueRadial = (radial + magVar + 360) % 360; const targetPos = getDestPoint(bullLat, bullLon, trueRadial, dist);
-    el.bullResLat.textContent = toDDM(targetPos.lat, true); el.bullResLon.textContent = toDDM(targetPos.lon, false);
-    try { el.resMGRS.textContent = mgrs.forward([targetPos.lon, targetPos.lat], 4); } catch (e) { el.resMGRS.textContent = "ERR"; }
+
+    if (state.plotMode === 'BE') {
+        const radial = parseFloat(el.targetRadial.value); const dist = parseFloat(el.targetDist.value);
+        if (isNaN(radial) || isNaN(dist)) { el.bullResLat.textContent = "S 00° 00.00'"; el.bullResLon.textContent = "W 000° 00.00'"; el.resMGRS.textContent = "---"; return; }
+        const trueRadial = (radial + magVar + 360) % 360; const targetPos = getDestPoint(bullLat, bullLon, trueRadial, dist);
+        el.bullResLat.textContent = toDDM(targetPos.lat, true); el.bullResLon.textContent = toDDM(targetPos.lon, false);
+        try { el.resMGRS.textContent = mgrs.forward([targetPos.lon, targetPos.lat], 4); } catch (e) { el.resMGRS.textContent = "ERR"; }
+    } else {
+        const tLat = parseCoordinateInput(el.targetLat.value, false);
+        const tLon = parseCoordinateInput(el.targetLon.value, true);
+        if (isNaN(tLat) || isNaN(tLon)) { el.bullResRadial.textContent = "---°"; el.bullResDist.textContent = "---"; return; }
+
+        const trueBearing = getBearing(bullLat, bullLon, tLat, tLon);
+        const magRadial = (trueBearing - magVar + 360) % 360;
+        const dist = getDistance(bullLat, bullLon, tLat, tLon);
+
+        el.bullResRadial.textContent = Math.round(magRadial).toString().padStart(3, '0') + '°';
+        el.bullResDist.textContent = Math.round(dist);
+    }
 }
 
 /**
@@ -911,12 +1078,24 @@ function addPlot() {
         const bullLat = parseFloat(el.bullLat.value);
         const bullLon = parseFloat(el.bullLon.value);
         const magVar = parseFloat(el.magVar.value) || 0;
-        const radial = parseFloat(el.targetRadial.value);
-        const dist = parseFloat(el.targetDist.value);
-        if (isNaN(radial) || isNaN(dist) || isNaN(bullLat) || isNaN(bullLon)) return;
-        const trueRadial = (radial + magVar + 360) % 360;
-        const pos = getDestPoint(bullLat, bullLon, trueRadial, dist);
-        state.targetPos = { lat: pos.lat, lon: pos.lon, radial, dist };
+
+        if (state.plotMode === 'BE') {
+            const radial = parseFloat(el.targetRadial.value);
+            const dist = parseFloat(el.targetDist.value);
+            if (isNaN(radial) || isNaN(dist) || isNaN(bullLat) || isNaN(bullLon)) return;
+            const trueRadial = (radial + magVar + 360) % 360;
+            const pos = getDestPoint(bullLat, bullLon, trueRadial, dist);
+            state.targetPos = { lat: pos.lat, lon: pos.lon, radial, dist };
+        } else {
+            const tLat = parseCoordinateInput(el.targetLat.value, false);
+            const tLon = parseCoordinateInput(el.targetLon.value, true);
+            if (isNaN(tLat) || isNaN(tLon) || isNaN(bullLat) || isNaN(bullLon)) return;
+
+            const trueBearing = getBearing(bullLat, bullLon, tLat, tLon);
+            const magRadial = (trueBearing - magVar + 360) % 360;
+            const dist = getDistance(bullLat, bullLon, tLat, tLon);
+            state.targetPos = { lat: tLat, lon: tLon, radial: Math.round(magRadial), dist: Math.round(dist) };
+        }
     }
 
     const threatCode = el.targetThreat.value;
@@ -932,18 +1111,21 @@ function addPlot() {
         timestamp: Date.now()
     });
 
-    state.targetPos = null;
+    // Clear all input fields
+    el.targetRadial.value = "";
+    el.targetDist.value = "";
+    el.targetLat.value = "";
+    el.targetLon.value = "";
+    el.targetRadial.style.color = '';
 
     // Calculate next available ID
     const usedIds = new Set(state.plots.map(p => p.targetId));
     let nextId = state.startTargetId || 1;
     while (usedIds.has(nextId.toString())) { nextId++; }
-
-    // Clear all input fields
-    el.targetRadial.value = "";
-    el.targetDist.value = "";
-    el.targetRadial.style.color = '';
     el.targetId.value = nextId.toString();
+
+    if (el.targetThreat) el.targetThreat.value = "-";
+    state.targetPos = null;
 
     // Clear threat unless next ID has prior history
     const nextPlots = state.plots.filter(p => p.targetId === nextId.toString());
@@ -957,6 +1139,8 @@ function addPlot() {
     el.bullResLat.textContent = "S 00° 00.00'";
     el.bullResLon.textContent = "W 000° 00.00'";
     el.resMGRS.textContent = "---";
+    if (el.bullResRadial) el.bullResRadial.textContent = "---°";
+    if (el.bullResDist) el.bullResDist.textContent = "---";
 
     renderHistory();
     drawTacticalDisplay();
@@ -965,8 +1149,10 @@ function addPlot() {
 window.clearPlotFields = () => {
     el.targetRadial.value = "";
     el.targetDist.value = "";
-    el.targetThreat.value = "";
+    el.targetLat.value = "";
+    el.targetLon.value = "";
     el.targetRadial.style.color = '';
+    if (el.targetThreat) el.targetThreat.value = "-";
     state.targetPos = null;
 
     const usedIds = new Set(state.plots.map(p => p.targetId));
@@ -980,6 +1166,8 @@ window.clearPlotFields = () => {
     el.bullResLat.textContent = "S 00° 00.00'";
     el.bullResLon.textContent = "W 000° 00.00'";
     el.resMGRS.textContent = "---";
+    if (el.bullResRadial) el.bullResRadial.textContent = "---°";
+    if (el.bullResDist) el.bullResDist.textContent = "---";
 
     drawTacticalDisplay();
 };
@@ -1107,13 +1295,20 @@ function drawPredictionArrow(ctx, fromX, fromY, toX, toY) {
     ctx.closePath(); ctx.fill();
 }
 
+function getMagneticHeading() {
+    const magVar = parseFloat(el.magVar.value) || 0;
+    if (state.ownPos.compass !== null) return state.ownPos.compass;
+    if (state.ownPos.heading !== null && state.ownPos.heading !== 0) return (state.ownPos.heading - magVar + 360) % 360;
+    return state.ownPos.heading || 0;
+}
+
 function drawTacticalDisplay() {
     if (!ctx) return;
     const size = el.canvas.parentElement.clientWidth; el.canvas.width = size; el.canvas.height = size;
     const centerX = size / 2; const centerY = size / 2;
     const scale = state.rangeScale; const pxPerNM = (size / 2) / scale;
 
-    const currentHeading = (state.ownPos.compass !== null) ? state.ownPos.compass : (state.ownPos.heading || 0);
+    const currentHeading = getMagneticHeading();
     const rotationRad = (state.orientation === 'HEADING') ? -toRad(currentHeading) : 0;
 
     ctx.clearRect(0, 0, size, size);
@@ -1321,6 +1516,25 @@ function drawTacticalDisplay() {
     ctx.save(); ctx.translate(centerX, centerY);
     if (state.orientation === 'NORTH') { ctx.rotate(toRad(currentHeading)); }
     ctx.fillStyle = '#00FF41'; ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(8, 11); ctx.lineTo(0, 6); ctx.lineTo(-8, 11); ctx.closePath(); ctx.fill(); ctx.restore();
+
+    // DRAW HEADING INDICATOR TOP CENTER
+    ctx.fillStyle = '#00FF41';
+    ctx.font = 'bold 16px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const headingText = Math.round(currentHeading).toString().padStart(3, '0') + '°';
+    const textWidth = ctx.measureText(headingText).width;
+
+    // Background box for readability over rings/lines
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(centerX - textWidth / 2 - 6, 4, textWidth + 12, 24);
+
+    // Text border and text
+    ctx.strokeStyle = 'rgba(0, 255, 65, 0.5)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(centerX - textWidth / 2 - 6, 4, textWidth + 12, 24);
+    ctx.fillStyle = '#00FF41';
+    ctx.fillText(headingText, centerX, 8);
 }
 
 /**
@@ -1331,7 +1545,7 @@ el.canvas.addEventListener('click', (e) => {
     const size = el.canvas.width; const centerX = size / 2; const centerY = size / 2;
     const scale = state.rangeScale; const pxPerNM = (size / 2) / scale;
     if (!state.ownPos.lat) return;
-    const currentHeading = (state.ownPos.compass !== null) ? state.ownPos.compass : (state.ownPos.heading || 0);
+    const currentHeading = getMagneticHeading();
     const rotationRad = (state.orientation === 'HEADING') ? -toRad(currentHeading) : 0;
     const latestById = {}; state.plots.forEach(p => { if (!latestById[p.targetId] || p.timestamp > latestById[p.targetId].timestamp) latestById[p.targetId] = p; });
     let foundId = null;
@@ -1457,6 +1671,34 @@ el.navBtns.forEach(btn => {
     });
 });
 el.addPlotBtn.addEventListener('click', addPlot);
+
+// Plot Mode Segmented Control
+document.querySelectorAll('#plot-mode-segmented .segment-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('#plot-mode-segmented .segment-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.plotMode = btn.getAttribute('data-val');
+
+        // Toggle visibility of input groups
+        const beInputs = document.querySelectorAll('.plot-be-input');
+        const coordInputs = document.querySelectorAll('.plot-coord-input');
+        if (state.plotMode === 'BE') {
+            beInputs.forEach(el => el.style.display = '');
+            coordInputs.forEach(el => el.style.display = 'none');
+            document.getElementById('res-coord-label').textContent = 'COORDENADAS';
+            document.getElementById('res-coord-display').style.display = '';
+            document.getElementById('res-bull-display').style.display = 'none';
+        } else {
+            beInputs.forEach(el => el.style.display = 'none');
+            coordInputs.forEach(el => el.style.display = '');
+            document.getElementById('res-coord-label').textContent = 'BULLSEYE';
+            document.getElementById('res-coord-display').style.display = 'none';
+            document.getElementById('res-bull-display').style.display = '';
+        }
+        clearPlotFields();
+    });
+});
+
 // Orientation segmented control
 document.querySelectorAll('#orientation-segmented .segment-btn').forEach(btn => {
     btn.addEventListener('click', () => {

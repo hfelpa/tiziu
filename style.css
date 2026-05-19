@@ -527,11 +527,11 @@ input.editing-active {
 .v-divider { width: 1px; background: rgba(0, 255, 65, 0.3); margin: 0 10px; }
 .result-sub-section { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.8rem; }
 .sub-label { font-size: 0.7rem; color: var(--secondary-color); opacity: 0.8; letter-spacing: 2px; text-transform: uppercase; }
-.braa-display { display: flex; justify-content: center; align-items: center; gap: 1.2rem; width: 100%; }
-.braa-item { display: flex; flex-direction: column; align-items: center; }
-.braa-divider { font-size: 2.5rem; color: var(--secondary-color); opacity: 0.5; }
+.tiziu-display { display: flex; justify-content: center; align-items: center; gap: 1.2rem; width: 100%; }
+.tiziu-item { display: flex; flex-direction: column; align-items: center; }
+.tiziu-divider { font-size: 2.5rem; color: var(--secondary-color); opacity: 0.5; }
 .value-tactical { font-family: var(--font-mono); font-size: 1.8rem; font-weight: 700; color: var(--primary-color); text-shadow: 0 0 12px rgba(0, 255, 65, 0.5); }
-.braa-item .label { font-size: 0.7rem; color: #888; letter-spacing: 1px; margin-bottom: 5px; }
+.tiziu-item .label { font-size: 0.7rem; color: #888; letter-spacing: 1px; margin-bottom: 5px; }
 .plot-be-display { display: flex; flex-direction: column; align-items: center; width: 100%; }
 .value-small { font-size: 1.25rem !important; line-height: 1.2; }
 .mgrs-item { margin-top: 10px; padding: 6px 15px; background: rgba(255, 255, 255, 0.08); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.3); }
@@ -659,10 +659,10 @@ body.keypad-focused-plot-be .result-sub-section {
 body.keypad-focused-plot-be .value-tactical {
     font-size: 1.4rem !important;
 }
-body.keypad-focused-plot-be .braa-display {
+body.keypad-focused-plot-be .tiziu-display {
     gap: 0.6rem !important;
 }
-body.keypad-focused-plot-be .braa-divider {
+body.keypad-focused-plot-be .tiziu-divider {
     font-size: 1.8rem !important;
 }
 body.keypad-focused-plot-be .value-small {
