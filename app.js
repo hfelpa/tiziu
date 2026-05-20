@@ -3,8 +3,8 @@
  * Core Logic & Math
  */
 
-/* Version: 1.0.0-beta.12 */
-const CACHE_NAME = 'tiziu-v1.0.0-beta.12';
+/* Version: 1.0.0-beta.25 */
+const CACHE_NAME = 'tiziu-v1.0.0-beta.25';
 
 const MISSIONS = {
     TINIA26: {
@@ -133,10 +133,14 @@ const state = {
     route: [],
     activeInputId: null,
     activePlotIndex: null,
+    editingTargetId: null,
     keypadValue: "",
     sensorsActive: false,
     plotMode: 'BE', // 'BE' or 'COORD'
-    threatPage: 0
+    threatPage: 0,
+    declutter: false,
+    showClosestThreats: true,
+    selectedTargetId: null
 };
 
 const INPUT_SEQUENCE_BE = ["targetId", "targetRadial", "targetDist", "targetThreat"];
@@ -320,7 +324,7 @@ function openKeypad(id, plotIndex = null, element = null) {
         else element.classList.add('editing-active');
     }
 
-    if (plotIndex === null) {
+    if (plotIndex === null && !state.editingTargetId) {
         document.body.classList.add('keypad-focused-plot-be');
         document.body.classList.add('keypad-mode-new');
         document.body.classList.remove('keypad-mode-edit');
@@ -334,7 +338,7 @@ function openKeypad(id, plotIndex = null, element = null) {
         document.body.classList.remove('keypad-mode-new');
 
         // Save original plot position if not already saved in this session
-        if (!state.originalPlotPos) {
+        if (typeof plotIndex === 'number' && plotIndex !== null && !state.originalPlotPos) {
             const plot = state.plots[plotIndex];
             state.originalPlotPos = {
                 lat: plot.lat,
@@ -372,9 +376,13 @@ function openKeypad(id, plotIndex = null, element = null) {
         state.threatPage = 0;
         renderThreatKeypad();
 
-        if (plotIndex !== null) {
+        if (plotIndex !== null || state.editingTargetId) {
             el.keypad.classList.add('editing');
             el.keypadEnterBtn.textContent = 'CORRIGIR';
+            if (state.editingTargetId) {
+                contextVal = `ALTERANDO AMEAÇA DO ALVO ${state.editingTargetId}`;
+                el.keypadContextInfo.textContent = contextVal;
+            }
         } else {
             el.keypad.classList.remove('editing');
             el.keypadEnterBtn.textContent = 'ENTER';
@@ -473,15 +481,28 @@ window.selectThreatInput = (code) => {
     updateActiveField();
 
     // If we are in the main insertion flow, move to ID next
-    if (state.activePlotIndex === null) {
+    if (state.activePlotIndex === null && !state.editingTargetId) {
         keypadNav(1); // Auto advance
     } else {
-        closeKeypad(); // If editing a history plot, just close
+        closeKeypad(); // If editing a history plot or global target threat, just close
     }
 };
 
 function updateActiveField() {
-    if (state.activePlotIndex !== null) {
+    if (state.editingTargetId) {
+        const targetId = state.editingTargetId;
+        const code = state.keypadValue;
+        const threat = state.threats.find(t => t.code === code);
+        state.plots.forEach(p => {
+            if (p.targetId === targetId) {
+                p.threatCode = code || null;
+                p.threatRange = threat ? threat.range : null;
+                p.threatType = threat ? threat.type : null;
+            }
+        });
+        renderHistory();
+        drawTacticalDisplay();
+    } else if (state.activePlotIndex !== null) {
         updatePlot(state.activePlotIndex, state.activeInputId, state.keypadValue);
     } else if (state.activeInputId) {
         if (state.activeInputId === 'targetLat' || state.activeInputId === 'targetLon') {
@@ -608,6 +629,7 @@ window.closeKeypad = () => {
     el.keypadBackdrop.style.display = 'none';
     state.activeInputId = null;
     state.activePlotIndex = null;
+    state.editingTargetId = null;
     state.targetPos = null; // Clear preview
     state.originalPlotPos = null; // Clear comparison
     document.body.classList.remove('keypad-focused-plot-be');
@@ -819,7 +841,7 @@ window.selectActiveBullseye = (name) => {
 
         const badgeMain = document.getElementById('bull-badge-main');
         if (badgeMain) {
-            badgeMain.textContent = `PLOT BE [${bull.name}]`;
+            badgeMain.textContent = 'PLOT BE';
         }
 
         calculateBRAA();
@@ -829,6 +851,152 @@ window.selectActiveBullseye = (name) => {
         if (typeof updateOwnBullPosition === 'function') updateOwnBullPosition();
     }
 };
+
+window.toggleDeclutter = () => {
+    state.declutter = !state.declutter;
+    const btn = document.getElementById('dclt-btn');
+    if (btn) {
+        if (state.declutter) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    }
+    drawTacticalDisplay();
+};
+
+window.toggleClosestThreatsOverlay = () => {
+    state.showClosestThreats = !state.showClosestThreats;
+    const overlay = document.getElementById('closest-threats-overlay');
+    if (overlay) {
+        if (state.showClosestThreats) {
+            overlay.classList.remove('collapsed');
+        } else {
+            overlay.classList.add('collapsed');
+        }
+    }
+};
+
+window.changeRangeScale = (direction) => {
+    const levels = [20, 40, 80, 160];
+    let currentIndex = levels.indexOf(state.rangeScale);
+    if (currentIndex === -1) currentIndex = 1; // default to 40
+    
+    if (direction === 'up') {
+        if (currentIndex < levels.length - 1) {
+            state.rangeScale = levels[currentIndex + 1];
+        }
+    } else if (direction === 'down') {
+        if (currentIndex > 0) {
+            state.rangeScale = levels[currentIndex - 1];
+        }
+    }
+    
+    const display = document.getElementById('zoom-level-display');
+    if (display) {
+        display.textContent = `${state.rangeScale} NM`;
+    }
+    
+    drawTacticalDisplay();
+};
+
+function getActiveTargetIds() {
+    const ids = new Set();
+    state.plots.forEach(p => {
+        if (p.targetId) ids.add(p.targetId);
+    });
+    return Array.from(ids).sort((a, b) => {
+        const numA = parseInt(a);
+        const numB = parseInt(b);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return String(a).localeCompare(String(b));
+    });
+}
+
+window.cycleSelectedTarget = (direction) => {
+    const ids = getActiveTargetIds();
+    if (ids.length === 0) {
+        state.selectedTargetId = null;
+        updateTargetInspector();
+        return;
+    }
+    
+    let index = ids.indexOf(state.selectedTargetId);
+    if (index === -1) {
+        state.selectedTargetId = ids[0];
+    } else {
+        if (direction === 'up') {
+            index = (index + 1) % ids.length;
+        } else if (direction === 'down') {
+            index = (index - 1 + ids.length) % ids.length;
+        }
+        state.selectedTargetId = ids[index];
+    }
+    
+    updateTargetInspector();
+    drawTacticalDisplay();
+};
+
+function updateTargetInspector() {
+    const idDisplay = document.getElementById('selected-target-id-display');
+    const detailsDisplay = document.getElementById('target-inspector-details');
+    if (!idDisplay || !detailsDisplay) return;
+    
+    const ids = getActiveTargetIds();
+    if (ids.length === 0) {
+        state.selectedTargetId = null;
+        idDisplay.textContent = '---';
+        detailsDisplay.innerHTML = `
+            <div class="detail-line faded">SEM ALVO</div>
+            <div class="detail-line faded">---</div>
+        `;
+        return;
+    }
+    
+    if (!state.selectedTargetId || !ids.includes(state.selectedTargetId)) {
+        state.selectedTargetId = ids[0];
+    }
+    
+    idDisplay.textContent = state.selectedTargetId;
+    
+    const latestPlot = state.plots
+        .filter(p => p.targetId === state.selectedTargetId)
+        .sort((a, b) => b.timestamp - a.timestamp)[0];
+        
+    if (!latestPlot) {
+        detailsDisplay.innerHTML = `
+            <div class="detail-line faded">SEM DADOS</div>
+            <div class="detail-line faded">---</div>
+        `;
+        return;
+    }
+    
+    const code = latestPlot.threatCode || 'ALVO';
+    const bull = state.bullseyes.find(b => b.name === state.activeBullseyeName);
+    let beRadial = latestPlot.radial || 0;
+    let beDist = latestPlot.dist || 0;
+    if (bull) {
+        const trueBearing = getBearing(bull.lat, bull.lon, latestPlot.lat, latestPlot.lon);
+        const magVar = parseFloat(el.magVar.value) || 0;
+        beRadial = Math.round((trueBearing - magVar + 360) % 360);
+        beDist = Math.round(getDistance(bull.lat, bull.lon, latestPlot.lat, latestPlot.lon));
+    }
+    const radialVal = Math.round(beRadial).toString().padStart(3, '0');
+    const distVal = Math.round(beDist);
+    const beInfo = `BE ${radialVal}/${distVal}`;
+    
+    const d = getDistance(state.ownPos.lat, state.ownPos.lon, latestPlot.lat, latestPlot.lon);
+    const b = getBearing(state.ownPos.lat, state.ownPos.lon, latestPlot.lat, latestPlot.lon);
+    const magVar = parseFloat(el.magVar.value) || 0;
+    const magBrg = Math.round((b - magVar + 360) % 360).toString().padStart(3, '0');
+    const dist = Math.round(d);
+    const braaInfo = `BRAA ${magBrg}/${dist}`;
+    
+    detailsDisplay.innerHTML = `
+        <div class="detail-line">${code} - ${beInfo}</div>
+        <div class="detail-line">${braaInfo}</div>
+    `;
+}
 
 window.removeBullseye = (index) => {
     const bull = state.bullseyes[index];
@@ -1111,6 +1279,8 @@ function addPlot() {
         timestamp: Date.now()
     });
 
+    state.selectedTargetId = targetId;
+
     // Clear all input fields
     el.targetRadial.value = "";
     el.targetDist.value = "";
@@ -1188,6 +1358,17 @@ window.updateStartTargetId = (val) => {
 };
 
 function renderHistory() {
+    // Remember which groups are currently expanded in the DOM to preserve state
+    const expandedGroups = new Set();
+    document.querySelectorAll('.history-group').forEach(groupEl => {
+        if (!groupEl.classList.contains('collapsed')) {
+            const titleEl = groupEl.querySelector('.history-group-title');
+            if (titleEl) {
+                expandedGroups.add(titleEl.textContent.trim());
+            }
+        }
+    });
+
     const groups = state.plots.reduce((acc, plot, index) => {
         if (!acc[plot.targetId]) acc[plot.targetId] = [];
         acc[plot.targetId].push({ ...plot, originalIndex: index });
@@ -1196,23 +1377,38 @@ function renderHistory() {
     el.historyGroups.innerHTML = Object.entries(groups).map(([id, items]) => {
         items.sort((a, b) => b.timestamp - a.timestamp);
         const escapedId = escapeHTML(id);
+        const isCollapsed = !expandedGroups.has(escapedId);
+        const collapsedClass = isCollapsed ? ' collapsed' : '';
+
+        // Extract threat type and threat code from the latest plot in this group
+        const latestPlot = items[0] || {};
+        const threatType = latestPlot.threatType;
+        const threatCode = latestPlot.threatCode;
+
+        const typeTag = threatType ? `<span class="badge-hist-tag type-${threatType.toLowerCase() === 'a/a' ? 'aa' : 'ag'}" onclick="event.stopPropagation(); editTargetThreatCode('${escapedId}')">${escapeHTML(threatType)}</span>` : '';
+        const codeTag = threatCode ? `<span class="badge-hist-tag code-val" onclick="event.stopPropagation(); editTargetThreatCode('${escapedId}')">${escapeHTML(threatCode)}</span>` : `<span class="badge-hist-tag code-none" onclick="event.stopPropagation(); editTargetThreatCode('${escapedId}')">+ AMEAÇA</span>`;
+
         return `
-            <div class="history-group">
+            <div class="history-group${collapsedClass}">
                 <div class="history-group-header">
                     <div onclick="selectTargetPlot('${escapedId}')" style="flex:1; display:flex; align-items:center; gap:8px;">
-                        <span class="history-group-title">ALVO ID: ${escapedId}</span>
-                        <span class="badge-select-id">SELECIONAR</span>
+                        <span class="history-group-title">${escapedId}</span>
+                        ${typeTag}
+                        ${codeTag}
+                        <span class="badge-select-id">UPDATE</span>
                     </div>
                     <div style="display:flex; gap:12px; align-items:center;">
-                        <span class="badge-plots-count">${items.length} PLOTS</span>
+                        <span class="badge-plots-count">[${items.length} PLOTS]</span>
+                        <button class="btn-remove-target" onclick="event.stopPropagation(); removeTargetTrack('${escapedId}')">×</button>
                         <span class="toggle-icon" onclick="this.parentElement.parentElement.parentElement.classList.toggle('collapsed')">▼</span>
                     </div>
                 </div>
                 <div class="history-group-content">
-                    ${items.map(plot => {
-            const escapedThreat = escapeHTML(plot.threatCode || '-');
+                    ${items.map((plot, i) => {
+            const plotNumber = items.length - i;
             return `
                         <div class="plot-history-row">
+                            <span class="plot-number-label">${plotNumber}.</span>
                             <div class="plot-pills-container">
                                 <!-- RADIAL PILL -->
                                 <div class="history-pill radial-pill" onclick="openKeypad('radial', ${plot.originalIndex}, this)">
@@ -1224,12 +1420,6 @@ function renderHistory() {
                                 <div class="history-pill dist-pill" onclick="openKeypad('dist', ${plot.originalIndex}, this)">
                                     <span class="history-pill-label">DIST</span>
                                     <span class="history-pill-value">${plot.dist} NM</span>
-                                </div>
-                                
-                                <!-- THREAT PILL -->
-                                <div class="history-pill threat-pill ${plot.threatCode ? (plot.threatType === 'A/A' ? 'aa' : 'ag') : 'none'}" onclick="openKeypad('threatCode', ${plot.originalIndex}, this)">
-                                    <span class="history-pill-label">AMEAÇA</span>
-                                    <span class="history-pill-value">${escapedThreat}</span>
                                 </div>
                             </div>
                             
@@ -1274,22 +1464,42 @@ window.removePlot = (index) => {
     drawTacticalDisplay();
 };
 
+window.removeTargetTrack = (targetId) => {
+    if (confirm(`Deseja remover o alvo ${targetId} e todo o seu histórico?`)) {
+        state.plots = state.plots.filter(p => p.targetId !== targetId);
+        if (state.selectedTargetId === targetId) {
+            state.selectedTargetId = null;
+            updateTargetInspector();
+        }
+        renderHistory();
+        drawTacticalDisplay();
+    }
+};
+
 window.deleteThreat = deleteThreat;
 window.selectTargetId = selectTargetId;
 
 window.selectTargetPlot = (id) => {
     selectTargetId(id);
+    state.selectedTargetId = id;
+    updateTargetInspector();
+    drawTacticalDisplay();
     openKeypad('targetRadial');
+};
+
+window.editTargetThreatCode = (targetId) => {
+    state.editingTargetId = targetId;
+    openKeypad('threatCode', 'target-global', null);
 };
 
 /**
  * TACTICAL DISPLAY
  */
-function drawPredictionArrow(ctx, fromX, fromY, toX, toY) {
+function drawPredictionArrow(ctx, fromX, fromY, toX, toY, isSelected) {
     const headLen = 12; const predX = toX + (toX - fromX) * 0.8; const predY = toY + (toY - fromY) * 0.8;
     const angle = Math.atan2(predY - toY, predX - toX);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(toX, toY); ctx.lineTo(predX, predY); ctx.stroke();
-    ctx.setLineDash([]); ctx.fillStyle = 'rgba(255, 255, 255, 0.6)'; ctx.beginPath(); ctx.moveTo(predX, predY);
+    ctx.strokeStyle = isSelected ? 'rgba(57, 255, 20, 0.6)' : 'rgba(255, 255, 255, 0.4)'; ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(toX, toY); ctx.lineTo(predX, predY); ctx.stroke();
+    ctx.setLineDash([]); ctx.fillStyle = isSelected ? 'rgba(57, 255, 20, 0.8)' : 'rgba(255, 255, 255, 0.6)'; ctx.beginPath(); ctx.moveTo(predX, predY);
     ctx.lineTo(predX - headLen * Math.cos(angle - Math.PI / 6), predY - headLen * Math.sin(angle - Math.PI / 6));
     ctx.lineTo(predX - headLen * Math.cos(angle + Math.PI / 6), predY - headLen * Math.sin(angle + Math.PI / 6));
     ctx.closePath(); ctx.fill();
@@ -1302,8 +1512,74 @@ function getMagneticHeading() {
     return state.ownPos.heading || 0;
 }
 
+function updateClosestThreats() {
+    const overlayContent = document.getElementById('closest-threats-content');
+    if (!overlayContent) return;
+
+    if (!state.ownPos.lat || state.plots.length === 0) {
+        overlayContent.innerHTML = `<div class="closest-threat-item" style="opacity: 0.4;">SEM ALVOS</div>`;
+        return;
+    }
+
+    // Find latest plot for each target ID
+    const latestById = {};
+    state.plots.forEach(p => {
+        if (!latestById[p.targetId] || p.timestamp > latestById[p.targetId].timestamp) {
+            latestById[p.targetId] = p;
+        }
+    });
+
+    const targets = Object.values(latestById);
+    const magVar = parseFloat(el.magVar.value) || 0;
+
+    // Filter to A/A only and calculate distance
+    const aaTargets = [];
+    targets.forEach(p => {
+        if (p.threatType === 'A/A') {
+            const d = getDistance(state.ownPos.lat, state.ownPos.lon, p.lat, p.lon);
+            aaTargets.push({ plot: p, dist: d });
+        }
+    });
+
+    // Sort by distance ascending
+    aaTargets.sort((a, b) => a.dist - b.dist);
+
+    // Get the top 3 closest
+    const top3 = aaTargets.slice(0, 3);
+
+    let html = '';
+    if (top3.length === 0) {
+        html = `<div class="closest-threat-item" style="opacity: 0.4;">SEM AMEAÇAS</div>`;
+    } else {
+        top3.forEach((item, index) => {
+            const p = item.plot;
+            const b = getBearing(state.ownPos.lat, state.ownPos.lon, p.lat, p.lon);
+            const magBrg = Math.round((b - magVar + 360) % 360).toString().padStart(3, '0');
+            const distVal = Math.round(item.dist);
+            const code = p.threatCode || 'ALVO';
+
+            // Proximity/pump criteria (d <= threatRange + 3)
+            const isNearOrInside = p.threatRange && (item.dist <= p.threatRange + 3);
+            const itemClass = isNearOrInside ? 'closest-threat-item critical' : 'closest-threat-item';
+            const nameSpan = isNearOrInside ? `<span class="threat-name-blink">${code}</span>` : code;
+
+            html += `
+                <div class="${itemClass}">
+                    ${index + 1}. ${nameSpan} - ${p.targetId} - BR ${magBrg}/${distVal}
+                </div>
+            `;
+        });
+    }
+
+    overlayContent.innerHTML = html;
+}
+
 function drawTacticalDisplay() {
     if (!ctx) return;
+    updateClosestThreats();
+    updateTargetInspector();
+    const zoomDisp = document.getElementById('zoom-level-display');
+    if (zoomDisp) zoomDisp.textContent = `${state.rangeScale} NM`;
     const size = el.canvas.parentElement.clientWidth; el.canvas.width = size; el.canvas.height = size;
     const centerX = size / 2; const centerY = size / 2;
     const scale = state.rangeScale; const pxPerNM = (size / 2) / scale;
@@ -1312,7 +1588,12 @@ function drawTacticalDisplay() {
     const rotationRad = (state.orientation === 'HEADING') ? -toRad(currentHeading) : 0;
 
     ctx.clearRect(0, 0, size, size);
-    ctx.save();
+    ctx.save(); // Save 1: circular clip path
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, size / 2 + 2, 0, Math.PI * 2);
+    ctx.clip();
+
+    ctx.save(); // Save 2: rotation/translation
     ctx.translate(centerX, centerY);
     ctx.rotate(rotationRad);
     ctx.translate(-centerX, -centerY);
@@ -1365,20 +1646,52 @@ function drawTacticalDisplay() {
     const latestById = {}; state.plots.forEach(p => { if (!latestById[p.targetId] || p.timestamp > latestById[p.targetId].timestamp) latestById[p.targetId] = p; });
     const groups = {}; state.plots.forEach(p => { if (!groups[p.targetId]) groups[p.targetId] = []; groups[p.targetId].push(p); });
 
-    Object.values(groups).forEach(group => {
-        if (group.length < 2) return;
-        group.sort((a, b) => a.timestamp - b.timestamp);
-        for (let i = 1; i < group.length; i++) {
-            const prev = group[i - 1]; const curr = group[i];
-            const d1 = getDistance(state.ownPos.lat, state.ownPos.lon, prev.lat, prev.lon); const b1 = getBearing(state.ownPos.lat, state.ownPos.lon, prev.lat, prev.lon);
-            const d2 = getDistance(state.ownPos.lat, state.ownPos.lon, curr.lat, curr.lon); const b2 = getBearing(state.ownPos.lat, state.ownPos.lon, curr.lat, curr.lon);
-            const x1 = centerX + Math.sin(toRad(b1)) * (d1 * pxPerNM); const y1 = centerY - Math.cos(toRad(b1)) * (d1 * pxPerNM);
-            const x2 = centerX + Math.sin(toRad(b2)) * (d2 * pxPerNM); const y2 = centerY - Math.cos(toRad(b2)) * (d2 * pxPerNM);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)'; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-            if (i === group.length - 1) drawPredictionArrow(ctx, x1, y1, x2, y2);
-        }
-        ctx.setLineDash([]);
+    if (!state.declutter) {
+        Object.values(groups).forEach(group => {
+            if (group.length < 2) return;
+            group.sort((a, b) => a.timestamp - b.timestamp);
+            const isSelectedGroup = group[0] && group[0].targetId === state.selectedTargetId;
+            const lineStyle = isSelectedGroup ? 'rgba(57, 255, 20, 0.5)' : 'rgba(255, 255, 255, 0.3)';
+            for (let i = 1; i < group.length; i++) {
+                const prev = group[i - 1]; const curr = group[i];
+                const d1 = getDistance(state.ownPos.lat, state.ownPos.lon, prev.lat, prev.lon); const b1 = getBearing(state.ownPos.lat, state.ownPos.lon, prev.lat, prev.lon);
+                const d2 = getDistance(state.ownPos.lat, state.ownPos.lon, curr.lat, curr.lon); const b2 = getBearing(state.ownPos.lat, state.ownPos.lon, curr.lat, curr.lon);
+                const x1 = centerX + Math.sin(toRad(b1)) * (d1 * pxPerNM); const y1 = centerY - Math.cos(toRad(b1)) * (d1 * pxPerNM);
+                const x2 = centerX + Math.sin(toRad(b2)) * (d2 * pxPerNM); const y2 = centerY - Math.cos(toRad(b2)) * (d2 * pxPerNM);
+                ctx.strokeStyle = lineStyle; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+                if (i === group.length - 1) drawPredictionArrow(ctx, x1, y1, x2, y2, isSelectedGroup);
+            }
+            ctx.setLineDash([]);
+        });
+    }
+
+    // Compute screen coordinates for each latest plot to detect proximity conflicts
+    const latestScreenCoords = {};
+    Object.keys(latestById).forEach(targetId => {
+        const plot = latestById[targetId];
+        const d = getDistance(state.ownPos.lat, state.ownPos.lon, plot.lat, plot.lon);
+        const b = getBearing(state.ownPos.lat, state.ownPos.lon, plot.lat, plot.lon);
+        const x = centerX + Math.sin(toRad(b)) * (d * pxPerNM);
+        const y = centerY - Math.cos(toRad(b)) * (d * pxPerNM);
+        latestScreenCoords[targetId] = { x, y };
     });
+
+    // Identify conflicting labels closer than 35 pixels
+    const collapsedLabels = new Set();
+    const targetIds = Object.keys(latestScreenCoords);
+    for (let i = 0; i < targetIds.length; i++) {
+        for (let j = i + 1; j < targetIds.length; j++) {
+            const idA = targetIds[i];
+            const idB = targetIds[j];
+            const pA = latestScreenCoords[idA];
+            const pB = latestScreenCoords[idB];
+            const distPx = Math.hypot(pA.x - pB.x, pA.y - pB.y);
+            if (distPx < 35) {
+                collapsedLabels.add(idA);
+                collapsedLabels.add(idB);
+            }
+        }
+    }
 
     const magVar = parseFloat(el.magVar.value) || 0;
     state.plots.forEach((plot, idx) => {
@@ -1387,6 +1700,8 @@ function drawTacticalDisplay() {
         const isLatest = latestById[plot.targetId] === plot;
 
         const isEditingThis = state.activePlotIndex === idx;
+        if (state.declutter && !isLatest && !isEditingThis) return;
+
         if (isEditingThis) {
             // Draw blue dotted target preview for currently edited existing plot
             ctx.strokeStyle = '#00e5ff'; // Sleek cyan/blue edit-color
@@ -1409,34 +1724,68 @@ function drawTacticalDisplay() {
             }
             ctx.setLineDash([]);
         } else if (isLatest) {
-            ctx.fillStyle = '#ffb000'; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+            const isSelected = plot.targetId === state.selectedTargetId;
+            let targetColor = '#ffb000'; // Default gold/orange
+            if (isSelected) {
+                targetColor = '#39ff14'; // Neon Green
+            } else if (plot.threatType === 'A/A') {
+                targetColor = '#c8c8c8'; // Grey (matching A/A ring)
+            } else if (plot.threatType === 'A/G') {
+                targetColor = '#ffb000'; // Orange/Gold (matching A/G ring)
+            }
 
-            ctx.font = 'bold 11px JetBrains Mono';
-            const braaBrg = Math.round((b - magVar + 360) % 360).toString().padStart(3, '0'); const braaRng = Math.round(d);
-            const line1 = `${plot.targetId} ${plot.threatCode || ''} ${braaBrg}/${braaRng}`; const line2 = `(${plot.radial}/${plot.dist})`;
+            ctx.fillStyle = targetColor; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+
+            // Draw target bracket around the selected target
+            if (isSelected) {
+                ctx.strokeStyle = '#39ff14';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(x - 9, y - 9, 18, 18);
+            }
 
             // 3 NM proximity warning to the threat ring boundary
             const isNearOrInside = plot.threatRange && (d <= plot.threatRange + 3);
             const isBlinkOn = Math.floor(Date.now() / 400) % 2 === 0;
             const alertLabel = isNearOrInside ? 'PUMP CRIT' : '';
 
-            const m1 = ctx.measureText(line1); const m2 = ctx.measureText(line2); const boxW = Math.max(m1.width, m2.width) + 8;
-            const boxH = alertLabel ? 36 : 26;
+            const isCollapsed = state.declutter || collapsedLabels.has(plot.targetId);
 
-            ctx.save(); ctx.translate(x + 10, y - 10); ctx.rotate(-rotationRad);
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.85)'; ctx.fillRect(0, 0, boxW, boxH);
-            ctx.fillStyle = '#ffb000'; ctx.fillText(line1, 4, 12);
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; ctx.font = '9px JetBrains Mono'; ctx.fillText(line2, 4, 22);
-            if (alertLabel) {
-                ctx.fillStyle = isBlinkOn ? 'rgba(255, 0, 0, 0.95)' : 'rgba(255, 0, 0, 0.15)';
-                ctx.font = 'bold 10px JetBrains Mono';
-                ctx.fillText(alertLabel, 4, 33);
+            if (isCollapsed) {
+                ctx.save(); ctx.translate(x + 10, y - 8); ctx.rotate(-rotationRad);
+                ctx.fillStyle = targetColor;
+                ctx.font = 'bold 11px JetBrains Mono';
+                ctx.fillText(plot.targetId, 0, 8);
+                if (alertLabel) {
+                    ctx.fillStyle = isBlinkOn ? 'rgba(255, 0, 0, 0.95)' : 'rgba(255, 0, 0, 0.15)';
+                    ctx.font = 'bold 10px JetBrains Mono';
+                    ctx.fillText(alertLabel, 0, 20);
+                }
+                ctx.restore();
+            } else {
+                ctx.font = 'bold 11px JetBrains Mono';
+                const braaBrg = Math.round((b - magVar + 360) % 360).toString().padStart(3, '0'); const braaRng = Math.round(d);
+                const line1 = `${plot.targetId} ${plot.threatCode || ''} ${braaBrg}/${braaRng}`; const line2 = `(${plot.radial}/${plot.dist})`;
+
+                const m1 = ctx.measureText(line1); const m2 = ctx.measureText(line2); const boxW = Math.max(m1.width, m2.width) + 8;
+                const boxH = alertLabel ? 36 : 26;
+
+                ctx.save(); ctx.translate(x + 10, y - 10); ctx.rotate(-rotationRad);
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.85)'; ctx.fillRect(0, 0, boxW, boxH);
+                ctx.fillStyle = targetColor; ctx.fillText(line1, 4, 12);
+                ctx.fillStyle = isSelected ? 'rgba(57, 255, 20, 0.9)' : 'rgba(255, 255, 255, 0.85)'; ctx.font = '9px JetBrains Mono'; ctx.fillText(line2, 4, 22);
+                if (alertLabel) {
+                    ctx.fillStyle = isBlinkOn ? 'rgba(255, 0, 0, 0.95)' : 'rgba(255, 0, 0, 0.15)';
+                    ctx.font = 'bold 10px JetBrains Mono';
+                    ctx.fillText(alertLabel, 4, 33);
+                }
+                ctx.restore();
             }
-            ctx.restore();
 
             if (plot.threatRange) {
                 let strokeColor = '';
-                if (isNearOrInside) {
+                if (isSelected) {
+                    strokeColor = 'rgba(57, 255, 20, 0.8)'; // Selected green ring
+                } else if (isNearOrInside) {
                     strokeColor = 'rgba(255, 0, 0, 0.85)'; // Turns Red when within 3 NM of the ring
                 } else if (plot.threatType === 'A/A') {
                     strokeColor = 'rgba(200, 200, 200, 0.6)'; // Gray for Air-to-Air
@@ -1446,7 +1795,16 @@ function drawTacticalDisplay() {
                 ctx.strokeStyle = strokeColor;
                 ctx.setLineDash(plot.threatType === 'A/A' ? [2, 2] : []); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, plot.threatRange * pxPerNM, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
             }
-        } else { ctx.fillStyle = 'rgba(255, 176, 0, 0.35)'; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill(); }
+        } else {
+            const isSelectedGroup = plot.targetId === state.selectedTargetId;
+            let histColor = 'rgba(255, 176, 0, 0.35)'; // Default faded orange
+            if (isSelectedGroup) {
+                histColor = 'rgba(57, 255, 20, 0.4)'; // Faded neon green
+            } else if (plot.threatType === 'A/A') {
+                histColor = 'rgba(200, 200, 200, 0.35)'; // Faded gray
+            }
+            ctx.fillStyle = histColor; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill();
+        }
     });
 
     // DRAW PREVIEW (GHOST TARGET IN EDIT)
@@ -1511,7 +1869,8 @@ function drawTacticalDisplay() {
         ctx.setLineDash([]);
     }
 
-    ctx.restore();
+    ctx.restore(); // Restore Save 2
+    ctx.restore(); // Restore Save 1
 
     ctx.save(); ctx.translate(centerX, centerY);
     if (state.orientation === 'NORTH') { ctx.rotate(toRad(currentHeading)); }
@@ -1573,6 +1932,7 @@ function updatePosition(pos) {
     const now = new Date(); const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0') + ":" + now.getSeconds().toString().padStart(2, '0');
     el.gpsStatus.textContent = `GPS: LIVE [${timeStr}]`; el.gpsStatus.classList.remove('offline'); el.gpsStatus.classList.add('online'); calculateBRAA();
     if (typeof updateOwnBullPosition === 'function') updateOwnBullPosition();
+    drawTacticalDisplay();
 }
 
 window.updateCompassStatusUI = () => {
@@ -1709,15 +2069,7 @@ document.querySelectorAll('#orientation-segmented .segment-btn').forEach(btn => 
     });
 });
 
-// Range segmented control
-document.querySelectorAll('#range-segmented .segment-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('#range-segmented .segment-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.rangeScale = parseInt(btn.getAttribute('data-val'));
-        drawTacticalDisplay();
-    });
-});
+
 el.addThreatConfigBtn.addEventListener('click', () => {
     const code = el.newThreatCode.value.toUpperCase();
     const type = el.newThreatType.value;
