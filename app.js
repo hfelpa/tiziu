@@ -3,8 +3,8 @@
  * Core Logic & Math
  */
 
-/* Version: 1.0.0-beta.25 */
-const CACHE_NAME = 'tiziu-v1.0.0-beta.25';
+/* Version: 1.0.0-beta.26 */
+const CACHE_NAME = 'tiziu-v1.0.0-beta.26';
 
 const MISSIONS = {
     TINIA26: {
@@ -1990,23 +1990,53 @@ function handleOrientation(event) {
 }
 
 function handleGPSError(err) {
-    let msg = "GPS: BUSCANDO..."; if (err.code === 1) msg = "GPS: PERMISSION DENIED"; if (err.code === 3) msg = "GPS: TIMEOUT (RETRYING...)";
-    el.gpsStatus.textContent = msg; el.gpsStatus.classList.add('offline'); if (err.code === 3) navigator.geolocation.getCurrentPosition(updatePosition, null, { enableHighAccuracy: false, timeout: 5000 });
+    let msg = "GPS: BUSCANDO..."; 
+    if (err.code === 1) msg = "GPS: BLOQUEADO (HTTPS?)"; 
+    if (err.code === 3) msg = "GPS: TIMEOUT (RETRYING...)";
+    el.gpsStatus.textContent = msg; 
+    el.gpsStatus.classList.add('offline'); 
+    if (err.code === 3) navigator.geolocation.getCurrentPosition(updatePosition, null, { enableHighAccuracy: false, timeout: 5000 });
 }
 
-function initGPS() {
-    if (!navigator.geolocation) return; el.gpsStatus.textContent = "GPS: BUSCANDO..."; el.gpsStatus.classList.add('offline');
+function initGPS(manual = false) {
+    if (!navigator.geolocation) {
+        if (el.gpsStatus) {
+            el.gpsStatus.textContent = "GPS: SEM SUPORTE (REQUER HTTPS)";
+            el.gpsStatus.classList.add('offline');
+        }
+        if (manual) {
+            alert("A geolocalização não é suportada neste dispositivo. Certifique-se de que a página está sendo acessada via conexão segura HTTPS.");
+        }
+        return;
+    }
+    el.gpsStatus.textContent = "GPS: BUSCANDO..."; 
+    el.gpsStatus.classList.add('offline');
     const options = { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 };
-    navigator.geolocation.getCurrentPosition(updatePosition, (err) => { if (err.code === 3) navigator.geolocation.getCurrentPosition(updatePosition, handleGPSError, { enableHighAccuracy: false, timeout: 10000 }); else handleGPSError(err); }, options);
-    if (state.watchId) navigator.geolocation.clearWatch(state.watchId); state.watchId = navigator.geolocation.watchPosition(updatePosition, handleGPSError, options);
+    
+    navigator.geolocation.getCurrentPosition(
+        updatePosition, 
+        (err) => { 
+            if (manual && err.code === 1) {
+                alert("A permissão ao GPS foi negada ou bloqueada. Para ativá-lo:\n\n1. Use uma conexão HTTPS segura.\n2. No iOS, vá em Ajustes > Safari > Localização e selecione 'Permitir'.");
+            }
+            if (err.code === 3) {
+                navigator.geolocation.getCurrentPosition(updatePosition, handleGPSError, { enableHighAccuracy: false, timeout: 10000 }); 
+            } else {
+                handleGPSError(err); 
+            }
+        }, 
+        options
+    );
+    if (state.watchId) navigator.geolocation.clearWatch(state.watchId); 
+    state.watchId = navigator.geolocation.watchPosition(updatePosition, handleGPSError, options);
 }
 
-setInterval(() => { if (Date.now() - state.lastFixTime > 15000) initGPS(); }, 20000);
+setInterval(() => { if (Date.now() - state.lastFixTime > 15000) initGPS(false); }, 20000);
 
 // DIRECT CLICK ON HEADER FOR SENSORS
 el.gpsStatus.onclick = (e) => {
     e.preventDefault();
-    initGPS();
+    initGPS(true);
     window.activateSensors();
 };
 
