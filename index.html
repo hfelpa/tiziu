@@ -173,9 +173,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="plotter-container">
-                        <canvas id="tactical-canvas"></canvas>
-                        <!-- FLOATING TARGET INSPECTOR OVERLAY -->
+                    <div class="plotter-overlays-top">
+                        <!-- TARGET INSPECTOR OVERLAY -->
                         <div id="target-inspector-overlay" class="target-inspector-overlay">
                             <div class="target-id-selector">
                                 <button class="target-sel-btn" onclick="cycleSelectedTarget('up')">▲</button>
@@ -187,7 +186,7 @@
                                 <div class="detail-line faded">---</div>
                             </div>
                         </div>
-                        <!-- FLOATING CLOSEST THREATS PANEL -->
+                        <!-- CLOSEST THREATS PANEL -->
                         <div id="closest-threats-overlay" class="closest-threats-overlay">
                             <div class="overlay-header" onclick="toggleClosestThreatsOverlay()">
                                 <span class="overlay-title">A/A PRÓXIMAS</span>
@@ -197,7 +196,12 @@
                                 <!-- Populated dynamically by JS -->
                             </div>
                         </div>
-                        <!-- FLOATING MFD BEZEL ZOOM CONTROLS -->
+                    </div>
+                    <div class="plotter-container">
+                        <canvas id="tactical-canvas"></canvas>
+                    </div>
+                    <div class="plotter-overlays-bottom">
+                        <!-- MFD BEZEL ZOOM CONTROLS -->
                         <div id="zoom-controls-overlay" class="zoom-controls-overlay">
                             <button class="zoom-btn" onclick="changeRangeScale('up')">▲</button>
                             <span id="zoom-level-display" class="zoom-level-text">40 NM</span>

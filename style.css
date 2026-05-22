@@ -275,6 +275,28 @@ main.compass-blurred {
     gap: 8px;
     align-items: center;
 }
+.plotter-overlays-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto 12px auto;
+    gap: 12px;
+    box-sizing: border-box;
+    padding: 0 4px;
+}
+.plotter-overlays-bottom {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+    max-width: 520px;
+    margin: 12px auto 0 auto;
+    gap: 12px;
+    box-sizing: border-box;
+    padding: 0 4px;
+}
 .plotter-container {
     position: relative;
     width: 100%;
@@ -547,16 +569,13 @@ input.editing-active {
 
 /* FLOATING TARGET INSPECTOR OVERLAY */
 .target-inspector-overlay {
-    position: absolute;
-    top: 8px;
-    left: 8px;
     display: flex;
     align-items: stretch;
     background: #0d0d0d;
     border: 2px solid #333;
     border-radius: 4px;
     padding: 2px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8), inset 0 1px 3px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px 3px rgba(255, 255, 255, 0.1);
     z-index: 10;
     pointer-events: auto;
     transition: all 0.15s ease-in-out;
@@ -659,9 +678,6 @@ input.editing-active {
 
 /* FLOATING MFD BEZEL ZOOM CONTROLS */
 .zoom-controls-overlay {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -669,7 +685,7 @@ input.editing-active {
     border: 2px solid #333;
     border-radius: 4px;
     padding: 2px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.8), inset 0 1px 3px rgba(255,255,255,0.1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5), inset 0 1px 3px rgba(255,255,255,0.1);
     z-index: 10;
     pointer-events: auto;
     transition: all 0.15s ease-in-out;
@@ -720,9 +736,6 @@ input.editing-active {
 .result-panel.compact { background: rgba(0, 255, 65, 0.05); padding: 1.2rem; margin-bottom: 20px; border-radius: 12px; border: 1px solid rgba(0, 255, 65, 0.2); }
 /* FLOATING CLOSEST THREATS OVERLAY */
 .closest-threats-overlay {
-    position: absolute;
-    top: 8px;
-    right: 8px;
     background: rgba(0, 0, 0, 0.85);
     border: 1px solid rgba(0, 255, 65, 0.35);
     border-radius: 6px;
@@ -730,7 +743,7 @@ input.editing-active {
     font-family: var(--font-mono);
     color: #fff;
     z-index: 10;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     pointer-events: auto;
     transition: all 0.15s ease-in-out;
 }
@@ -788,6 +801,10 @@ input.editing-active {
     font-size: 0.75rem;
     white-space: nowrap;
     color: #ccc;
+}
+.closest-threat-item.critical {
+    color: #ff3b30;
+    font-weight: bold;
 }
 .closest-threat-item.critical .threat-name-blink {
     color: #ff3b30;
@@ -1522,6 +1539,9 @@ body.light-mode .closest-threat-item {
 }
 
 body.light-mode .closest-threat-item.critical {
+    color: #d32f2f;
+}
+body.light-mode .closest-threat-item.critical .threat-name-blink {
     color: #d32f2f;
 }
 

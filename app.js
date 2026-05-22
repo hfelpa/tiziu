@@ -2020,8 +2020,13 @@ function drawTacticalDisplay() {
                 const idText = plot.targetId;
                 ctx.font = 'bold 9px JetBrains Mono';
                 const mId = ctx.measureText(idText);
-                const boxW = Math.max(mInfo.width, mId.width) + 14;
-                const boxH = alertLabel ? 32 : 22;
+
+                // Measure alert label if active
+                ctx.font = 'bold 8px JetBrains Mono';
+                const mAlert = alertLabel ? ctx.measureText(alertLabel) : { width: 0 };
+
+                const boxW = Math.max(mInfo.width, mId.width, mAlert.width) + 12;
+                const boxH = alertLabel ? 34 : 22;
 
                 // Label box clearly offset from dot
                 const labelX = x + 18;
@@ -2051,11 +2056,11 @@ function drawTacticalDisplay() {
                 ctx.font = 'bold 10px JetBrains Mono';
                 ctx.fillText(infoText, 4, 20);
 
-                // PUMP CRIT alert badge (right-aligned on top)
+                // PUMP CRIT alert badge (3rd line)
                 if (alertLabel) {
                     ctx.fillStyle = isBlinkOn ? 'rgba(255, 32, 32, 0.95)' : 'rgba(255, 32, 32, 0.35)';
-                    ctx.font = 'bold 7px JetBrains Mono';
-                    ctx.fillText(alertLabel, boxW - ctx.measureText(alertLabel).width - 3, 9);
+                    ctx.font = 'bold 8px JetBrains Mono';
+                    ctx.fillText(alertLabel, 4, 30);
                 }
                 ctx.restore();
             }
@@ -2157,57 +2162,25 @@ function drawTacticalDisplay() {
     ctx.save(); ctx.translate(centerX, centerY);
     if (state.orientation === 'NORTH') { ctx.rotate(toRad(currentHeading)); }
     
-    // Draw vector military aircraft glyph (sleek jet icon)
-    ctx.fillStyle = isLightMode ? '#008f25' : '#00FF41';
-    ctx.strokeStyle = isLightMode ? '#005c18' : '#8cffad';
-    ctx.lineWidth = 1.5;
+    // Draw simplified ownship symbol (cruz com a perna inferior estendida)
+    ctx.strokeStyle = isLightMode ? '#008f25' : '#00FF41';
+    ctx.lineWidth = 2;
+
+    // Solid top fuselage and solid horizontal wings
     ctx.beginPath();
-    // Fuselage nose
-    ctx.moveTo(0, -15);
-    // Left side nose to canopy
-    ctx.quadraticCurveTo(-1.5, -8, -1.5, -4);
-    // Left wing root leading edge
-    ctx.lineTo(-2, 0);
-    // Left wing leading edge to wingtip
-    ctx.lineTo(-14, 5);
-    // Left wingtip
-    ctx.lineTo(-14, 7);
-    // Left wing trailing edge back to fuselage
-    ctx.lineTo(-2.5, 4);
-    // Fuselage side down to stabilizer leading edge
-    ctx.lineTo(-2.5, 10);
-    // Left stabilizer leading edge to tip
-    ctx.lineTo(-6.5, 13);
-    // Left stabilizer tip
-    ctx.lineTo(-6.5, 14);
-    // Left stabilizer trailing edge to engine nozzle
-    ctx.lineTo(-1, 13);
-    // Engine nozzle left
-    ctx.lineTo(-1, 15);
-    // Engine nozzle right
-    ctx.lineTo(1, 15);
-    // Right stabilizer trailing edge
-    ctx.lineTo(1, 13);
-    // Right stabilizer tip
-    ctx.lineTo(6.5, 14);
-    // Right stabilizer leading edge to fuselage
-    ctx.lineTo(6.5, 13);
-    // Fuselage side up to right wing root
-    ctx.lineTo(2.5, 10);
-    // Right wing trailing edge to wingtip
-    ctx.lineTo(2.5, 4);
-    // Right wingtip
-    ctx.lineTo(14, 7);
-    // Right wing leading edge
-    ctx.lineTo(14, 5);
-    // Right wing root leading edge
-    ctx.lineTo(2, 0);
-    // Right side canopy to nose
-    ctx.lineTo(1.5, -4);
-    ctx.quadraticCurveTo(1.5, -8, 0, -15);
-    ctx.closePath();
-    ctx.fill();
+    ctx.moveTo(0, -10);
+    ctx.lineTo(0, 0);
+    ctx.moveTo(-12, 0);
+    ctx.lineTo(12, 0);
     ctx.stroke();
+
+    // Dashed extended tail (bottom vertical leg)
+    ctx.beginPath();
+    ctx.setLineDash([4, 3]);
+    ctx.moveTo(0, 3);
+    ctx.lineTo(0, 24);
+    ctx.stroke();
+    ctx.setLineDash([]);
     ctx.restore();
 
     // DRAW HEADING INDICATOR TOP CENTER
