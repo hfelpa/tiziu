@@ -1690,7 +1690,7 @@ function drawTacticalDisplay() {
     if (zoomDisp) zoomDisp.textContent = `${state.rangeScale} NM`;
     const size = el.canvas.parentElement.clientWidth; el.canvas.width = size; el.canvas.height = size;
     const centerX = size / 2; const centerY = size / 2;
-    const padding = 24;
+    const padding = 64;
     const rOuter = size / 2 - padding;
     const rInner = rOuter - 8;
     const scale = state.rangeScale; const pxPerNM = rOuter / scale;
@@ -2193,14 +2193,14 @@ function drawTacticalDisplay() {
 
     // Background box for readability over rings/lines
     ctx.fillStyle = isLightMode ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.7)';
-    ctx.fillRect(centerX - textWidth / 2 - 6, 4, textWidth + 12, 24);
+    ctx.fillRect(centerX - textWidth / 2 - 6, padding - 28, textWidth + 12, 24);
 
     // Text border and text
     ctx.strokeStyle = isLightMode ? 'rgba(0, 143, 37, 0.5)' : 'rgba(0, 255, 65, 0.5)';
     ctx.lineWidth = 1;
-    ctx.strokeRect(centerX - textWidth / 2 - 6, 4, textWidth + 12, 24);
+    ctx.strokeRect(centerX - textWidth / 2 - 6, padding - 28, textWidth + 12, 24);
     ctx.fillStyle = isLightMode ? '#008f25' : '#00FF41';
-    ctx.fillText(headingText, centerX, 8);
+    ctx.fillText(headingText, centerX, padding - 24);
 }
 
 /**
@@ -2209,7 +2209,7 @@ function drawTacticalDisplay() {
 el.canvas.addEventListener('click', (e) => {
     const rect = el.canvas.getBoundingClientRect(); const clickX = e.clientX - rect.left; const clickY = e.clientY - rect.top;
     const size = el.canvas.width; const centerX = size / 2; const centerY = size / 2;
-    const padding = 24;
+    const padding = 64;
     const scale = state.rangeScale; const pxPerNM = (size / 2 - padding) / scale;
     if (!state.ownPos.lat) return;
     const currentHeading = getMagneticHeading();
