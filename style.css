@@ -279,14 +279,14 @@ main.compass-blurred {
 .plotter-container {
     position: relative;
     width: 100%;
-    max-width: 650px;
+    max-width: 100%;
+    min-height: 480px;
     margin: 0 auto;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-grow: 1;
     min-width: 0;
-    aspect-ratio: 1 / 1;
 }
 
 #tactical-canvas {

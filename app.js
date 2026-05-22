@@ -1696,10 +1696,14 @@ function drawTacticalDisplay() {
     updateTargetInspector();
     const zoomDisp = document.getElementById('zoom-level-display');
     if (zoomDisp) zoomDisp.textContent = `${state.rangeScale} NM`;
-    const size = el.canvas.parentElement.clientWidth; el.canvas.width = size; el.canvas.height = size;
-    const centerX = size / 2; const centerY = size / 2;
+    const cw = el.canvas.parentElement.clientWidth; 
+    const ch = el.canvas.parentElement.clientHeight || cw;
+    el.canvas.width = cw; 
+    el.canvas.height = ch;
+    const centerX = cw / 2; const centerY = ch / 2;
     const padding = 32;
-    const rOuter = size / 2 - padding;
+    const minDim = Math.min(cw, ch);
+    const rOuter = minDim / 2 - padding;
     const rInner = rOuter - 8;
     const scale = state.rangeScale; const pxPerNM = rOuter / scale;
 
@@ -1708,16 +1712,13 @@ function drawTacticalDisplay() {
 
     const isLightMode = document.body.classList.contains('light-mode');
 
-    ctx.clearRect(0, 0, size, size);
+    ctx.clearRect(0, 0, cw, ch);
     // Fill canvas background based on theme
     ctx.fillStyle = isLightMode ? '#ffffff' : '#000000';
-    ctx.fillRect(0, 0, size, size);
+    ctx.fillRect(0, 0, cw, ch);
 
-    ctx.save(); // Save 1: circular clip path
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, rOuter + 2, 0, Math.PI * 2);
-    ctx.clip();
-
+    ctx.save(); // Save 1: block state for clipping (now removed, but kept for symmetry with restore)
+    
     ctx.save(); // Save 2: rotation/translation
     ctx.translate(centerX, centerY);
     ctx.rotate(rotationRad);
@@ -1856,7 +1857,7 @@ function drawTacticalDisplay() {
         ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill();
 
         // N, S, E, W radial helper lines (infinite, clipped by visor)
-        const lineLen = size * 2;
+        const lineLen = Math.max(cw, ch) * 2;
         ctx.strokeStyle = lineOpacity;
         ctx.lineWidth = 1;
         ctx.setLineDash([4, 4]);
@@ -2248,9 +2249,11 @@ function drawTacticalDisplay() {
  */
 el.canvas.addEventListener('click', (e) => {
     const rect = el.canvas.getBoundingClientRect(); const clickX = e.clientX - rect.left; const clickY = e.clientY - rect.top;
-    const size = el.canvas.width; const centerX = size / 2; const centerY = size / 2;
+    const cw = el.canvas.width; const ch = el.canvas.height;
+    const centerX = cw / 2; const centerY = ch / 2;
     const padding = 32;
-    const scale = state.rangeScale; const pxPerNM = (size / 2 - padding) / scale;
+    const minDim = Math.min(cw, ch);
+    const scale = state.rangeScale; const pxPerNM = (minDim / 2 - padding) / scale;
     if (!state.ownPos.lat) return;
     const currentHeading = getMagneticHeading();
     const rotationRad = (state.orientation === 'HEADING') ? -toRad(currentHeading) : 0;
