@@ -161,50 +161,53 @@
 
                 <!-- TACTICAL PLOTTER SECTION -->
                 <section class="card plotter-section">
-                    <div class="card-header">
-                        <h2>DISPLAY TÁTICO</h2>
-                        <div class="plotter-controls-grid">
-                            <div class="segmented-control">
+                    <div class="plotter-layout">
+                        <!-- Left Sidebar -->
+                        <div class="plotter-sidebar left-sidebar">
+                            <!-- TARGET INSPECTOR -->
+                            <div id="target-inspector-overlay" class="target-inspector-overlay">
+                                <div class="target-id-selector">
+                                    <button class="target-sel-btn" onclick="cycleSelectedTarget('up')">▲</button>
+                                    <span id="selected-target-id-display" class="target-id-display">---</span>
+                                    <button class="target-sel-btn" onclick="cycleSelectedTarget('down')">▼</button>
+                                </div>
+                                <div class="target-inspector-details" id="target-inspector-details">
+                                    <div class="detail-line faded">SEM ALVO</div>
+                                    <div class="detail-line faded">---</div>
+                                </div>
+                            </div>
+
+                            <!-- CLOSEST THREATS PANEL -->
+                            <div id="closest-threats-overlay" class="closest-threats-overlay">
+                                <div class="overlay-header" onclick="toggleClosestThreatsOverlay()">
+                                    <span class="overlay-title">A/A PRÓXIMAS</span>
+                                    <button class="overlay-toggle-btn" id="overlay-toggle-btn">▲</button>
+                                </div>
+                                <div id="closest-threats-content" class="overlay-content">
+                                    <!-- Populated dynamically by JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Center display -->
+                        <div class="plotter-container">
+                            <canvas id="tactical-canvas"></canvas>
+                        </div>
+
+                        <!-- Right Sidebar -->
+                        <div class="plotter-sidebar right-sidebar">
+                            <!-- VERTICAL CONTROLS GROUP -->
+                            <div class="vertical-controls-group">
                                 <button class="segment-btn" id="dclt-btn" onclick="toggleDeclutter()">DCLT</button>
+                                <button class="segment-btn active" id="orientation-toggle-btn">HDG UP</button>
                             </div>
-                            <div class="segmented-control" id="orientation-segmented">
-                                <button class="segment-btn active" data-val="HEADING">HDG UP</button>
-                                <button class="segment-btn" data-val="NORTH">N UP</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="plotter-container">
-                        <canvas id="tactical-canvas"></canvas>
 
-                        <!-- TARGET INSPECTOR OVERLAY -->
-                        <div id="target-inspector-overlay" class="target-inspector-overlay">
-                            <div class="target-id-selector">
-                                <button class="target-sel-btn" onclick="cycleSelectedTarget('up')">▲</button>
-                                <span id="selected-target-id-display" class="target-id-display">---</span>
-                                <button class="target-sel-btn" onclick="cycleSelectedTarget('down')">▼</button>
+                            <!-- MFD BEZEL ZOOM CONTROLS -->
+                            <div id="zoom-controls-overlay" class="zoom-controls-overlay">
+                                <button class="zoom-btn" onclick="changeRangeScale('up')">▲</button>
+                                <span id="zoom-level-display" class="zoom-level-text">40 NM</span>
+                                <button class="zoom-btn" onclick="changeRangeScale('down')">▼</button>
                             </div>
-                            <div class="target-inspector-details" id="target-inspector-details">
-                                <div class="detail-line faded">SEM ALVO</div>
-                                <div class="detail-line faded">---</div>
-                            </div>
-                        </div>
-
-                        <!-- CLOSEST THREATS PANEL -->
-                        <div id="closest-threats-overlay" class="closest-threats-overlay">
-                            <div class="overlay-header" onclick="toggleClosestThreatsOverlay()">
-                                <span class="overlay-title">A/A PRÓXIMAS</span>
-                                <button class="overlay-toggle-btn" id="overlay-toggle-btn">▲</button>
-                            </div>
-                            <div id="closest-threats-content" class="overlay-content">
-                                <!-- Populated dynamically by JS -->
-                            </div>
-                        </div>
-
-                        <!-- MFD BEZEL ZOOM CONTROLS -->
-                        <div id="zoom-controls-overlay" class="zoom-controls-overlay">
-                            <button class="zoom-btn" onclick="changeRangeScale('up')">▲</button>
-                            <span id="zoom-level-display" class="zoom-level-text">40 NM</span>
-                            <button class="zoom-btn" onclick="changeRangeScale('down')">▼</button>
                         </div>
                     </div>
                 </section>

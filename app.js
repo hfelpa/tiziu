@@ -17,7 +17,7 @@ const MISSIONS = {
             { code: 'S7', type: 'A/G', range: 10 },
             { code: 'SPY', type: 'A/G', range: 18 },
             { code: 'MIS', type: 'A/G', range: 3 },
-            { code: 'SA23', type: 'A/G', range: 108 },
+            { code: 'SA23', type: 'A/G', range: 70 },
             { code: 'F5', type: 'A/A', range: 25 },
             { code: 'F39', type: 'A/A', range: 35 }
         ]
@@ -1724,14 +1724,14 @@ function drawTacticalDisplay() {
     // DRAW COMPASS ROSE BEZEL (HSI/ND style)
     const bezelColor = isLightMode ? 'rgba(30, 41, 59, 0.35)' : 'rgba(0, 255, 65, 0.35)';
     const bezelTextColor = isLightMode ? 'rgba(30, 41, 59, 0.9)' : 'rgba(0, 255, 65, 0.9)';
-    
+
     // Outer and Inner Rings
     ctx.strokeStyle = bezelColor;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.arc(centerX, centerY, rOuter, 0, Math.PI * 2);
     ctx.stroke();
-    
+
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.arc(centerX, centerY, rInner, 0, Math.PI * 2);
@@ -1755,7 +1755,7 @@ function drawTacticalDisplay() {
 
         const is30 = (deg % 30 === 0);
         const tickLength = is30 ? 8 : 4;
-        
+
         const x1 = centerX + sinVal * rOuter;
         const y1 = centerY - cosVal * rOuter;
         const x2 = centerX + sinVal * (rOuter - tickLength);
@@ -1989,12 +1989,12 @@ function drawTacticalDisplay() {
 
             if (plot.threatType === 'A/A') {
                 let targetHeading = 0;
-                const targetPlots = state.plots.filter(p => p.targetId === plot.targetId).sort((a,b) => a.timestamp - b.timestamp);
+                const targetPlots = state.plots.filter(p => p.targetId === plot.targetId).sort((a, b) => a.timestamp - b.timestamp);
                 if (targetPlots.length > 1) {
                     const p1 = targetPlots[targetPlots.length - 2];
                     targetHeading = getBearing(p1.lat, p1.lon, plot.lat, plot.lon);
                 }
-                
+
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.rotate(toRad(targetHeading));
@@ -2008,7 +2008,7 @@ function drawTacticalDisplay() {
                 ctx.closePath();
                 ctx.fill();
                 ctx.stroke();
-                
+
                 ctx.beginPath();
                 ctx.moveTo(0, -6);
                 ctx.lineTo(0, -12);
@@ -2189,7 +2189,7 @@ function drawTacticalDisplay() {
 
     ctx.save(); ctx.translate(centerX, centerY);
     if (state.orientation === 'NORTH') { ctx.rotate(toRad(currentHeading)); }
-    
+
     // Draw simplified ownship symbol (cruz com a perna inferior estendida)
     ctx.strokeStyle = isLightMode ? '#008f25' : '#00FF41';
     ctx.lineWidth = 2;
