@@ -1701,7 +1701,7 @@ function drawTacticalDisplay() {
 
     ctx.clearRect(0, 0, size, size);
     // Fill canvas background based on theme
-    ctx.fillStyle = isLightMode ? '#f0f4f8' : '#000000';
+    ctx.fillStyle = isLightMode ? '#ffffff' : '#000000';
     ctx.fillRect(0, 0, size, size);
 
     ctx.save(); // Save 1: circular clip path
@@ -2000,7 +2000,7 @@ function drawTacticalDisplay() {
                 ctx.rotate(toRad(targetHeading));
                 ctx.strokeStyle = targetColor;
                 ctx.lineWidth = 2;
-                ctx.fillStyle = isLightMode ? '#f0f4f8' : '#000000';
+                ctx.fillStyle = isLightMode ? '#ffffff' : '#000000';
                 ctx.beginPath();
                 ctx.moveTo(-5, 4);
                 ctx.lineTo(5, 4);
