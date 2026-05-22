@@ -1896,11 +1896,11 @@ function drawTacticalDisplay() {
 
     const latestById = {}; state.plots.forEach(p => { if (!latestById[p.targetId] || p.timestamp > latestById[p.targetId].timestamp) latestById[p.targetId] = p; });
     const groups = {}; state.plots.forEach(p => { if (!groups[p.targetId]) groups[p.targetId] = []; groups[p.targetId].push(p); });
+    Object.values(groups).forEach(g => g.sort((a, b) => a.timestamp - b.timestamp));
 
     if (!state.declutter) {
         Object.values(groups).forEach(group => {
             if (group.length < 2) return;
-            group.sort((a, b) => a.timestamp - b.timestamp);
             const isSelectedGroup = group[0] && group[0].targetId === state.selectedTargetId;
             const lineStyle = isSelectedGroup
                 ? (isLightMode ? 'rgba(0, 168, 45, 0.55)' : 'rgba(57, 255, 20, 0.5)')
@@ -1998,10 +1998,13 @@ function drawTacticalDisplay() {
 
             if (plot.threatType === 'A/A') {
                 let targetHeading = 0;
-                const targetPlots = state.plots.filter(p => p.targetId === plot.targetId).sort((a, b) => a.timestamp - b.timestamp);
-                if (targetPlots.length > 1) {
-                    const p1 = targetPlots[targetPlots.length - 2];
-                    targetHeading = getBearing(p1.lat, p1.lon, plot.lat, plot.lon);
+                const targetPlots = groups[plot.targetId];
+                if (targetPlots && targetPlots.length > 1) {
+                    const idxInGroup = targetPlots.indexOf(plot);
+                    if (idxInGroup > 0) {
+                        const p1 = targetPlots[idxInGroup - 1];
+                        targetHeading = getBearing(p1.lat, p1.lon, plot.lat, plot.lon);
+                    }
                 }
 
                 ctx.save();
