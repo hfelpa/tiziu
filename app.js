@@ -953,11 +953,12 @@ function updateTargetInspector() {
     const ids = getActiveTargetIds();
     if (ids.length === 0) {
         state.selectedTargetId = null;
-        idDisplay.textContent = '---';
-        detailsDisplay.innerHTML = `
+        if (idDisplay.textContent !== '---') idDisplay.textContent = '---';
+        const html = `
             <div class="detail-line faded">SEM ALVO</div>
             <div class="detail-line faded">---</div>
         `;
+        if (detailsDisplay.innerHTML !== html) detailsDisplay.innerHTML = html;
         return;
     }
 
@@ -965,17 +966,20 @@ function updateTargetInspector() {
         state.selectedTargetId = ids[0];
     }
 
-    idDisplay.textContent = state.selectedTargetId;
+    if (idDisplay.textContent !== state.selectedTargetId) {
+        idDisplay.textContent = state.selectedTargetId;
+    }
 
     const latestPlot = state.plots
         .filter(p => p.targetId === state.selectedTargetId)
         .sort((a, b) => b.timestamp - a.timestamp)[0];
 
     if (!latestPlot) {
-        detailsDisplay.innerHTML = `
+        const html = `
             <div class="detail-line faded">SEM DADOS</div>
             <div class="detail-line faded">---</div>
         `;
+        if (detailsDisplay.innerHTML !== html) detailsDisplay.innerHTML = html;
         return;
     }
 
@@ -1006,11 +1010,14 @@ function updateTargetInspector() {
         overlay.classList.add('critical');
     }
 
-    detailsDisplay.innerHTML = `
+    const html = `
         <div class="detail-line">${code}</div>
         <div class="detail-line">${beInfo}</div>
         <div class="detail-line">${braaInfo}</div>
     `;
+    if (detailsDisplay.innerHTML !== html) {
+        detailsDisplay.innerHTML = html;
+    }
 }
 
 window.removeBullseye = (index) => {
@@ -1678,7 +1685,9 @@ function updateClosestThreats() {
         });
     }
 
-    overlayContent.innerHTML = html;
+    if (overlayContent.innerHTML !== html) {
+        overlayContent.innerHTML = html;
+    }
 }
 
 function drawTacticalDisplay() {
