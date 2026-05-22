@@ -505,6 +505,8 @@ function updateActiveField() {
         drawTacticalDisplay();
     } else if (state.activePlotIndex !== null) {
         updatePlot(state.activePlotIndex, state.activeInputId, state.keypadValue);
+        renderHistory();
+        drawTacticalDisplay();
     } else if (state.activeInputId) {
         if (state.activeInputId === 'targetLat' || state.activeInputId === 'targetLon') {
             const isLon = state.activeInputId === 'targetLon';
@@ -593,7 +595,7 @@ window.keyInput = (char) => {
             }
         }
 
-        if (shouldAdvance && ['targetRadial', 'radial', 'targetLat', 'targetLon'].includes(state.activeInputId)) {
+        if (shouldAdvance && ['targetRadial', 'radial', 'targetLat', 'targetLon', 'targetDist', 'dist'].includes(state.activeInputId)) {
             setTimeout(() => {
                 keypadNav(1);
             }, 100);
@@ -1690,7 +1692,7 @@ function drawTacticalDisplay() {
     if (zoomDisp) zoomDisp.textContent = `${state.rangeScale} NM`;
     const size = el.canvas.parentElement.clientWidth; el.canvas.width = size; el.canvas.height = size;
     const centerX = size / 2; const centerY = size / 2;
-    const padding = 64;
+    const padding = 32;
     const rOuter = size / 2 - padding;
     const rInner = rOuter - 8;
     const scale = state.rangeScale; const pxPerNM = rOuter / scale;
@@ -2209,7 +2211,7 @@ function drawTacticalDisplay() {
 el.canvas.addEventListener('click', (e) => {
     const rect = el.canvas.getBoundingClientRect(); const clickX = e.clientX - rect.left; const clickY = e.clientY - rect.top;
     const size = el.canvas.width; const centerX = size / 2; const centerY = size / 2;
-    const padding = 64;
+    const padding = 32;
     const scale = state.rangeScale; const pxPerNM = (size / 2 - padding) / scale;
     if (!state.ownPos.lat) return;
     const currentHeading = getMagneticHeading();
@@ -2397,15 +2399,20 @@ document.querySelectorAll('#plot-mode-segmented .segment-btn').forEach(btn => {
     });
 });
 
-// Orientation segmented control
-document.querySelectorAll('#orientation-segmented .segment-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('#orientation-segmented .segment-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.orientation = btn.getAttribute('data-val');
+// Orientation single toggle button
+const orientationBtn = document.getElementById('orientation-toggle-btn');
+if (orientationBtn) {
+    orientationBtn.addEventListener('click', () => {
+        if (state.orientation === 'HEADING') {
+            state.orientation = 'NORTH';
+            orientationBtn.textContent = 'N UP';
+        } else {
+            state.orientation = 'HEADING';
+            orientationBtn.textContent = 'HDG UP';
+        }
         drawTacticalDisplay();
     });
-});
+}
 
 
 el.addThreatConfigBtn.addEventListener('click', () => {
