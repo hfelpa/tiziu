@@ -3,8 +3,8 @@
  * Core Logic & Math
  */
 
-/* Version: 1.0.0-beta.32 */
-const CACHE_NAME = 'tiziu-v1.0.0-beta.32';
+/* Version: 1.0.0-beta.34 */
+const CACHE_NAME = 'tiziu-v1.0.0-beta.34';
 
 const MISSIONS = {
     TINIA26: {
@@ -941,7 +941,12 @@ window.cycleSelectedTarget = (direction) => {
 function updateTargetInspector() {
     const idDisplay = document.getElementById('selected-target-id-display');
     const detailsDisplay = document.getElementById('target-inspector-details');
+    const overlay = document.getElementById('target-inspector-overlay');
     if (!idDisplay || !detailsDisplay) return;
+
+    if (overlay) {
+        overlay.classList.remove('critical');
+    }
 
     const ids = getActiveTargetIds();
     if (ids.length === 0) {
@@ -992,6 +997,12 @@ function updateTargetInspector() {
     const magBrg = Math.round((b - magVar + 360) % 360).toString().padStart(3, '0');
     const dist = Math.round(d);
     const braaInfo = `BRAA ${magBrg}/${dist}`;
+
+    // Apply critical state if selected target meets PUMP criteria
+    const isNearOrInside = latestPlot.threatRange && (d <= latestPlot.threatRange + 3);
+    if (overlay && isNearOrInside) {
+        overlay.classList.add('critical');
+    }
 
     detailsDisplay.innerHTML = `
         <div class="detail-line">${code} - ${beInfo}</div>
