@@ -998,7 +998,7 @@ function updateTargetInspector() {
     const magVar = parseFloat(el.magVar.value) || 0;
     const magBrg = Math.round((b - magVar + 360) % 360).toString().padStart(3, '0');
     const dist = Math.round(d);
-    const braaInfo = `BRAA ${magBrg}/${dist}`;
+    const braaInfo = `BR ${magBrg}/${dist}`;
 
     // Apply critical state if selected target meets PUMP criteria
     const isNearOrInside = latestPlot.threatRange && (d <= latestPlot.threatRange + 3);
@@ -1007,7 +1007,8 @@ function updateTargetInspector() {
     }
 
     detailsDisplay.innerHTML = `
-        <div class="detail-line">${code} - ${beInfo}</div>
+        <div class="detail-line">${code}</div>
+        <div class="detail-line">${beInfo}</div>
         <div class="detail-line">${braaInfo}</div>
     `;
 }
@@ -1673,11 +1674,7 @@ function updateClosestThreats() {
             const itemClass = isNearOrInside ? 'closest-threat-item critical' : 'closest-threat-item';
             const nameSpan = isNearOrInside ? `<span class="threat-name-blink">${code}</span>` : code;
 
-            html += `
-                <div class="${itemClass}">
-                    ${index + 1}. ${nameSpan} - ${p.targetId} - BR ${magBrg}/${distVal}
-                </div>
-            `;
+            html += `<div class="${itemClass}">(${p.targetId}) ${nameSpan} - ${magBrg}/${distVal}</div>`;
         });
     }
 
@@ -1990,7 +1987,36 @@ function drawTacticalDisplay() {
                 targetColor = isLightMode ? '#cc7000' : '#ffb000'; // Orange/Gold
             }
 
-            ctx.fillStyle = targetColor; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+            if (plot.threatType === 'A/A') {
+                let targetHeading = 0;
+                const targetPlots = state.plots.filter(p => p.targetId === plot.targetId).sort((a,b) => a.timestamp - b.timestamp);
+                if (targetPlots.length > 1) {
+                    const p1 = targetPlots[targetPlots.length - 2];
+                    targetHeading = getBearing(p1.lat, p1.lon, plot.lat, plot.lon);
+                }
+                
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(toRad(targetHeading));
+                ctx.strokeStyle = targetColor;
+                ctx.lineWidth = 2;
+                ctx.fillStyle = isLightMode ? '#f0f4f8' : '#000000';
+                ctx.beginPath();
+                ctx.moveTo(-5, 4);
+                ctx.lineTo(5, 4);
+                ctx.lineTo(0, -6);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(0, -6);
+                ctx.lineTo(0, -12);
+                ctx.stroke();
+                ctx.restore();
+            } else {
+                ctx.fillStyle = targetColor; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+            }
 
             // Draw target bracket around the selected target (red if PUMP, green if selected)
             if (isSelected) {
