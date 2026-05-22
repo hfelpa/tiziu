@@ -1690,7 +1690,10 @@ function drawTacticalDisplay() {
     if (zoomDisp) zoomDisp.textContent = `${state.rangeScale} NM`;
     const size = el.canvas.parentElement.clientWidth; el.canvas.width = size; el.canvas.height = size;
     const centerX = size / 2; const centerY = size / 2;
-    const scale = state.rangeScale; const pxPerNM = (size / 2) / scale;
+    const padding = 24;
+    const rOuter = size / 2 - padding;
+    const rInner = rOuter - 8;
+    const scale = state.rangeScale; const pxPerNM = rOuter / scale;
 
     const currentHeading = getMagneticHeading();
     const rotationRad = (state.orientation === 'HEADING') ? -toRad(currentHeading) : 0;
@@ -1704,7 +1707,7 @@ function drawTacticalDisplay() {
 
     ctx.save(); // Save 1: circular clip path
     ctx.beginPath();
-    ctx.arc(centerX, centerY, size / 2 + 2, 0, Math.PI * 2);
+    ctx.arc(centerX, centerY, rOuter + 2, 0, Math.PI * 2);
     ctx.clip();
 
     ctx.save(); // Save 2: rotation/translation
@@ -1724,9 +1727,6 @@ function drawTacticalDisplay() {
     const bezelTextColor = isLightMode ? 'rgba(30, 41, 59, 0.9)' : 'rgba(0, 255, 65, 0.9)';
     
     // Outer and Inner Rings
-    const rOuter = size / 2 - 4;
-    const rInner = size / 2 - 12;
-    
     ctx.strokeStyle = bezelColor;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -2209,7 +2209,8 @@ function drawTacticalDisplay() {
 el.canvas.addEventListener('click', (e) => {
     const rect = el.canvas.getBoundingClientRect(); const clickX = e.clientX - rect.left; const clickY = e.clientY - rect.top;
     const size = el.canvas.width; const centerX = size / 2; const centerY = size / 2;
-    const scale = state.rangeScale; const pxPerNM = (size / 2) / scale;
+    const padding = 24;
+    const scale = state.rangeScale; const pxPerNM = (size / 2 - padding) / scale;
     if (!state.ownPos.lat) return;
     const currentHeading = getMagneticHeading();
     const rotationRad = (state.orientation === 'HEADING') ? -toRad(currentHeading) : 0;

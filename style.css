@@ -275,28 +275,7 @@ main.compass-blurred {
     gap: 8px;
     align-items: center;
 }
-.plotter-overlays-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    width: 100%;
-    max-width: 520px;
-    margin: 0 auto 12px auto;
-    gap: 12px;
-    box-sizing: border-box;
-    padding: 0 4px;
-}
-.plotter-overlays-bottom {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    width: 100%;
-    max-width: 520px;
-    margin: 12px auto 0 auto;
-    gap: 12px;
-    box-sizing: border-box;
-    padding: 0 4px;
-}
+
 .plotter-container {
     position: relative;
     width: 100%;
@@ -569,6 +548,9 @@ input.editing-active {
 
 /* FLOATING TARGET INSPECTOR OVERLAY */
 .target-inspector-overlay {
+    position: absolute;
+    top: 8px;
+    left: 8px;
     display: flex;
     align-items: stretch;
     background: #0d0d0d;
@@ -678,6 +660,9 @@ input.editing-active {
 
 /* FLOATING MFD BEZEL ZOOM CONTROLS */
 .zoom-controls-overlay {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -736,6 +721,10 @@ input.editing-active {
 .result-panel.compact { background: rgba(0, 255, 65, 0.05); padding: 1.2rem; margin-bottom: 20px; border-radius: 12px; border: 1px solid rgba(0, 255, 65, 0.2); }
 /* FLOATING CLOSEST THREATS OVERLAY */
 .closest-threats-overlay {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 170px;
     background: rgba(0, 0, 0, 0.85);
     border: 1px solid rgba(0, 255, 65, 0.35);
     border-radius: 6px;
