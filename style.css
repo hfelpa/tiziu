@@ -30,9 +30,9 @@ body {
 }
 
 .app-container {
-    max-width: 600px;
+    max-width: 850px;
     margin: 0 auto;
-    padding: 10px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -278,6 +278,8 @@ main.compass-blurred {
 .plotter-container {
     position: relative;
     width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -476,6 +478,21 @@ input:focus, select:focus { border-color: var(--primary-color); outline: none; b
 /* KEYPAD */
 .keypad-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 1999; display: none; }
 .keypad-overlay { position: fixed; bottom: 0; left: 0; width: 100%; background: #0a0a0a; border-top: 5px solid var(--primary-color); z-index: 2010; display: none; flex-direction: column; padding: 15px; box-shadow: 0 -15px 40px rgba(0,0,0,0.9); }
+@media (min-width: 600px) {
+    .keypad-overlay {
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        width: 100% !important;
+        max-width: 440px !important;
+        border-radius: 12px 12px 0 0 !important;
+        border-left: 2px solid var(--primary-color) !important;
+        border-right: 2px solid var(--primary-color) !important;
+    }
+    .keypad-overlay.editing {
+        border-left-color: var(--edit-color) !important;
+        border-right-color: var(--edit-color) !important;
+    }
+}
 
 /* EDIT ACTIVE HIGHLIGHT */
 .input-group.editing-active {
@@ -1854,4 +1871,117 @@ body.light-mode .section-title {
 
 body.light-mode .toggle-icon {
     color: #94a3b8;
+}
+
+/* EFB UX/UI Improvements - Bezel & Contrast Fixes */
+
+/* Coordinates text theme adaptability */
+.hist-coords-info, .plot-row-coords {
+    color: #e2e8f0;
+}
+body.light-mode .hist-coords-info,
+body.light-mode .plot-row-coords {
+    color: #475569;
+}
+
+/* Bullseye list table classes */
+#bullseyes-list tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+#bullseyes-list tr td {
+    padding: 10px 6px;
+}
+.bullseye-cell-name {
+    font-weight: bold;
+    color: #ffffff;
+}
+.bullseye-cell-val {
+    font-family: var(--font-mono);
+}
+.bullseye-cell-actions {
+    text-align: right;
+}
+.active-bullseye-row {
+    background: rgba(0, 255, 65, 0.08) !important;
+}
+.active-bullseye-row .bullseye-cell-name {
+    color: var(--primary-color) !important;
+}
+.badge-active-bullseye {
+    color: var(--primary-color);
+    font-weight: bold;
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    background: rgba(0, 255, 65, 0.15);
+    letter-spacing: 0.5px;
+    display: inline-block;
+}
+.btn-tiny {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    background: rgba(0, 255, 65, 0.1);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-weight: bold;
+    transition: all 0.1s ease;
+}
+.btn-tiny:hover {
+    background: rgba(0, 255, 65, 0.2);
+}
+.btn-tiny-remove {
+    border-color: #ff3b30;
+    color: #ff3b30;
+    background: rgba(255, 59, 48, 0.1);
+}
+.btn-tiny-remove:hover {
+    background: rgba(255, 59, 48, 0.2);
+}
+
+/* Light mode overrides for bullseye list */
+body.light-mode #bullseyes-list tr {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+body.light-mode .bullseye-cell-name {
+    color: #1e293b;
+}
+body.light-mode .active-bullseye-row {
+    background: rgba(0, 143, 37, 0.08) !important;
+}
+body.light-mode .badge-active-bullseye {
+    background: rgba(0, 143, 37, 0.15);
+}
+
+/* Threat Keyboard pagination control buttons */
+.threat-control-btn {
+    background: #333 !important;
+    color: #aaa !important;
+    font-size: 1.5rem !important;
+    border: 1px solid #444 !important;
+}
+.threat-control-btn:disabled {
+    opacity: 0.3 !important;
+    cursor: not-allowed;
+}
+.threat-control-btn .t-code {
+    color: inherit !important;
+}
+.threat-control-btn .t-rng {
+    color: inherit !important;
+    opacity: 0.75;
+}
+body.light-mode .threat-control-btn {
+    background: #e2e8f0 !important;
+    color: #1e293b !important;
+    border: 1px solid #cbd5e1 !important;
+}
+
+/* Threat configuration card light mode styling */
+body.light-mode .threat-card-modern {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
 }

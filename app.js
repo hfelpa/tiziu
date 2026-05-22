@@ -460,12 +460,12 @@ function renderThreatKeypad() {
     }
 
     if (sortedThreats.length > ITEMS_PER_PAGE) {
-        html += `<button class="threat-key-btn" style="background:#333; color:#aaa; font-size:1.5rem;" onclick="changeThreatPage(-1)" ${!hasPrev ? 'disabled style="opacity:0.3;"' : ''}>❮</button>`;
-        html += `<button class="threat-key-btn" style="background:#333; color:#aaa; font-size:1.5rem;" onclick="selectThreatInput('')"><span class="t-code">-</span><span class="t-rng">NENHUMA</span></button>`;
-        html += `<button class="threat-key-btn" style="background:#333; color:#aaa; font-size:1.5rem;" onclick="changeThreatPage(1)" ${!hasNext ? 'disabled style="opacity:0.3;"' : ''}>❯</button>`;
+        html += `<button class="threat-key-btn threat-control-btn" onclick="changeThreatPage(-1)" ${!hasPrev ? 'disabled' : ''}>❮</button>`;
+        html += `<button class="threat-key-btn threat-control-btn" onclick="selectThreatInput('')"><span class="t-code">-</span><span class="t-rng">NENHUMA</span></button>`;
+        html += `<button class="threat-key-btn threat-control-btn" onclick="changeThreatPage(1)" ${!hasNext ? 'disabled' : ''}>❯</button>`;
     } else {
         html += `<div class="threat-key-btn t-empty"></div>`;
-        html += `<button class="threat-key-btn" style="background:#333; color:#aaa; font-size:1.5rem;" onclick="selectThreatInput('')"><span class="t-code">-</span><span class="t-rng">NENHUMA</span></button>`;
+        html += `<button class="threat-key-btn threat-control-btn" onclick="selectThreatInput('')"><span class="t-code">-</span><span class="t-rng">NENHUMA</span></button>`;
         html += `<div class="threat-key-btn t-empty"></div>`;
     }
 
@@ -771,24 +771,24 @@ function updateBullseyesTable() {
     list.innerHTML = '';
     state.bullseyes.forEach((b, index) => {
         const row = document.createElement('tr');
-        row.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-        row.style.background = b.name === state.activeBullseyeName ? 'rgba(0, 255, 65, 0.08)' : 'transparent';
-
         const isActive = b.name === state.activeBullseyeName;
+        if (isActive) {
+            row.classList.add('active-bullseye-row');
+        }
         const escapedName = escapeHTML(b.name);
 
         row.innerHTML = `
-            <td style="padding: 10px 6px; font-weight: bold; color: ${isActive ? 'var(--primary-color)' : '#fff'}">${escapedName} ${isActive ? '⭐' : ''}</td>
-            <td style="padding: 10px 6px; font-family: var(--font-mono);">${b.lat.toFixed(6)}</td>
-            <td style="padding: 10px 6px; font-family: var(--font-mono);">${b.lon.toFixed(6)}</td>
-            <td style="padding: 10px 6px; font-family: var(--font-mono);">${b.magVar.toFixed(1)}°</td>
-            <td style="padding: 10px 6px; text-align: right;">
+            <td class="bullseye-cell-name ${isActive ? 'active-cell' : ''}">${escapedName} ${isActive ? '⭐' : ''}</td>
+            <td class="bullseye-cell-val">${b.lat.toFixed(6)}</td>
+            <td class="bullseye-cell-val">${b.lon.toFixed(6)}</td>
+            <td class="bullseye-cell-val">${b.magVar.toFixed(1)}°</td>
+            <td class="bullseye-cell-actions">
                 <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
                     ${isActive
-                ? `<span style="color: var(--primary-color); font-weight: bold; font-size: 0.7rem; padding: 4px 8px; border: 1px solid var(--primary-color); border-radius: 4px; background: rgba(0, 255, 65, 0.15); letter-spacing: 0.5px;">ATIVO</span>`
-                : `<button class="btn-tiny" onclick="selectActiveBullseye('${escapedName}')" style="padding: 4px 8px; font-size: 0.7rem; border-color: var(--primary-color); color: var(--primary-color); background: rgba(0, 255, 65, 0.1);">ATIVAR</button>`
+                ? `<span class="badge-active-bullseye">ATIVO</span>`
+                : `<button class="btn-tiny" onclick="selectActiveBullseye('${escapedName}')">ATIVAR</button>`
             }
-                    ${b.name !== 'SILVER' ? `<button class="btn-tiny" onclick="removeBullseye(${index})" style="padding: 4px 8px; font-size: 0.7rem; border-color: #ff3b30; color: #ff3b30; background: rgba(255, 59, 48, 0.1);">REMOVER</button>` : ''}
+                    ${b.name !== 'SILVER' ? `<button class="btn-tiny btn-tiny-remove" onclick="removeBullseye(${index})">REMOVER</button>` : ''}
                 </div>
             </td>
         `;
@@ -1410,7 +1410,7 @@ function renderHistory() {
             const lonDM = toDDM(latestPlot.lon, false);
             let mgrsStr = "---";
             try { mgrsStr = mgrs.forward([latestPlot.lon, latestPlot.lat], 4); } catch (e) { }
-            parentCoordStr = `<span class="hist-coords-info" style="font-size: 10px; opacity: 0.6; font-family: monospace; color: #fff; margin-left: 4px;">${latDM} ${lonDM} / ${mgrsStr}</span>`;
+            parentCoordStr = `<span class="hist-coords-info" style="font-size: 10px; opacity: 0.6; font-family: monospace; margin-left: 4px;">${latDM} ${lonDM} / ${mgrsStr}</span>`;
         }
 
         const typeTag = threatType ? `<span class="badge-hist-tag type-${threatType.toLowerCase() === 'a/a' ? 'aa' : 'ag'}" onclick="event.stopPropagation(); editTargetThreatCode('${escapedId}')">${escapeHTML(threatType)}</span>` : '';
@@ -1440,7 +1440,7 @@ function renderHistory() {
                 const lonDM = toDDM(plot.lon, false);
                 let mgrsStr = "---";
                 try { mgrsStr = mgrs.forward([plot.lon, plot.lat], 4); } catch (e) { }
-                rowCoordStr = `<div class="plot-row-coords" style="width: 100%; margin-left: 20px; font-size: 10px; opacity: 0.6; font-family: monospace; color: #fff; margin-top: 4px;">${latDM} ${lonDM} / ${mgrsStr}</div>`;
+                rowCoordStr = `<div class="plot-row-coords" style="width: 100%; margin-left: 20px; font-size: 10px; opacity: 0.6; font-family: monospace; margin-top: 4px;">${latDM} ${lonDM} / ${mgrsStr}</div>`;
             }
             return `
                         <div class="plot-history-row" style="flex-wrap: wrap;">
@@ -1708,25 +1708,91 @@ function drawTacticalDisplay() {
         ctx.beginPath(); ctx.arc(centerX, centerY, ringRadius, 0, Math.PI * 2); ctx.stroke();
     });
 
-    // DRAW AZIMUTH LINES
-    ctx.strokeStyle = isLightMode ? 'rgba(30, 41, 59, 0.25)' : 'rgba(0, 255, 65, 0.25)';
-    ctx.beginPath(); ctx.moveTo(centerX, 0); ctx.lineTo(centerX, size); ctx.moveTo(0, centerY); ctx.lineTo(size, centerY); ctx.stroke();
+    // DRAW COMPASS ROSE BEZEL (HSI/ND style)
+    const bezelColor = isLightMode ? 'rgba(30, 41, 59, 0.35)' : 'rgba(0, 255, 65, 0.35)';
+    const bezelTextColor = isLightMode ? 'rgba(30, 41, 59, 0.9)' : 'rgba(0, 255, 65, 0.9)';
+    
+    // Outer and Inner Rings
+    const rOuter = size / 2 - 4;
+    const rInner = size / 2 - 12;
+    
+    ctx.strokeStyle = bezelColor;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, rOuter, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, rInner, 0, Math.PI * 2);
+    ctx.stroke();
 
-    // BILLBOARDED SCALE LABELS
-    ctx.fillStyle = isLightMode ? 'rgba(30, 41, 59, 0.6)' : 'rgba(255, 255, 255, 0.2)'; ctx.font = '9px JetBrains Mono';
+    // Azimuth lines (vertical and horizontal crosses inside the bezel)
+    ctx.strokeStyle = isLightMode ? 'rgba(30, 41, 59, 0.15)' : 'rgba(0, 255, 65, 0.15)';
+    ctx.beginPath();
+    // Vertical line (stopping at inner bezel)
+    ctx.moveTo(centerX, centerY - rInner);
+    ctx.lineTo(centerX, centerY + rInner);
+    // Horizontal line
+    ctx.moveTo(centerX - rInner, centerY);
+    ctx.lineTo(centerX + rInner, centerY);
+    ctx.stroke();
+
+    for (let deg = 0; deg < 360; deg += 10) {
+        const rad = toRad(deg);
+        const sinVal = Math.sin(rad);
+        const cosVal = Math.cos(rad);
+
+        const is30 = (deg % 30 === 0);
+        const tickLength = is30 ? 8 : 4;
+        
+        const x1 = centerX + sinVal * rOuter;
+        const y1 = centerY - cosVal * rOuter;
+        const x2 = centerX + sinVal * (rOuter - tickLength);
+        const y2 = centerY - cosVal * (rOuter - tickLength);
+
+        ctx.strokeStyle = bezelColor;
+        ctx.lineWidth = is30 ? 1.5 : 1;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        if (is30) {
+            let labelText = '';
+            if (deg === 0) labelText = 'N';
+            else if (deg === 90) labelText = 'E';
+            else if (deg === 180) labelText = 'S';
+            else if (deg === 270) labelText = 'W';
+            else {
+                labelText = Math.round(deg / 10).toString().padStart(2, '0');
+            }
+
+            const rLabel = rOuter - 19;
+            const lx = centerX + sinVal * rLabel;
+            const ly = centerY - cosVal * rLabel;
+
+            ctx.save();
+            ctx.translate(lx, ly);
+            ctx.rotate(-rotationRad);
+            ctx.fillStyle = bezelTextColor;
+            ctx.font = 'bold 10px "Outfit", "Inter", "JetBrains Mono", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(labelText, 0, 0);
+            ctx.restore();
+        }
+    }
+
+    // BILLBOARDED SCALE LABELS (Adjust offset to avoid overlap with compass rose inner border)
+    ctx.fillStyle = isLightMode ? 'rgba(30, 41, 59, 0.65)' : 'rgba(255, 255, 255, 0.35)';
+    ctx.font = 'bold 9px "Outfit", "Inter", "JetBrains Mono", sans-serif';
     [0.25, 0.5, 0.75, 1.0].forEach(r => {
         const ringRadius = (scale * r) * pxPerNM;
+        // Don't draw label if it is outside the inner ring of the compass rose
+        if (ringRadius >= rInner - 8) return;
         const lx = centerX + 5; const ly = centerY - ringRadius + 12;
         ctx.save(); ctx.translate(lx, ly); ctx.rotate(-rotationRad); ctx.fillText(`${Math.round(scale * r)} NM`, 0, 0); ctx.restore();
-    });
-
-    // BILLBOARDED AZIMUTH LABELS
-    const azLabels = [{ a: 0, t: '000°', y: 15 }, { a: 180, t: '180°', y: size - 8 }, { a: 270, t: '270°', x: 15 }, { a: 90, t: '090°', x: size - 25 }];
-    ctx.fillStyle = isLightMode ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.5)';
-    ctx.font = '9px JetBrains Mono';
-    azLabels.forEach(l => {
-        const lx = l.x !== undefined ? l.x : centerX; const ly = l.y !== undefined ? l.y : centerY;
-        ctx.save(); ctx.translate(lx, ly); ctx.rotate(-rotationRad); ctx.fillText(l.t, 0, 0); ctx.restore();
     });
 
     if (!state.ownPos.lat) { ctx.restore(); return; }
@@ -2075,9 +2141,63 @@ function drawTacticalDisplay() {
     ctx.restore(); // Restore Save 2
     ctx.restore(); // Restore Save 1
 
+
+
     ctx.save(); ctx.translate(centerX, centerY);
     if (state.orientation === 'NORTH') { ctx.rotate(toRad(currentHeading)); }
-    ctx.fillStyle = isLightMode ? '#008f25' : '#00FF41'; ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(8, 11); ctx.lineTo(0, 6); ctx.lineTo(-8, 11); ctx.closePath(); ctx.fill(); ctx.restore();
+    
+    // Draw vector military aircraft glyph (sleek jet icon)
+    ctx.fillStyle = isLightMode ? '#008f25' : '#00FF41';
+    ctx.strokeStyle = isLightMode ? '#005c18' : '#8cffad';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    // Fuselage nose
+    ctx.moveTo(0, -15);
+    // Left side nose to canopy
+    ctx.quadraticCurveTo(-1.5, -8, -1.5, -4);
+    // Left wing root leading edge
+    ctx.lineTo(-2, 0);
+    // Left wing leading edge to wingtip
+    ctx.lineTo(-14, 5);
+    // Left wingtip
+    ctx.lineTo(-14, 7);
+    // Left wing trailing edge back to fuselage
+    ctx.lineTo(-2.5, 4);
+    // Fuselage side down to stabilizer leading edge
+    ctx.lineTo(-2.5, 10);
+    // Left stabilizer leading edge to tip
+    ctx.lineTo(-6.5, 13);
+    // Left stabilizer tip
+    ctx.lineTo(-6.5, 14);
+    // Left stabilizer trailing edge to engine nozzle
+    ctx.lineTo(-1, 13);
+    // Engine nozzle left
+    ctx.lineTo(-1, 15);
+    // Engine nozzle right
+    ctx.lineTo(1, 15);
+    // Right stabilizer trailing edge
+    ctx.lineTo(1, 13);
+    // Right stabilizer tip
+    ctx.lineTo(6.5, 14);
+    // Right stabilizer leading edge to fuselage
+    ctx.lineTo(6.5, 13);
+    // Fuselage side up to right wing root
+    ctx.lineTo(2.5, 10);
+    // Right wing trailing edge to wingtip
+    ctx.lineTo(2.5, 4);
+    // Right wingtip
+    ctx.lineTo(14, 7);
+    // Right wing leading edge
+    ctx.lineTo(14, 5);
+    // Right wing root leading edge
+    ctx.lineTo(2, 0);
+    // Right side canopy to nose
+    ctx.lineTo(1.5, -4);
+    ctx.quadraticCurveTo(1.5, -8, 0, -15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
 
     // DRAW HEADING INDICATOR TOP CENTER
     ctx.fillStyle = isLightMode ? '#008f25' : '#00FF41';
@@ -2317,12 +2437,25 @@ el.addThreatConfigBtn.addEventListener('click', () => {
 el.missionFileInput.addEventListener('change', handleMissionFile);
 if (el.gpxFileInput) el.gpxFileInput.addEventListener('change', handleGpxFile);
 
+function updateZuluClock() {
+    const clockEl = document.getElementById('zulu-clock');
+    if (!clockEl) return;
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const hh = pad(now.getUTCHours());
+    const mm = pad(now.getUTCMinutes());
+    const ss = pad(now.getUTCSeconds());
+    clockEl.textContent = `${hh}:${mm}:${ss}Z`;
+}
+
 // INITIAL LOAD
 window.initTheme();
 loadDefaultMission(false);
 initGPS();
 window.activateSensors(true);
 window.updateCompassStatusUI();
+updateZuluClock();
+setInterval(updateZuluClock, 1000);
 
 function animLoop() {
     drawTacticalDisplay();
