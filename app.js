@@ -968,6 +968,12 @@ window.cycleSelectedTarget = (direction) => {
     drawTacticalDisplay();
 };
 
+window.selectTargetId = (id) => {
+    state.selectedTargetId = id;
+    updateTargetInspector();
+    drawTacticalDisplay();
+};
+
 function updateTargetInspector() {
     const idDisplay = document.getElementById('selected-target-id-display');
     const detailsDisplay = document.getElementById('target-inspector-details');
@@ -1693,7 +1699,7 @@ function updateClosestThreats() {
             const itemClass = isNearOrInside ? 'closest-threat-item critical' : 'closest-threat-item';
             const nameSpan = isNearOrInside ? `<span class="threat-name-blink">${code}</span>` : code;
 
-            html += `<div class="${itemClass}">(${p.targetId}) ${nameSpan} - ${magBrg}/${distVal}</div>`;
+            html += `<div class="${itemClass}" style="cursor: pointer;" onclick="window.selectTargetId('${p.targetId}')">(${p.targetId}) ${nameSpan} - ${magBrg}/${distVal}</div>`;
         });
     }
 

@@ -752,6 +752,8 @@ input.editing-active {
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     pointer-events: auto;
     transition: all 0.15s ease-in-out;
+    display: flex;
+    flex-direction: column;
 }
 .closest-threats-overlay:hover {
     border-color: rgba(0, 255, 65, 0.6);
@@ -790,6 +792,8 @@ input.editing-active {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    flex-grow: 1;
+    overflow-y: auto;
 }
 .closest-threats-overlay.collapsed {
     min-width: unset;
@@ -2061,14 +2065,32 @@ body.light-mode .plotter-section {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-around;
-    align-items: center;
+    align-items: stretch;
     gap: 8px;
     width: 100%;
 }
 
 /* Override absolute positioning of overlays inside bottom bar */
-.plotter-bottom-bar .target-inspector-overlay,
-.plotter-bottom-bar .closest-threats-overlay,
+.plotter-bottom-bar .target-inspector-overlay {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    margin: 0 !important;
+    word-break: break-word;
+}
+.plotter-bottom-bar .closest-threats-overlay {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    margin: 0 !important;
+    word-break: break-word;
+    display: flex;
+    flex-direction: column;
+}
 .plotter-bottom-bar .zoom-controls-overlay {
     position: relative !important;
     top: auto !important;
@@ -2077,6 +2099,7 @@ body.light-mode .plotter-section {
     bottom: auto !important;
     margin: 0 !important;
     word-break: break-word;
+    align-self: center;
 }
 
 .plotter-sidebar .detail-line {
@@ -2171,4 +2194,5 @@ body.light-mode .vertical-controls-group {
     gap: 4px;
     width: auto !important;
     flex-wrap: nowrap !important;
+    align-self: center;
 }
