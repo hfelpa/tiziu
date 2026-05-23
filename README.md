@@ -30,7 +30,8 @@ TIZIU é um aplicativo de consciência situacional tática desenvolvido para ope
 - **Indicador de Proa (Heading Box)**: Display digital fixo no topo da tela que sempre apresenta a proa magnética atual da própria aeronave, não importando a orientação do mapa.
 - **Escala ajustável**: 20, 40, 80 e 160 NM.
 - **Anéis de Alcance (Rings)**: Botão de toggle que alterna os anéis radiais para serem centralizados no seu próprio avião (`RNG AC`) ou no Bullseye ativo (`RNG BE`).
-- Legenda de cada plot com ID do alvo, código de ameaça, vetor BRAA e posição Bullseye.
+- **Declutter (DCLT)**: Alterna um modo limpo que oculta anéis e linhas auxiliares, e colapsa as legendas de ameaças caso o radar fique muito denso.
+- Legenda compacta de cada plot exibindo o ID do alvo e o código de ameaça (com caixa de texto expansível para exibir alertas de PUMP).
 - Alerta visual **`PUMP CRIT`** piscante (vermelho) quando a aeronave se aproxima a ≤ 3 NM da borda de raio de abate de qualquer ameaça A/G ou A/A (esta priorizando os mais próximos).
 - Modo de edição com exibição simultânea da posição original (pontilhado laranja) e a nova posição calculada (ciano).
 
