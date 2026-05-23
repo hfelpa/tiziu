@@ -1721,8 +1721,14 @@ function drawTacticalDisplay() {
     const rInner = rOuter - 8;
     const scale = state.rangeScale; const pxPerNM = rOuter / scale;
 
-    const currentHeading = getMagneticHeading();
-    const rotationRad = (state.orientation === 'HEADING') ? -toRad(currentHeading) : 0;
+    const activeBull = state.bullseyes.find(b => b.name === state.activeBullseyeName) || state.bullseyes[0];
+    const magVar = activeBull ? activeBull.magVar : 0;
+    
+    const trueHeading = state.ownPos.heading || 0;
+    
+    // N UP: Magnetic North is UP -> Rotate canvas by -magVar
+    // HDG UP: True Aircraft Heading is UP -> Rotate canvas by -trueHeading
+    const rotationRad = (state.orientation === 'HEADING') ? -toRad(trueHeading) : toRad(-magVar);
 
     const isLightMode = document.body.classList.contains('light-mode');
 
@@ -1781,12 +1787,13 @@ function drawTacticalDisplay() {
         // Ticks point INWARDS from the label circle
         const tickOuter = rOuter - 20; 
         
-        for (let deg = 0; deg < 360; deg += 10) {
-            const rad = toRad(deg);
-            const sinVal = Math.sin(rad);
-            const cosVal = Math.cos(rad);
+        for (let magDeg = 0; magDeg < 360; magDeg += 10) {
+            // Compass rose is physically at True bearings, but labeled magnetically
+            const trueRad = toRad(magDeg + magVar);
+            const sinVal = Math.sin(trueRad);
+            const cosVal = Math.cos(trueRad);
             
-            const is30 = (deg % 30 === 0);
+            const is30 = (magDeg % 30 === 0);
             const tickLength = is30 ? 14 : 7;
             const tickInner = tickOuter - tickLength;
             
@@ -1804,12 +1811,12 @@ function drawTacticalDisplay() {
             
             if (is30) {
                 let labelText = '';
-                if (deg === 0) labelText = 'N';
-                else if (deg === 90) labelText = 'E';
-                else if (deg === 180) labelText = 'S';
-                else if (deg === 270) labelText = 'W';
+                if (magDeg === 0) labelText = 'N';
+                else if (magDeg === 90) labelText = 'E';
+                else if (magDeg === 180) labelText = 'S';
+                else if (magDeg === 270) labelText = 'W';
                 else {
-                    labelText = Math.round(deg / 10).toString().padStart(2, '0');
+                    labelText = Math.round(magDeg / 10).toString().padStart(2, '0');
                 }
                 
                 // Labels are outside the ticks
@@ -1886,6 +1893,10 @@ function drawTacticalDisplay() {
         ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill();
 
         if (!state.declutter) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(toRad(activeBull.magVar));
+
             // N, S, E, W radial helper lines (infinite, clipped by visor)
             const lineLen = Math.max(cw, ch) * 2;
             ctx.strokeStyle = lineOpacity;
@@ -1893,12 +1904,14 @@ function drawTacticalDisplay() {
             ctx.setLineDash([4, 4]);
 
             ctx.beginPath();
-            ctx.moveTo(x, y - 11); ctx.lineTo(x, y - lineLen);
-            ctx.moveTo(x, y + 11); ctx.lineTo(x, y + lineLen);
-            ctx.moveTo(x + 11, y); ctx.lineTo(x + lineLen, y);
-            ctx.moveTo(x - 11, y); ctx.lineTo(x - lineLen, y);
+            ctx.moveTo(0, -11); ctx.lineTo(0, -lineLen);
+            ctx.moveTo(0, 11); ctx.lineTo(0, lineLen);
+            ctx.moveTo(11, 0); ctx.lineTo(lineLen, 0);
+            ctx.moveTo(-11, 0); ctx.lineTo(-lineLen, 0);
             ctx.stroke();
             ctx.setLineDash([]);
+            ctx.restore();
+
             // Billboarded N, S, E, W labels at a fixed distance from center
             ctx.fillStyle = isLightMode ? 'rgba(0, 141, 166, 0.95)' : 'rgba(0, 229, 255, 0.7)';
             ctx.font = 'bold 9px "JetBrains Mono", monospace';
@@ -1906,11 +1919,13 @@ function drawTacticalDisplay() {
             ctx.textBaseline = 'middle';
 
             const labelDist = 40;
+            const mV = toRad(activeBull.magVar);
+            
             const labels = [
-                { lx: x, ly: y - labelDist, t: 'N' },
-                { lx: x, ly: y + labelDist, t: 'S' },
-                { lx: x + labelDist, ly: y, t: 'E' },
-                { lx: x - labelDist, ly: y, t: 'W' }
+                { lx: x + Math.sin(mV) * labelDist, ly: y - Math.cos(mV) * labelDist, t: 'N' },
+                { lx: x - Math.sin(mV) * labelDist, ly: y + Math.cos(mV) * labelDist, t: 'S' },
+                { lx: x + Math.cos(mV) * labelDist, ly: y + Math.sin(mV) * labelDist, t: 'E' },
+                { lx: x - Math.cos(mV) * labelDist, ly: y - Math.sin(mV) * labelDist, t: 'W' }
             ];
 
             labels.forEach(l => {
@@ -2232,7 +2247,7 @@ function drawTacticalDisplay() {
 
 
     ctx.save(); ctx.translate(centerX, centerY);
-    if (state.orientation === 'NORTH') { ctx.rotate(toRad(currentHeading)); }
+    if (state.orientation === 'NORTH') { ctx.rotate(toRad(trueHeading - magVar)); }
 
     // Draw ownship symbol (like F-16 HSD)
     ctx.strokeStyle = isLightMode ? 'rgba(30, 41, 59, 1)' : 'rgba(0, 255, 65, 1)';
@@ -2257,7 +2272,8 @@ function drawTacticalDisplay() {
     ctx.font = 'bold 16px "JetBrains Mono", monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    const headingText = Math.round(currentHeading).toString().padStart(3, '0') + '°';
+    const topMagHeading = state.orientation === 'HEADING' ? Math.round((trueHeading - magVar + 360) % 360) : 360;
+    const headingText = (topMagHeading === 360 ? 360 : topMagHeading).toString().padStart(3, '0') + '°';
     const textWidth = ctx.measureText(headingText).width;
 
     // Background box for readability over rings/lines
