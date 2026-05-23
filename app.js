@@ -704,7 +704,12 @@ function handleMissionFile(event) {
                 if (data.type === "tiziu_session_state" || (data.plots && data.threats)) {
                     if (data.plots) state.plots = data.plots;
                     if (data.threats) state.threats = data.threats;
-                    if (data.bullseyes) state.bullseyes = data.bullseyes;
+                    if (data.bullseyes) {
+                        state.bullseyes = data.bullseyes.map(b => ({
+                            ...b,
+                            magVar: b.magVar !== undefined ? b.magVar : 0
+                        }));
+                    }
                     if (data.activeBullseyeName) {
                         state.activeBullseyeName = data.activeBullseyeName;
                         const activeB = state.bullseyes.find(b => b.name === state.activeBullseyeName);
@@ -721,23 +726,29 @@ function handleMissionFile(event) {
                     drawTacticalDisplay();
                     alert("Cenário completo carregado com sucesso!");
                 } else {
-                    if (data.bullseye) applyBullseye(data.bullseye);
+                    if (data.bullseye) {
+                        data.bullseye.magVar = data.bullseye.magVar !== undefined ? data.bullseye.magVar : 0;
+                        applyBullseye(data.bullseye);
+                    }
                     if (data.threats) { state.threats = data.threats; updateThreatDropdowns(); }
                     alert("Preparação de cenário importada com sucesso!");
                 }
+                event.target.value = '';
                 return;
             }
             const lines = content.split('\n'); const newThreats = [];
             lines.forEach(line => {
                 const parts = line.split(/[,\t ]+/).map(p => p.trim());
-                if (parts[0].toUpperCase() === 'BULLSEYE' && parts.length >= 5) { applyBullseye({ name: parts[1], lat: parseFloat(parts[2]), lon: parseFloat(parts[3]), magVar: parseFloat(parts[4]) }); }
+                if (parts[0].toUpperCase() === 'BULLSEYE' && parts.length >= 5) { applyBullseye({ name: parts[1], lat: parseFloat(parts[2]), lon: parseFloat(parts[3]), magVar: parseFloat(parts[4]) || 0 }); }
                 else if (parts.length >= 3) { const code = parts[0].toUpperCase(); const type = parts[1].toUpperCase().includes('A/A') ? 'A/A' : 'A/G'; const range = parseFloat(parts[2]); if (code && !isNaN(range)) newThreats.push({ code, type, range }); }
             });
             if (newThreats.length > 0) { state.threats = newThreats; updateThreatDropdowns(); }
             alert("Cenário de texto importado com sucesso!");
         } catch (err) {
             console.error("Erro ao ler arquivo.", err);
-            alert("Erro ao decodificar o arquivo de cenário.");
+            alert("Erro ao decodificar o arquivo de cenário: " + err.message);
+        } finally {
+            event.target.value = '';
         }
     };
     reader.readAsText(file);

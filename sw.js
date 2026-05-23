@@ -1,5 +1,5 @@
-/* Version: 1.0.0-beta.35 */
-const CACHE_NAME = 'tiziu-v1.0.0-beta.36';
+/* Version: 1.0.0-beta.37 */
+const CACHE_NAME = 'tiziu-v1.0.0-beta.37';
 const ASSETS = [
     './',
     './index.html',
