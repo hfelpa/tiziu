@@ -1631,23 +1631,7 @@ window.editTargetThreatCode = (targetId) => {
 /**
  * TACTICAL DISPLAY
  */
-function drawPredictionArrow(ctx, fromX, fromY, toX, toY, isSelected) {
-    const isLightMode = document.body.classList.contains('light-mode');
-    const headLen = 12; const predX = toX + (toX - fromX) * 0.8; const predY = toY + (toY - fromY) * 0.8;
-    const angle = Math.atan2(predY - toY, predX - toX);
-    ctx.strokeStyle = isSelected
-        ? (isLightMode ? 'rgba(0, 168, 45, 0.65)' : 'rgba(57, 255, 20, 0.6)')
-        : (isLightMode ? 'rgba(30, 41, 59, 0.45)' : 'rgba(255, 255, 255, 0.4)');
-    ctx.setLineDash([2, 3]); ctx.beginPath(); ctx.moveTo(toX, toY); ctx.lineTo(predX, predY); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = isSelected
-        ? (isLightMode ? 'rgba(0, 168, 45, 0.85)' : 'rgba(57, 255, 20, 0.8)')
-        : (isLightMode ? 'rgba(30, 41, 59, 0.65)' : 'rgba(255, 255, 255, 0.6)');
-    ctx.beginPath(); ctx.moveTo(predX, predY);
-    ctx.lineTo(predX - headLen * Math.cos(angle - Math.PI / 6), predY - headLen * Math.sin(angle - Math.PI / 6));
-    ctx.lineTo(predX - headLen * Math.cos(angle + Math.PI / 6), predY - headLen * Math.sin(angle + Math.PI / 6));
-    ctx.closePath(); ctx.fill();
-}
+
 
 function getMagneticHeading() {
     const magVar = parseFloat(el.magVar.value) || 0;
@@ -1962,25 +1946,7 @@ function drawTacticalDisplay() {
     const groups = {}; state.plots.forEach(p => { if (!groups[p.targetId]) groups[p.targetId] = []; groups[p.targetId].push(p); });
     Object.values(groups).forEach(g => g.sort((a, b) => a.timestamp - b.timestamp));
 
-    if (!state.declutter) {
-        Object.values(groups).forEach(group => {
-            if (group.length < 2) return;
-            const isSelectedGroup = group[0] && group[0].targetId === state.selectedTargetId;
-            const lineStyle = isSelectedGroup
-                ? (isLightMode ? 'rgba(0, 168, 45, 0.55)' : 'rgba(57, 255, 20, 0.5)')
-                : (isLightMode ? 'rgba(30, 41, 59, 0.35)' : 'rgba(255, 255, 255, 0.3)');
-            for (let i = 1; i < group.length; i++) {
-                const prev = group[i - 1]; const curr = group[i];
-                const d1 = getDistance(state.ownPos.lat, state.ownPos.lon, prev.lat, prev.lon); const b1 = getBearing(state.ownPos.lat, state.ownPos.lon, prev.lat, prev.lon);
-                const d2 = getDistance(state.ownPos.lat, state.ownPos.lon, curr.lat, curr.lon); const b2 = getBearing(state.ownPos.lat, state.ownPos.lon, curr.lat, curr.lon);
-                const x1 = centerX + Math.sin(toRad(b1)) * (d1 * pxPerNM); const y1 = centerY - Math.cos(toRad(b1)) * (d1 * pxPerNM);
-                const x2 = centerX + Math.sin(toRad(b2)) * (d2 * pxPerNM); const y2 = centerY - Math.cos(toRad(b2)) * (d2 * pxPerNM);
-                ctx.strokeStyle = lineStyle; ctx.setLineDash([2, 4]); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-                if (i === group.length - 1) drawPredictionArrow(ctx, x1, y1, x2, y2, isSelectedGroup);
-            }
-            ctx.setLineDash([]);
-        });
-    }
+
 
     // Compute screen coordinates for each latest plot to detect proximity conflicts
     const latestScreenCoords = {};
