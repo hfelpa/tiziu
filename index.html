@@ -162,8 +162,13 @@
                 <!-- TACTICAL PLOTTER SECTION -->
                 <section class="card plotter-section">
                     <div class="plotter-layout">
-                        <!-- Left Sidebar -->
-                        <div class="plotter-sidebar left-sidebar">
+                        <!-- Center display -->
+                        <div class="plotter-container">
+                            <canvas id="tactical-canvas"></canvas>
+                        </div>
+
+                        <!-- Bottom Controls Bar -->
+                        <div class="plotter-bottom-bar">
                             <!-- TARGET INSPECTOR -->
                             <div id="target-inspector-overlay" class="target-inspector-overlay">
                                 <div class="target-id-selector">
@@ -184,29 +189,21 @@
                                     <button class="overlay-toggle-btn" id="overlay-toggle-btn">▲</button>
                                 </div>
                                 <div id="closest-threats-content" class="overlay-content">
-                                    <!-- Populated dynamically by JS -->
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Center display -->
-                        <div class="plotter-container">
-                            <canvas id="tactical-canvas"></canvas>
-                        </div>
-
-                        <!-- Right Sidebar -->
-                        <div class="plotter-sidebar right-sidebar">
-                            <!-- VERTICAL CONTROLS GROUP -->
-                            <div class="vertical-controls-group">
-                                <button class="segment-btn" id="dclt-btn" onclick="toggleDeclutter()">DCLT</button>
-                                <button class="segment-btn active" id="orientation-toggle-btn">HDG UP</button>
+                            <!-- MFD BEZEL ZOOM CONTROLS (now horizontal) -->
+                            <div id="zoom-controls-overlay" class="zoom-controls-overlay horizontal-zoom">
+                                <button class="zoom-btn" onclick="changeRangeScale('up')">+</button>
+                                <span id="zoom-level-display" class="zoom-level-text">40 NM</span>
+                                <button class="zoom-btn" onclick="changeRangeScale('down')">-</button>
                             </div>
 
-                            <!-- MFD BEZEL ZOOM CONTROLS -->
-                            <div id="zoom-controls-overlay" class="zoom-controls-overlay">
-                                <button class="zoom-btn" onclick="changeRangeScale('up')">▲</button>
-                                <span id="zoom-level-display" class="zoom-level-text">40 NM</span>
-                                <button class="zoom-btn" onclick="changeRangeScale('down')">▼</button>
+                            <!-- BUTTONS GROUP -->
+                            <div class="vertical-controls-group horizontal-mode">
+                                <button class="segment-btn" id="dclt-btn" onclick="toggleDeclutter()">DCLT</button>
+                                <button class="segment-btn active" id="orientation-toggle-btn">HDG UP</button>
+                                <button class="segment-btn" id="rings-be-btn" onclick="toggleRingsCenter()">RINGS BE</button>
                             </div>
                         </div>
                     </div>

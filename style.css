@@ -287,6 +287,13 @@ main.compass-blurred {
     align-items: center;
     flex-grow: 1;
     min-width: 0;
+    border: 1px solid rgba(0, 255, 65, 0.4);
+    border-radius: 4px;
+    box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.1);
+}
+body.light-mode .plotter-container {
+    border-color: rgba(30, 41, 59, 0.3);
+    box-shadow: inset 0 0 10px rgba(30, 41, 59, 0.05);
 }
 
 #tactical-canvas {
@@ -2043,9 +2050,13 @@ body.light-mode .plotter-section {
     border-color: #ffffff !important;
 }
 
+.plotter-container {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
 .plotter-layout {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: stretch;
     justify-content: center;
     gap: 12px;
@@ -2053,56 +2064,26 @@ body.light-mode .plotter-section {
     margin-top: 10px;
 }
 
-.plotter-sidebar {
+.plotter-bottom-bar {
     display: flex;
-    flex-direction: column;
-    width: 140px;
-    flex-shrink: 0;
-    gap: 12px;
-}
-
-.plotter-sidebar.left-sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
     align-items: flex-start;
-    justify-content: flex-start;
+    gap: 12px;
+    width: 100%;
 }
 
-.plotter-sidebar.right-sidebar {
-    width: 80px;
-    align-items: flex-end;
-    justify-content: space-between;
-}
-
-/* Override absolute positioning of overlays inside sidebars */
-.plotter-sidebar .target-inspector-overlay,
-.plotter-sidebar .closest-threats-overlay,
-.plotter-sidebar .zoom-controls-overlay {
+/* Override absolute positioning of overlays inside bottom bar */
+.plotter-bottom-bar .target-inspector-overlay,
+.plotter-bottom-bar .closest-threats-overlay,
+.plotter-bottom-bar .zoom-controls-overlay {
     position: relative !important;
     top: auto !important;
     left: auto !important;
     right: auto !important;
     bottom: auto !important;
     margin: 0 !important;
-}
-
-.plotter-sidebar .target-inspector-overlay,
-.plotter-sidebar .closest-threats-overlay {
-    width: 100% !important;
-    box-sizing: border-box;
-}
-
-.plotter-sidebar .target-inspector-details {
-    min-width: 90px !important;
-    flex-grow: 1;
-}
-
-.plotter-sidebar .closest-threats-overlay {
-    padding: 6px 8px !important;
-}
-
-.plotter-sidebar .closest-threat-item {
-    font-size: 0.65rem !important;
-    letter-spacing: -0.2px;
-    white-space: pre-wrap !important;
     word-break: break-word;
 }
 
@@ -2173,3 +2154,27 @@ body.light-mode .vertical-controls-group {
     }
 }
 
+.plotter-bottom-bar .target-inspector-details {
+    padding: 6px;
+    min-width: 90px;
+}
+
+.plotter-bottom-bar .closest-threats-overlay {
+    max-height: 250px;
+    padding: 6px 8px;
+}
+
+.horizontal-zoom {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 8px;
+    width: auto !important;
+    padding: 4px 12px !important;
+}
+
+.horizontal-mode {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 8px;
+    width: auto !important;
+}

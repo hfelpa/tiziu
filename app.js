@@ -141,7 +141,8 @@ const state = {
     declutter: false,
     showClosestThreats: true,
     selectedTargetId: null,
-    plotsFilter: 'ALL'
+    plotsFilter: 'ALL',
+    ringsOnBullseye: false
 };
 
 const INPUT_SEQUENCE_BE = ["targetId", "targetRadial", "targetDist", "targetThreat"];
@@ -860,6 +861,19 @@ window.toggleDeclutter = () => {
     const btn = document.getElementById('dclt-btn');
     if (btn) {
         if (state.declutter) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    }
+    drawTacticalDisplay();
+};
+
+window.toggleRingsCenter = () => {
+    state.ringsOnBullseye = !state.ringsOnBullseye;
+    const btn = document.getElementById('rings-be-btn');
+    if (btn) {
+        if (state.ringsOnBullseye) {
             btn.classList.add('active');
         } else {
             btn.classList.remove('active');
@@ -1725,59 +1739,52 @@ function drawTacticalDisplay() {
     ctx.translate(-centerX, -centerY);
 
     // DRAW RINGS
+    let ringCenterX = centerX;
+    let ringCenterY = centerY;
+    if (state.ringsOnBullseye && state.bullseyes.length > 0) {
+        const be = state.bullseyes.find(b => b.name === state.activeBullseyeName) || state.bullseyes[0];
+        if (be) {
+            const dBe = getDistance(state.ownPos.lat, state.ownPos.lon, be.lat, be.lon);
+            const bBe = getBearing(state.ownPos.lat, state.ownPos.lon, be.lat, be.lon);
+            ringCenterX = centerX + Math.sin(toRad(bBe)) * (dBe * pxPerNM);
+            ringCenterY = centerY - Math.cos(toRad(bBe)) * (dBe * pxPerNM);
+        }
+    }
+    
     ctx.strokeStyle = isLightMode ? 'rgba(30, 41, 59, 0.12)' : 'rgba(0, 255, 65, 0.12)'; ctx.lineWidth = 1;
     [0.25, 0.5, 0.75, 1.0].forEach(r => {
         const ringRadius = (scale * r) * pxPerNM;
-        ctx.beginPath(); ctx.arc(centerX, centerY, ringRadius, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(ringCenterX, ringCenterY, ringRadius, 0, Math.PI * 2); ctx.stroke();
     });
 
-    // DRAW COMPASS ROSE BEZEL (HSI/ND style)
-    const bezelColor = isLightMode ? 'rgba(30, 41, 59, 0.35)' : 'rgba(0, 255, 65, 0.35)';
-    const bezelTextColor = isLightMode ? 'rgba(30, 41, 59, 0.9)' : 'rgba(0, 255, 65, 0.9)';
-
-    // Outer and Inner Rings
-    ctx.strokeStyle = bezelColor;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, rOuter, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, rInner, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Azimuth lines (vertical and horizontal crosses inside the bezel)
-    ctx.strokeStyle = isLightMode ? 'rgba(30, 41, 59, 0.15)' : 'rgba(0, 255, 65, 0.15)';
-    ctx.beginPath();
-    // Vertical line (stopping at inner bezel)
-    ctx.moveTo(centerX, centerY - rInner);
-    ctx.lineTo(centerX, centerY + rInner);
-    // Horizontal line
-    ctx.moveTo(centerX - rInner, centerY);
-    ctx.lineTo(centerX + rInner, centerY);
-    ctx.stroke();
-
+    // DRAW COMPASS ROSE (HSI/ND style as in F-16 image)
+    const bezelColor = isLightMode ? 'rgba(30, 41, 59, 1)' : 'rgba(0, 255, 65, 1)';
+    const bezelTextColor = bezelColor;
+    
+    // Ticks point INWARDS from the label circle
+    const tickOuter = rOuter - 20; 
+    
     for (let deg = 0; deg < 360; deg += 10) {
         const rad = toRad(deg);
         const sinVal = Math.sin(rad);
         const cosVal = Math.cos(rad);
-
+        
         const is30 = (deg % 30 === 0);
-        const tickLength = is30 ? 8 : 4;
-
-        const x1 = centerX + sinVal * rOuter;
-        const y1 = centerY - cosVal * rOuter;
-        const x2 = centerX + sinVal * (rOuter - tickLength);
-        const y2 = centerY - cosVal * (rOuter - tickLength);
-
+        const tickLength = is30 ? 14 : 7;
+        const tickInner = tickOuter - tickLength;
+        
+        const x1 = centerX + sinVal * tickOuter;
+        const y1 = centerY - cosVal * tickOuter;
+        const x2 = centerX + sinVal * tickInner;
+        const y2 = centerY - cosVal * tickInner;
+        
         ctx.strokeStyle = bezelColor;
         ctx.lineWidth = is30 ? 1.5 : 1;
         ctx.beginPath();
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.stroke();
-
+        
         if (is30) {
             let labelText = '';
             if (deg === 0) labelText = 'N';
@@ -1787,16 +1794,17 @@ function drawTacticalDisplay() {
             else {
                 labelText = Math.round(deg / 10).toString().padStart(2, '0');
             }
-
-            const rLabel = rOuter - 19;
+            
+            // Labels are outside the ticks
+            const rLabel = tickOuter + 14;
             const lx = centerX + sinVal * rLabel;
             const ly = centerY - cosVal * rLabel;
-
+            
             ctx.save();
             ctx.translate(lx, ly);
-            ctx.rotate(-rotationRad);
+            ctx.rotate(-rotationRad); // Keep upright
             ctx.fillStyle = bezelTextColor;
-            ctx.font = 'bold 10px "Outfit", "Inter", "JetBrains Mono", sans-serif';
+            ctx.font = '500 14px "JetBrains Mono", monospace';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(labelText, 0, 0);
@@ -1804,14 +1812,14 @@ function drawTacticalDisplay() {
         }
     }
 
-    // BILLBOARDED SCALE LABELS (Adjust offset to avoid overlap with compass rose inner border)
+    // BILLBOARDED SCALE LABELS
     ctx.fillStyle = isLightMode ? 'rgba(30, 41, 59, 0.65)' : 'rgba(255, 255, 255, 0.35)';
     ctx.font = 'bold 9px "Outfit", "Inter", "JetBrains Mono", sans-serif';
     [0.25, 0.5, 0.75, 1.0].forEach(r => {
         const ringRadius = (scale * r) * pxPerNM;
-        // Don't draw label if it is outside the inner ring of the compass rose
-        if (ringRadius >= rInner - 8) return;
-        const lx = centerX + 5; const ly = centerY - ringRadius + 12;
+        // Don't draw label if it goes off screen
+        if (ringCenterY - ringRadius < 0) return;
+        const lx = ringCenterX + 5; const ly = ringCenterY - ringRadius + 12;
         ctx.save(); ctx.translate(lx, ly); ctx.rotate(-rotationRad); ctx.fillText(`${Math.round(scale * r)} NM`, 0, 0); ctx.restore();
     });
 
@@ -2203,25 +2211,22 @@ function drawTacticalDisplay() {
     ctx.save(); ctx.translate(centerX, centerY);
     if (state.orientation === 'NORTH') { ctx.rotate(toRad(currentHeading)); }
 
-    // Draw simplified ownship symbol (cruz com a perna inferior estendida)
-    ctx.strokeStyle = isLightMode ? '#008f25' : '#00FF41';
-    ctx.lineWidth = 2;
+    // Draw ownship symbol (like F-16 HSD)
+    ctx.strokeStyle = isLightMode ? 'rgba(30, 41, 59, 1)' : 'rgba(0, 255, 65, 1)';
+    ctx.lineWidth = 3.5;
 
-    // Solid top fuselage and solid horizontal wings
     ctx.beginPath();
+    // Fuselage
     ctx.moveTo(0, -10);
-    ctx.lineTo(0, 0);
-    ctx.moveTo(-12, 0);
-    ctx.lineTo(12, 0);
+    ctx.lineTo(0, 16);
+    // Main wings
+    ctx.moveTo(-14, 0);
+    ctx.lineTo(14, 0);
+    // Tail
+    ctx.moveTo(-6, 12);
+    ctx.lineTo(6, 12);
     ctx.stroke();
-
-    // Dashed extended tail (bottom vertical leg)
-    ctx.beginPath();
-    ctx.setLineDash([4, 3]);
-    ctx.moveTo(0, 3);
-    ctx.lineTo(0, 24);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    
     ctx.restore();
 
     // DRAW HEADING INDICATOR TOP CENTER
