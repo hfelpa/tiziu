@@ -2304,19 +2304,28 @@ el.canvas.addEventListener('click', (e) => {
     const minDim = Math.min(cw, ch);
     const scale = state.rangeScale; const pxPerNM = (minDim / 2 - padding) / scale;
     if (!state.ownPos.lat) return;
-    const currentHeading = getMagneticHeading();
-    const rotationRad = (state.orientation === 'HEADING') ? -toRad(currentHeading) : 0;
+    const activeBull = state.bullseyes.find(b => b.name === state.activeBullseyeName) || state.bullseyes[0];
+    const magVar = activeBull ? activeBull.magVar : 0;
+    
+    let trueHeading = 0;
+    if (state.ownPos.compass !== null) {
+        trueHeading = state.ownPos.compass;
+    } else if (state.ownPos.heading !== null) {
+        trueHeading = state.ownPos.heading;
+    }
+    const rotationRad = (state.orientation === 'HEADING') ? -toRad(trueHeading) : toRad(-magVar);
+    
     const latestById = {}; state.plots.forEach(p => { if (!latestById[p.targetId] || p.timestamp > latestById[p.targetId].timestamp) latestById[p.targetId] = p; });
     let foundId = null;
     Object.values(latestById).forEach(plot => {
         const d = getDistance(state.ownPos.lat, state.ownPos.lon, plot.lat, plot.lon); const b = getBearing(state.ownPos.lat, state.ownPos.lon, plot.lat, plot.lon);
         let x = centerX + Math.sin(toRad(b)) * (d * pxPerNM); let y = centerY - Math.cos(toRad(b)) * (d * pxPerNM);
-        if (state.orientation === 'HEADING') {
-            const dx = x - centerX; const dy = y - centerY;
-            const rx = dx * Math.cos(rotationRad) - dy * Math.sin(rotationRad);
-            const ry = dx * Math.sin(rotationRad) + dy * Math.cos(rotationRad);
-            x = centerX + rx; y = centerY + ry;
-        }
+        
+        // Apply canvas rotation to the plotted coordinates to match visual hitboxes
+        const dx = x - centerX; const dy = y - centerY;
+        const rx = dx * Math.cos(rotationRad) - dy * Math.sin(rotationRad);
+        const ry = dx * Math.sin(rotationRad) + dy * Math.cos(rotationRad);
+        x = centerX + rx; y = centerY + ry;
         const dist = Math.sqrt((clickX - x) ** 2 + (clickY - y) ** 2); if (dist < 25) foundId = plot.targetId;
     });
     if (foundId) selectTargetPlot(foundId);
