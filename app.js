@@ -2184,15 +2184,6 @@ function drawTacticalDisplay() {
                 }
                 ctx.restore();
             }
-        } else {
-            const isSelectedGroup = plot.targetId === state.selectedTargetId;
-            let histColor = isLightMode ? 'rgba(204, 112, 0, 0.45)' : 'rgba(255, 176, 0, 0.35)'; // Default faded orange
-            if (isSelectedGroup) {
-                histColor = isLightMode ? 'rgba(0, 168, 45, 0.5)' : 'rgba(57, 255, 20, 0.4)'; // Faded neon green
-            } else if (plot.threatType === 'A/A') {
-                histColor = isLightMode ? 'rgba(85, 85, 85, 0.45)' : 'rgba(200, 200, 200, 0.35)'; // Faded gray
-            }
-            ctx.fillStyle = histColor; ctx.beginPath(); ctx.arc(x, y, 3.5, 0, Math.PI * 2); ctx.fill();
         }
     });
 
