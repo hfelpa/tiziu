@@ -372,10 +372,15 @@ function openKeypad(id, plotIndex = null, element = null) {
         el.keypadContextInfo.textContent = contextVal;
 
         // Initialize state.keypadValue with the current threat so ENTER preserves it
-        if (plotIndex !== null) {
+        if (plotIndex !== null && plotIndex !== 'target-global') {
             state.keypadValue = state.plots[plotIndex].threatCode || "";
+        } else if (state.editingTargetId) {
+            const targetPlots = state.plots.filter(p => p.targetId === state.editingTargetId);
+            targetPlots.sort((a, b) => b.timestamp - a.timestamp);
+            state.keypadValue = targetPlots.length > 0 ? (targetPlots[0].threatCode || "") : "";
         } else {
-            state.keypadValue = document.getElementById(id).value;
+            const elNode = document.getElementById(id);
+            state.keypadValue = elNode ? elNode.value : "";
             if (state.keypadValue === "-") state.keypadValue = ""; // Handle placeholder
         }
 
