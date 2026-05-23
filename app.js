@@ -1963,7 +1963,7 @@ function drawTacticalDisplay() {
                 const d2 = getDistance(state.ownPos.lat, state.ownPos.lon, curr.lat, curr.lon); const b2 = getBearing(state.ownPos.lat, state.ownPos.lon, curr.lat, curr.lon);
                 const x1 = centerX + Math.sin(toRad(b1)) * (d1 * pxPerNM); const y1 = centerY - Math.cos(toRad(b1)) * (d1 * pxPerNM);
                 const x2 = centerX + Math.sin(toRad(b2)) * (d2 * pxPerNM); const y2 = centerY - Math.cos(toRad(b2)) * (d2 * pxPerNM);
-                ctx.strokeStyle = lineStyle; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+                ctx.strokeStyle = lineStyle; ctx.setLineDash([2, 4]); ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
                 if (i === group.length - 1) drawPredictionArrow(ctx, x1, y1, x2, y2, isSelectedGroup);
             }
             ctx.setLineDash([]);
@@ -2192,11 +2192,31 @@ function drawTacticalDisplay() {
                 ctx.save();
                 ctx.strokeStyle = lineColor;
                 ctx.lineWidth = 2.5;
-                ctx.setLineDash([5, 5]);
+                ctx.setLineDash([12, 8]);
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
                 ctx.lineTo(x, y);
                 ctx.stroke();
+
+                if (plot.threatRange) {
+                    const tickDist = plot.threatRange * pxPerNM;
+                    const markX = centerX + Math.sin(toRad(b)) * tickDist;
+                    const markY = centerY - Math.cos(toRad(b)) * tickDist;
+                    
+                    const pAngle = toRad(b + 90);
+                    const tickLength = 10;
+                    const pX1 = markX + Math.sin(pAngle) * tickLength;
+                    const pY1 = markY - Math.cos(pAngle) * tickLength;
+                    const pX2 = markX - Math.sin(pAngle) * tickLength;
+                    const pY2 = markY + Math.cos(pAngle) * tickLength;
+                    
+                    ctx.setLineDash([]);
+                    ctx.lineWidth = 3.5;
+                    ctx.beginPath();
+                    ctx.moveTo(pX1, pY1);
+                    ctx.lineTo(pX2, pY2);
+                    ctx.stroke();
+                }
                 ctx.restore();
             }
         } else {
