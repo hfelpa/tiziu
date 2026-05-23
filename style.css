@@ -970,32 +970,23 @@ body.keypad-focused-plot-be .mgrs-item {
     padding: 4px 10px !important;
 }
 
-/* COMPACTING TACTICAL DISPLAY AS CIRCULAR BADGE */
+/* COMPACTING TACTICAL DISPLAY DURING KEYPAD INPUT */
 body.keypad-focused-plot-be .plotter-section {
-    width: 290px !important;
-    height: 290px !important;
     padding: 6px !important;
     margin: 0 auto 8px auto !important;
-    border-radius: 50% !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    overflow: hidden !important;
 }
 body.keypad-focused-plot-be .plotter-section .card-header {
     display: none !important;
 }
 body.keypad-focused-plot-be .plotter-container {
-    width: 276px !important;
-    height: 276px !important;
+    min-height: 200px !important;
+    height: 250px !important;
     margin: 0 !important;
-    overflow: hidden !important;
 }
 body.keypad-focused-plot-be #tactical-canvas {
-    width: 276px !important;
-    height: 276px !important;
-    border-radius: 50% !important;
+    /* JS canvas resize loop will naturally adapt to the new container height */
 }
+body.keypad-focused-plot-be .plotter-bottom-bar,
 body.keypad-focused-plot-be .closest-threats-overlay,
 body.keypad-focused-plot-be .zoom-controls-overlay,
 body.keypad-focused-plot-be .target-inspector-overlay,
