@@ -2308,7 +2308,7 @@ function updatePosition(pos) {
     const { latitude, longitude, heading } = pos.coords; el.ownLat.value = latitude.toFixed(6); el.ownLon.value = longitude.toFixed(6);
     if (el.ownLatDisplay) el.ownLatDisplay.textContent = toDDM(latitude, true); if (el.ownLonDisplay) el.ownLonDisplay.textContent = toDDM(longitude, false);
     state.ownPos.lat = latitude; state.ownPos.lon = longitude; state.ownPos.heading = heading || 0; state.lastFixTime = Date.now();
-    const now = new Date(); const timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0') + ":" + now.getSeconds().toString().padStart(2, '0');
+    const now = new Date(); const timeStr = now.getUTCHours().toString().padStart(2, '0') + ":" + now.getUTCMinutes().toString().padStart(2, '0') + ":" + now.getUTCSeconds().toString().padStart(2, '0') + "Z";
     el.gpsStatus.textContent = `GPS: LIVE [${timeStr}]`; el.gpsStatus.classList.remove('offline'); el.gpsStatus.classList.add('online'); calculateBRAA();
     if (typeof updateOwnBullPosition === 'function') updateOwnBullPosition();
     drawTacticalDisplay();
@@ -2319,14 +2319,14 @@ window.updateCompassStatusUI = () => {
     if (state.sensorsActive) {
         if (mainEl) mainEl.classList.remove('compass-blurred');
         if (el.compassStatus) {
-            el.compassStatus.innerHTML = "BÚSSOLA: ATIVA";
+            el.compassStatus.innerHTML = "ORIENTAÇÃO: ATIVA";
             el.compassStatus.classList.remove('offline', 'pulse-highlight');
             el.compassStatus.classList.add('online');
         }
     } else {
         if (mainEl) mainEl.classList.add('compass-blurred');
         if (el.compassStatus) {
-            el.compassStatus.innerHTML = "ATIVAR BÚSSOLA 🧭";
+            el.compassStatus.innerHTML = "ATIVAR ORIENTAÇÃO 🧭";
             el.compassStatus.classList.remove('online');
             el.compassStatus.classList.add('offline', 'pulse-highlight');
         }
@@ -2498,25 +2498,12 @@ el.addThreatConfigBtn.addEventListener('click', () => {
 el.missionFileInput.addEventListener('change', handleMissionFile);
 if (el.gpxFileInput) el.gpxFileInput.addEventListener('change', handleGpxFile);
 
-function updateZuluClock() {
-    const clockEl = document.getElementById('zulu-clock');
-    if (!clockEl) return;
-    const now = new Date();
-    const pad = (n) => String(n).padStart(2, '0');
-    const hh = pad(now.getUTCHours());
-    const mm = pad(now.getUTCMinutes());
-    const ss = pad(now.getUTCSeconds());
-    clockEl.textContent = `${hh}:${mm}:${ss}Z`;
-}
-
 // INITIAL LOAD
 window.initTheme();
 loadDefaultMission(false);
 initGPS();
 window.activateSensors(true);
 window.updateCompassStatusUI();
-updateZuluClock();
-setInterval(updateZuluClock, 1000);
 
 function animLoop() {
     drawTacticalDisplay();
