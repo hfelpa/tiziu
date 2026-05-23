@@ -91,34 +91,3 @@ SA24 A/G 3
 M60 A/G 24
 F5 A/A 23
 ```
-
----
-
-## Desenvolvimento
-
-### Atualização de Versão (Cache PWA)
-
-O Safari é agressivo no cache de PWAs instalados. A cada modificação, **incremente a versão** nos três locais abaixo:
-
-**`sw.js`**
-```js
-const CACHE_NAME = 'tiziu-v1.0.0-beta.36';
-```
-
-**`app.js`**
-```js
-const CACHE_NAME = 'tiziu-v1.0.0-beta.36';
-```
-
-**`index.html`** (registro do Service Worker)
-```js
-navigator.serviceWorker.register('sw.js?v=1.0.0-beta.36')
-```
-
-E atualize o número da versão no rodapé do `index.html`.
-
-### Stack
-- HTML · CSS · JavaScript puros (sem frameworks)
-- Service Worker para cache offline
-- API de Geolocalização e `DeviceOrientationEvent` (bússola magnética via `webkitCompassHeading`)
-- MGRS codificado localmente (sem dependências externas)
