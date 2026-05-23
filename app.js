@@ -887,8 +887,10 @@ window.toggleRingsCenter = () => {
     if (btn) {
         if (state.ringsOnBullseye) {
             btn.classList.add('active');
+            btn.textContent = 'RNG BE';
         } else {
             btn.classList.remove('active');
+            btn.textContent = 'RNG AC';
         }
     }
     drawTacticalDisplay();

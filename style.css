@@ -551,12 +551,12 @@ input.editing-active {
 /* THREAT GRID BTNS */
 .threat-key-btn {
     background: #222; border: 1px solid #444; color: #fff;
-    padding: 22px 5px; border-radius: 8px; cursor: pointer;
+    padding: 30px 5px; border-radius: 8px; cursor: pointer;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     white-space: nowrap;
 }
-.threat-key-btn .t-code { font-family: var(--font-mono); font-size: 1.8rem; font-weight: 700; color: var(--primary-color); }
-.threat-key-btn .t-rng { font-size: 0.85rem; color: #888; margin-top: 5px; }
+.threat-key-btn .t-code { font-family: var(--font-mono); font-size: 2.1rem; font-weight: 700; color: var(--primary-color); }
+.threat-key-btn .t-rng { font-size: 0.95rem; color: #888; margin-top: 6px; }
 .threat-key-btn.t-empty { background: transparent; border-style: dashed; border-color: rgba(255,255,255,0.1); cursor: default; }
 
 .keypad-footer-grid { display: grid; grid-template-columns: 80px 1fr 80px; gap: 15px; }
@@ -2143,6 +2143,7 @@ body.light-mode .vertical-controls-group {
     .vertical-controls-group .segment-btn {
         width: auto !important;
         padding: 6px 12px !important;
+        white-space: nowrap !important;
     }
 }
 
@@ -2169,4 +2170,5 @@ body.light-mode .vertical-controls-group {
     align-items: center;
     gap: 8px;
     width: auto !important;
+    flex-wrap: nowrap !important;
 }
