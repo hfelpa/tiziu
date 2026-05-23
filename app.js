@@ -2297,7 +2297,11 @@ function drawTacticalDisplay() {
  * INTERACTION
  */
 el.canvas.addEventListener('click', (e) => {
-    const rect = el.canvas.getBoundingClientRect(); const clickX = e.clientX - rect.left; const clickY = e.clientY - rect.top;
+    const rect = el.canvas.getBoundingClientRect(); 
+    const scaleX = el.canvas.width / rect.width;
+    const scaleY = el.canvas.height / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX; 
+    const clickY = (e.clientY - rect.top) * scaleY;
     const cw = el.canvas.width; const ch = el.canvas.height;
     const centerX = cw / 2; const centerY = ch / 2;
     const padding = 32;
@@ -2326,7 +2330,8 @@ el.canvas.addEventListener('click', (e) => {
         const rx = dx * Math.cos(rotationRad) - dy * Math.sin(rotationRad);
         const ry = dx * Math.sin(rotationRad) + dy * Math.cos(rotationRad);
         x = centerX + rx; y = centerY + ry;
-        const dist = Math.sqrt((clickX - x) ** 2 + (clickY - y) ** 2); if (dist < 25) foundId = plot.targetId;
+        const dist = Math.sqrt((clickX - x) ** 2 + (clickY - y) ** 2); 
+        if (dist < 45) foundId = plot.targetId; // Increased hit radius to encompass labels
     });
     if (foundId) selectTargetPlot(foundId);
 });
