@@ -542,6 +542,10 @@ function updateActiveField() {
 }
 
 window.keyInput = (char) => {
+    // Prevent typing raw numbers into the threat code fields
+    if (state.activeInputId === 'targetThreat' || state.activeInputId === 'threatCode') {
+        return;
+    }
     let maxLen = 6;
     if (state.activeInputId === 'targetLon' || state.activeInputId === 'lon') maxLen = 7;
     if (state.activeInputId === 'targetRadial' || state.activeInputId === 'radial') maxLen = 3;
