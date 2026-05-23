@@ -1738,108 +1738,110 @@ function drawTacticalDisplay() {
     ctx.rotate(rotationRad);
     ctx.translate(-centerX, -centerY);
 
-    // DRAW RINGS
-    let ringCenterX = centerX;
-    let ringCenterY = centerY;
-    if (state.ringsOnBullseye && state.bullseyes.length > 0) {
-        const be = state.bullseyes.find(b => b.name === state.activeBullseyeName) || state.bullseyes[0];
-        if (be) {
-            const dBe = getDistance(state.ownPos.lat, state.ownPos.lon, be.lat, be.lon);
-            const bBe = getBearing(state.ownPos.lat, state.ownPos.lon, be.lat, be.lon);
-            ringCenterX = centerX + Math.sin(toRad(bBe)) * (dBe * pxPerNM);
-            ringCenterY = centerY - Math.cos(toRad(bBe)) * (dBe * pxPerNM);
-        }
-    }
-    
-    ctx.strokeStyle = isLightMode ? 'rgba(30, 41, 59, 0.12)' : 'rgba(0, 255, 65, 0.12)'; ctx.lineWidth = 1;
-    
-    // Calculate max distance from ring center to the 4 corners of the canvas
-    const corners = [
-        {x: 0, y: 0}, {x: cw, y: 0}, {x: 0, y: ch}, {x: cw, y: ch}
-    ];
-    let maxDistToCorner = 0;
-    corners.forEach(c => {
-        const d = Math.hypot(c.x - ringCenterX, c.y - ringCenterY);
-        if (d > maxDistToCorner) maxDistToCorner = d;
-    });
-    
-    // Step is 1/4 of the scale (e.g., if scale is 40, rings are every 10NM)
-    const stepPx = (scale * 0.25) * pxPerNM;
-    
-    // Draw rings until the radius exceeds the max distance to any canvas corner
-    for (let rPx = stepPx; rPx <= maxDistToCorner + stepPx; rPx += stepPx) {
-        ctx.beginPath(); 
-        ctx.arc(ringCenterX, ringCenterY, rPx, 0, Math.PI * 2); 
-        ctx.stroke();
-    }
-
-    // DRAW COMPASS ROSE (HSI/ND style as in F-16 image)
-    const bezelColor = isLightMode ? 'rgba(30, 41, 59, 1)' : 'rgba(0, 255, 65, 1)';
-    const bezelTextColor = bezelColor;
-    
-    // Ticks point INWARDS from the label circle
-    const tickOuter = rOuter - 20; 
-    
-    for (let deg = 0; deg < 360; deg += 10) {
-        const rad = toRad(deg);
-        const sinVal = Math.sin(rad);
-        const cosVal = Math.cos(rad);
-        
-        const is30 = (deg % 30 === 0);
-        const tickLength = is30 ? 14 : 7;
-        const tickInner = tickOuter - tickLength;
-        
-        const x1 = centerX + sinVal * tickOuter;
-        const y1 = centerY - cosVal * tickOuter;
-        const x2 = centerX + sinVal * tickInner;
-        const y2 = centerY - cosVal * tickInner;
-        
-        ctx.strokeStyle = bezelColor;
-        ctx.lineWidth = is30 ? 1.5 : 1;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-        
-        if (is30) {
-            let labelText = '';
-            if (deg === 0) labelText = 'N';
-            else if (deg === 90) labelText = 'E';
-            else if (deg === 180) labelText = 'S';
-            else if (deg === 270) labelText = 'W';
-            else {
-                labelText = Math.round(deg / 10).toString().padStart(2, '0');
+    if (!state.declutter) {
+        // DRAW RINGS
+        let ringCenterX = centerX;
+        let ringCenterY = centerY;
+        if (state.ringsOnBullseye && state.bullseyes.length > 0) {
+            const be = state.bullseyes.find(b => b.name === state.activeBullseyeName) || state.bullseyes[0];
+            if (be) {
+                const dBe = getDistance(state.ownPos.lat, state.ownPos.lon, be.lat, be.lon);
+                const bBe = getBearing(state.ownPos.lat, state.ownPos.lon, be.lat, be.lon);
+                ringCenterX = centerX + Math.sin(toRad(bBe)) * (dBe * pxPerNM);
+                ringCenterY = centerY - Math.cos(toRad(bBe)) * (dBe * pxPerNM);
             }
-            
-            // Labels are outside the ticks
-            const rLabel = tickOuter + 14;
-            const lx = centerX + sinVal * rLabel;
-            const ly = centerY - cosVal * rLabel;
-            
-            ctx.save();
-            ctx.translate(lx, ly);
-            ctx.rotate(-rotationRad); // Keep upright
-            ctx.fillStyle = bezelTextColor;
-            ctx.font = '500 14px "JetBrains Mono", monospace';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(labelText, 0, 0);
-            ctx.restore();
         }
-    }
+        
+        ctx.strokeStyle = isLightMode ? 'rgba(30, 41, 59, 0.12)' : 'rgba(0, 255, 65, 0.12)'; ctx.lineWidth = 1;
+        
+        // Calculate max distance from ring center to the 4 corners of the canvas
+        const corners = [
+            {x: 0, y: 0}, {x: cw, y: 0}, {x: 0, y: ch}, {x: cw, y: ch}
+        ];
+        let maxDistToCorner = 0;
+        corners.forEach(c => {
+            const d = Math.hypot(c.x - ringCenterX, c.y - ringCenterY);
+            if (d > maxDistToCorner) maxDistToCorner = d;
+        });
+        
+        // Step is 1/4 of the scale (e.g., if scale is 40, rings are every 10NM)
+        const stepPx = (scale * 0.25) * pxPerNM;
+        
+        // Draw rings until the radius exceeds the max distance to any canvas corner
+        for (let rPx = stepPx; rPx <= maxDistToCorner + stepPx; rPx += stepPx) {
+            ctx.beginPath(); 
+            ctx.arc(ringCenterX, ringCenterY, rPx, 0, Math.PI * 2); 
+            ctx.stroke();
+        }
 
-    // BILLBOARDED SCALE LABELS
-    ctx.fillStyle = isLightMode ? 'rgba(30, 41, 59, 0.65)' : 'rgba(255, 255, 255, 0.35)';
-    ctx.font = 'bold 9px "Outfit", "Inter", "JetBrains Mono", sans-serif';
-    
-    let ringIndex = 1;
-    for (let rPx = stepPx; rPx <= maxDistToCorner + stepPx; rPx += stepPx) {
-        // Don't draw label if it goes off screen vertically
-        if (ringCenterY - rPx < 0) continue;
-        const currentNM = Math.round(scale * 0.25 * ringIndex);
-        const lx = ringCenterX + 5; const ly = ringCenterY - rPx + 12;
-        ctx.save(); ctx.translate(lx, ly); ctx.rotate(-rotationRad); ctx.fillText(`${currentNM} NM`, 0, 0); ctx.restore();
-        ringIndex++;
+        // DRAW COMPASS ROSE (HSI/ND style as in F-16 image)
+        const bezelColor = isLightMode ? 'rgba(30, 41, 59, 1)' : 'rgba(0, 255, 65, 1)';
+        const bezelTextColor = bezelColor;
+        
+        // Ticks point INWARDS from the label circle
+        const tickOuter = rOuter - 20; 
+        
+        for (let deg = 0; deg < 360; deg += 10) {
+            const rad = toRad(deg);
+            const sinVal = Math.sin(rad);
+            const cosVal = Math.cos(rad);
+            
+            const is30 = (deg % 30 === 0);
+            const tickLength = is30 ? 14 : 7;
+            const tickInner = tickOuter - tickLength;
+            
+            const x1 = centerX + sinVal * tickOuter;
+            const y1 = centerY - cosVal * tickOuter;
+            const x2 = centerX + sinVal * tickInner;
+            const y2 = centerY - cosVal * tickInner;
+            
+            ctx.strokeStyle = bezelColor;
+            ctx.lineWidth = is30 ? 1.5 : 1;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            
+            if (is30) {
+                let labelText = '';
+                if (deg === 0) labelText = 'N';
+                else if (deg === 90) labelText = 'E';
+                else if (deg === 180) labelText = 'S';
+                else if (deg === 270) labelText = 'W';
+                else {
+                    labelText = Math.round(deg / 10).toString().padStart(2, '0');
+                }
+                
+                // Labels are outside the ticks
+                const rLabel = tickOuter + 14;
+                const lx = centerX + sinVal * rLabel;
+                const ly = centerY - cosVal * rLabel;
+                
+                ctx.save();
+                ctx.translate(lx, ly);
+                ctx.rotate(-rotationRad); // Keep upright
+                ctx.fillStyle = bezelTextColor;
+                ctx.font = '500 14px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(labelText, 0, 0);
+                ctx.restore();
+            }
+        }
+
+        // BILLBOARDED SCALE LABELS
+        ctx.fillStyle = isLightMode ? 'rgba(30, 41, 59, 0.65)' : 'rgba(255, 255, 255, 0.35)';
+        ctx.font = 'bold 9px "Outfit", "Inter", "JetBrains Mono", sans-serif';
+        
+        let ringIndex = 1;
+        for (let rPx = stepPx; rPx <= maxDistToCorner + stepPx; rPx += stepPx) {
+            // Don't draw label if it goes off screen vertically
+            if (ringCenterY - rPx < 0) continue;
+            const currentNM = Math.round(scale * 0.25 * ringIndex);
+            const lx = ringCenterX + 5; const ly = ringCenterY - rPx + 12;
+            ctx.save(); ctx.translate(lx, ly); ctx.rotate(-rotationRad); ctx.fillText(`${currentNM} NM`, 0, 0); ctx.restore();
+            ringIndex++;
+        }
     }
 
     if (!state.ownPos.lat) { ctx.restore(); return; }
@@ -1883,40 +1885,42 @@ function drawTacticalDisplay() {
         ctx.fillStyle = beColor;
         ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill();
 
-        // N, S, E, W radial helper lines (infinite, clipped by visor)
-        const lineLen = Math.max(cw, ch) * 2;
-        ctx.strokeStyle = lineOpacity;
-        ctx.lineWidth = 1;
-        ctx.setLineDash([4, 4]);
+        if (!state.declutter) {
+            // N, S, E, W radial helper lines (infinite, clipped by visor)
+            const lineLen = Math.max(cw, ch) * 2;
+            ctx.strokeStyle = lineOpacity;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 4]);
 
-        ctx.beginPath();
-        ctx.moveTo(x, y - 11); ctx.lineTo(x, y - lineLen);
-        ctx.moveTo(x, y + 11); ctx.lineTo(x, y + lineLen);
-        ctx.moveTo(x + 11, y); ctx.lineTo(x + lineLen, y);
-        ctx.moveTo(x - 11, y); ctx.lineTo(x - lineLen, y);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        // Billboarded N, S, E, W labels at a fixed distance from center
-        ctx.fillStyle = isLightMode ? 'rgba(0, 141, 166, 0.95)' : 'rgba(0, 229, 255, 0.7)';
-        ctx.font = 'bold 9px "JetBrains Mono", monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+            ctx.beginPath();
+            ctx.moveTo(x, y - 11); ctx.lineTo(x, y - lineLen);
+            ctx.moveTo(x, y + 11); ctx.lineTo(x, y + lineLen);
+            ctx.moveTo(x + 11, y); ctx.lineTo(x + lineLen, y);
+            ctx.moveTo(x - 11, y); ctx.lineTo(x - lineLen, y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            // Billboarded N, S, E, W labels at a fixed distance from center
+            ctx.fillStyle = isLightMode ? 'rgba(0, 141, 166, 0.95)' : 'rgba(0, 229, 255, 0.7)';
+            ctx.font = 'bold 9px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
 
-        const labelDist = 40;
-        const labels = [
-            { lx: x, ly: y - labelDist, t: 'N' },
-            { lx: x, ly: y + labelDist, t: 'S' },
-            { lx: x + labelDist, ly: y, t: 'E' },
-            { lx: x - labelDist, ly: y, t: 'W' }
-        ];
+            const labelDist = 40;
+            const labels = [
+                { lx: x, ly: y - labelDist, t: 'N' },
+                { lx: x, ly: y + labelDist, t: 'S' },
+                { lx: x + labelDist, ly: y, t: 'E' },
+                { lx: x - labelDist, ly: y, t: 'W' }
+            ];
 
-        labels.forEach(l => {
-            ctx.save();
-            ctx.translate(l.lx, l.ly);
-            ctx.rotate(-rotationRad);
-            ctx.fillText(l.t, 0, 0);
-            ctx.restore();
-        });
+            labels.forEach(l => {
+                ctx.save();
+                ctx.translate(l.lx, l.ly);
+                ctx.rotate(-rotationRad);
+                ctx.fillText(l.t, 0, 0);
+                ctx.restore();
+            });
+        }
         // Reset text state to defaults after bullseye labels
         ctx.textAlign = 'left';
         ctx.textBaseline = 'alphabetic';
