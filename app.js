@@ -923,7 +923,7 @@ window.changeRangeScale = (direction) => {
 
     const display = document.getElementById('zoom-level-display');
     if (display) {
-        display.textContent = `${state.rangeScale} NM`;
+        display.textContent = `${state.rangeScale}`;
     }
 
     drawTacticalDisplay();
@@ -1705,7 +1705,7 @@ function drawTacticalDisplay() {
     updateClosestThreats();
     updateTargetInspector();
     const zoomDisp = document.getElementById('zoom-level-display');
-    if (zoomDisp) zoomDisp.textContent = `${state.rangeScale} NM`;
+    if (zoomDisp) zoomDisp.textContent = `${state.rangeScale}`;
     const cw = el.canvas.parentElement.clientWidth; 
     const ch = el.canvas.parentElement.clientHeight || cw;
     el.canvas.width = cw; 
@@ -1847,7 +1847,7 @@ function drawTacticalDisplay() {
             if (ringCenterY - rPx < 0) continue;
             const currentNM = Math.round(scale * 0.25 * ringIndex);
             const lx = ringCenterX + 5; const ly = ringCenterY - rPx + 12;
-            ctx.save(); ctx.translate(lx, ly); ctx.rotate(-rotationRad); ctx.fillText(`${currentNM} NM`, 0, 0); ctx.restore();
+            ctx.save(); ctx.translate(lx, ly); ctx.rotate(-rotationRad); ctx.fillText(`${currentNM}`, 0, 0); ctx.restore();
             ringIndex++;
         }
     }
