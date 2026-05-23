@@ -1738,6 +1738,9 @@ function drawTacticalDisplay() {
     const padding = 32;
     const minDim = Math.min(cw, ch);
     const rOuter = minDim / 2 - padding;
+    
+    if (rOuter <= 0) return; // Prevent IndexSizeError when canvas is hidden
+
     const rInner = rOuter - 8;
     const scale = state.rangeScale; const pxPerNM = rOuter / scale;
 
