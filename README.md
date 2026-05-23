@@ -9,7 +9,7 @@ TIZIU é um aplicativo de consciência situacional tática desenvolvido para ope
 ## Instalação
 
 ### Requisitos
-- iPhone ou iPad com **iOS/iPadOS 16+**; e
+- iPhone ou iPad com **iOS/iPadOS 16+**
 - Navegador **Safari**
 
 ### Passo a Passo
