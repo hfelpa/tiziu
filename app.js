@@ -2204,8 +2204,9 @@ function drawTacticalDisplay() {
 
                 if (plot.threatRange) {
                     const tickDist = plot.threatRange * pxPerNM;
-                    const markX = centerX + Math.sin(toRad(b)) * tickDist;
-                    const markY = centerY - Math.cos(toRad(b)) * tickDist;
+                    // Tick mark should be drawn at threatRange distance *from the threat* towards ownship
+                    const markX = x - Math.sin(toRad(b)) * tickDist;
+                    const markY = y + Math.cos(toRad(b)) * tickDist;
                     
                     const pAngle = toRad(b + 90);
                     const tickLength = 10;
