@@ -1872,7 +1872,7 @@ function drawTacticalDisplay() {
     }
 
     // DRAW ACTIVE BULLSEYE (BE) ON TACTICAL DISPLAY
-    const activeBull = state.bullseyes.find(b => b.name === state.activeBullseyeName);
+    // activeBull is already defined at the top of the function
     if (activeBull) {
         const d = getDistance(state.ownPos.lat, state.ownPos.lon, activeBull.lat, activeBull.lon);
         const b = getBearing(state.ownPos.lat, state.ownPos.lon, activeBull.lat, activeBull.lon);
@@ -1993,7 +1993,7 @@ function drawTacticalDisplay() {
         }
     }
 
-    const magVar = parseFloat(el.magVar.value) || 0;
+    // magVar is already defined at the top of the function
     state.plots.forEach((plot, idx) => {
         const d = getDistance(state.ownPos.lat, state.ownPos.lon, plot.lat, plot.lon); const b = getBearing(state.ownPos.lat, state.ownPos.lon, plot.lat, plot.lon);
         const x = centerX + Math.sin(toRad(b)) * (d * pxPerNM); const y = centerY - Math.cos(toRad(b)) * (d * pxPerNM);
