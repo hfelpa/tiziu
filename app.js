@@ -1915,29 +1915,7 @@ function drawTacticalDisplay() {
             ctx.setLineDash([]);
             ctx.restore();
 
-            // Billboarded N, S, E, W labels at a fixed distance from center
-            ctx.fillStyle = isLightMode ? 'rgba(0, 141, 166, 0.95)' : 'rgba(0, 229, 255, 0.7)';
-            ctx.font = 'bold 9px "JetBrains Mono", monospace';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
 
-            const labelDist = 40;
-            const mV = toRad(activeBull.magVar);
-            
-            const labels = [
-                { lx: x + Math.sin(mV) * labelDist, ly: y - Math.cos(mV) * labelDist, t: 'N' },
-                { lx: x - Math.sin(mV) * labelDist, ly: y + Math.cos(mV) * labelDist, t: 'S' },
-                { lx: x + Math.cos(mV) * labelDist, ly: y + Math.sin(mV) * labelDist, t: 'E' },
-                { lx: x - Math.cos(mV) * labelDist, ly: y - Math.sin(mV) * labelDist, t: 'W' }
-            ];
-
-            labels.forEach(l => {
-                ctx.save();
-                ctx.translate(l.lx, l.ly);
-                ctx.rotate(-rotationRad);
-                ctx.fillText(l.t, 0, 0);
-                ctx.restore();
-            });
         }
         // Reset text state to defaults after bullseye labels
         ctx.textAlign = 'left';
