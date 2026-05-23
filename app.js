@@ -371,6 +371,14 @@ function openKeypad(id, plotIndex = null, element = null) {
         el.keypadTitle.textContent = label;
         el.keypadContextInfo.textContent = contextVal;
 
+        // Initialize state.keypadValue with the current threat so ENTER preserves it
+        if (plotIndex !== null) {
+            state.keypadValue = state.plots[plotIndex].threatCode || "";
+        } else {
+            state.keypadValue = document.getElementById(id).value;
+            if (state.keypadValue === "-") state.keypadValue = ""; // Handle placeholder
+        }
+
         document.querySelector('.keypad-grid:not(#keypad-threat-grid)').style.display = 'none';
         document.getElementById('keypad-preview').style.display = 'none';
         document.getElementById('keypad-threat-grid').style.display = 'grid';
