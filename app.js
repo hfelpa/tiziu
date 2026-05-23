@@ -1998,7 +1998,20 @@ function drawTacticalDisplay() {
         }
     }
 
-    // magVar is already defined at the top of the function
+    // Find the most critical A/A threat (closest to its pump crit range)
+    let mostCriticalAAId = null;
+    let minPumpMargin = Infinity;
+    Object.values(latestById).forEach(plot => {
+        if (plot.threatType === 'A/A' && plot.threatRange) {
+            const d = getDistance(state.ownPos.lat, state.ownPos.lon, plot.lat, plot.lon);
+            const margin = d - plot.threatRange;
+            if (margin < minPumpMargin) {
+                minPumpMargin = margin;
+                mostCriticalAAId = plot.targetId;
+            }
+        }
+    });
+
     state.plots.forEach((plot, idx) => {
         const d = getDistance(state.ownPos.lat, state.ownPos.lon, plot.lat, plot.lon); const b = getBearing(state.ownPos.lat, state.ownPos.lon, plot.lat, plot.lon);
         const x = centerX + Math.sin(toRad(b)) * (d * pxPerNM); const y = centerY - Math.cos(toRad(b)) * (d * pxPerNM);
@@ -2022,7 +2035,7 @@ function drawTacticalDisplay() {
             ctx.moveTo(x, y - 10); ctx.lineTo(x, y + 10);
             ctx.stroke();
 
-            if (plot.threatRange) {
+            if (plot.threatRange && plot.threatType !== 'A/A') {
                 ctx.beginPath();
                 ctx.arc(x, y, plot.threatRange * pxPerNM, 0, Math.PI * 2);
                 ctx.stroke();
@@ -2157,20 +2170,34 @@ function drawTacticalDisplay() {
                 ctx.restore();
             }
 
-            if (plot.threatRange) {
+            if (plot.threatRange && plot.threatType !== 'A/A') {
                 let strokeColor;
                 // PUMP CRIT red has highest priority for ring color too
                 if (isNearOrInside) {
                     strokeColor = isBlinkOn ? 'rgba(255, 32, 32, 0.95)' : 'rgba(200, 0, 0, 0.7)';
                 } else if (isSelected) {
                     strokeColor = isLightMode ? 'rgba(0, 168, 45, 0.8)' : 'rgba(57, 255, 20, 0.8)'; // Selected green ring
-                } else if (plot.threatType === 'A/A') {
-                    strokeColor = isLightMode ? 'rgba(85, 85, 85, 0.7)' : 'rgba(200, 200, 200, 0.6)'; // Gray for A/A
                 } else {
                     strokeColor = isLightMode ? 'rgba(204, 112, 0, 0.8)' : 'rgba(255, 176, 0, 0.7)'; // Orange for A/G
                 }
                 ctx.strokeStyle = strokeColor;
-                ctx.setLineDash(plot.threatType === 'A/A' ? [2, 2] : []); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, plot.threatRange * pxPerNM, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+                ctx.setLineDash([]); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, plot.threatRange * pxPerNM, 0, Math.PI * 2); ctx.stroke();
+            }
+
+            if (plot.threatType === 'A/A' && plot.targetId === mostCriticalAAId) {
+                let lineColor = isLightMode ? 'rgba(85, 85, 85, 0.7)' : 'rgba(200, 200, 200, 0.6)';
+                if (isNearOrInside) {
+                    lineColor = isBlinkOn ? 'rgba(255, 32, 32, 0.95)' : 'rgba(200, 0, 0, 0.7)';
+                }
+                ctx.save();
+                ctx.strokeStyle = lineColor;
+                ctx.lineWidth = 2.5;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.restore();
             }
         } else {
             const isSelectedGroup = plot.targetId === state.selectedTargetId;
