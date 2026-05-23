@@ -2289,8 +2289,9 @@ function drawTacticalDisplay() {
     ctx.font = 'bold 16px "JetBrains Mono", monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    const topMagHeading = state.orientation === 'HEADING' ? Math.round((trueHeading - magVar + 360) % 360) : 360;
-    const headingText = (topMagHeading === 360 ? 360 : topMagHeading).toString().padStart(3, '0') + '°';
+    let topMagHeading = Math.round((trueHeading - magVar + 360) % 360);
+    if (topMagHeading === 0) topMagHeading = 360;
+    const headingText = topMagHeading.toString().padStart(3, '0') + '°';
     const textWidth = ctx.measureText(headingText).width;
 
     // Background box for readability over rings/lines
