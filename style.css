@@ -2061,8 +2061,8 @@ body.light-mode .plotter-section {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-around;
-    align-items: flex-start;
-    gap: 12px;
+    align-items: center;
+    gap: 8px;
     width: 100%;
 }
 
@@ -2142,7 +2142,7 @@ body.light-mode .vertical-controls-group {
 
     .vertical-controls-group .segment-btn {
         width: auto !important;
-        padding: 6px 12px !important;
+        padding: 4px 6px !important;
         white-space: nowrap !important;
     }
 }
@@ -2168,7 +2168,7 @@ body.light-mode .vertical-controls-group {
 .horizontal-mode {
     flex-direction: row !important;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     width: auto !important;
     flex-wrap: nowrap !important;
 }
