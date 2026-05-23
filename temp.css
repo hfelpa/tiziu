@@ -1,0 +1,23 @@
+
+.plotter-bottom-bar .target-inspector-details {
+    padding: 6px;
+}
+
+.plotter-bottom-bar .closest-threats-overlay {
+    max-height: 250px;
+}
+
+.horizontal-zoom {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 8px;
+    width: auto !important;
+    padding: 4px 12px !important;
+}
+
+.horizontal-mode {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 8px;
+    width: auto !important;
+}

@@ -4,7 +4,7 @@
  */
 
 /* Version: 1.0.0-beta.34 */
-const CACHE_NAME = 'tiziu-v1.0.0-beta.34';
+const CACHE_NAME = 'tiziu-v1.0.0-beta.36';
 
 const MISSIONS = {
     TINIA26: {

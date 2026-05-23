@@ -1,6 +1,6 @@
 # TIZIU — Consciência Situacional de Ameaças
 
-> **v1.0.0-beta.2** · PWA · Offline-first · iOS / iPadOS
+> **v1.0.0-beta.36** · PWA · Offline-first · iOS / iPadOS
 
 TIZIU é um aplicativo de consciência situacional tática desenvolvido para operações aéreas. Roda diretamente no iPad ou iPhone como um Progressive Web App (PWA), sem dependência de internet ou rede celular durante o emprego, com GPS e bússola magnética nativos do dispositivo.
 
@@ -102,17 +102,17 @@ O Safari é agressivo no cache de PWAs instalados. A cada modificação, **incre
 
 **`sw.js`**
 ```js
-const CACHE_NAME = 'tiziu-v1.0.0-beta.2';
+const CACHE_NAME = 'tiziu-v1.0.0-beta.36';
 ```
 
 **`app.js`**
 ```js
-const CACHE_NAME = 'tiziu-v1.0.0-beta.2';
+const CACHE_NAME = 'tiziu-v1.0.0-beta.36';
 ```
 
 **`index.html`** (registro do Service Worker)
 ```js
-navigator.serviceWorker.register('sw.js?v=1.0.0-beta.2')
+navigator.serviceWorker.register('sw.js?v=1.0.0-beta.36')
 ```
 
 E atualize o número da versão no rodapé do `index.html`.
