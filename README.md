@@ -25,27 +25,37 @@ TIZIU é um aplicativo de consciência situacional tática desenvolvido para ope
 ## Funcionalidades
 
 ### Display Tático Circular
-- Radar centrado na própria aeronave com representação georreferenciada de todos os plots e ameaças.
-- **Modos de orientação**: `HEADING` (relativo à proa) ou `NORTH` (norte magnético).
+- Radar dinâmico focado em performance com representação georreferenciada de todos os plots e ameaças (exibindo apenas a posição mais recente de cada contato).
+- **Modos de orientação**: `HDG UP` (Norte magnético giratório, proa da aeronave para cima) ou `N UP` (Norte magnético para cima).
+- **Indicador de Proa (Heading Box)**: Display digital fixo no topo da tela que sempre apresenta a proa magnética atual da própria aeronave, não importando a orientação do mapa.
 - **Escala ajustável**: 20, 40, 80 e 160 NM.
+- **Anéis de Alcance (Rings)**: Botão de toggle que alterna os anéis radiais para serem centralizados no seu próprio avião (`RNG AC`) ou no Bullseye ativo (`RNG BE`).
 - Legenda de cada plot com ID do alvo, código de ameaça, vetor BRAA e posição Bullseye.
-- Alerta visual **`PUMP CRIT`** piscante (vermelho) quando a aeronave se aproxima a ≤ 3 NM da borda de qualquer anel de alcance.
+- Alerta visual **`PUMP CRIT`** piscante (vermelho) quando a aeronave se aproxima a ≤ 3 NM da borda de raio de abate de qualquer ameaça A/G ou A/A (esta priorizando os mais próximos).
 - Modo de edição com exibição simultânea da posição original (pontilhado laranja) e a nova posição calculada (ciano).
 
-### PLOT BE — Inserção de Alvos
-- Inserção via teclado numérico tático dedicado (sem teclado nativo do SO).
-- Campos: **ID do alvo**, **Radial** (°), **Distância** (NM) e **Ameaça associada**.
+### Modos de Inserção de Alvo (PLOT BE / PLOT COORD)
+- O sistema de input foi unificado. É possível inserir um alvo por marcação Bullseye ou por Coordenadas.
+- **PLOT BE**: Inserção via Radial (°) e Distância (NM) a partir do Bullseye ativo.
+- **PLOT COORD**: Inserção direta via Latitude e Longitude da ameaça.
+- Inserção via teclado numérico tático dedicado (sem teclado nativo do SO) com blocos gigantes projetados especificamente para uso em voo sem quebra de linhas.
 - O botão **`+`** confirma o plot e avança automaticamente o ID para o próximo disponível.
 - O botão **`CLR`** limpa todos os campos e reposiciona o ID para o primeiro disponível, zerando os displays de resultado.
-- Validação de radial: campo fica vermelho ao digitar valor fora do arco 0–360°.
-- Após cada plot confirmado, os campos são limpos automaticamente, o VETOR BRAA e as COORDENADAS retornam ao estado nulo.
+
+### Inspecionador de Alvos & Bogey Dope
+- **Inspecionador de Alvos (Target Inspector)**: Caixa fixa na parte inferior. Usando as setas de seleção (`▲`/`▼`), o piloto varre o ID de todos os alvos ativos. O alvo selecionado é destacado no radar (verde) e seus dados vitais (Ameaça, BRAA) são isolados para leitura rápida.
+- **BOGEY DOPE**: Caixa fixa ao lado do Inspecionador, do mesmo tamanho. Lista ativamente as ameaças mais próximas por ordem de distância da sua aeronave.
+- **Totalmente Interativo**:
+  - Clicar num alvo na tela tática seleciona-o no Inspecionador e auto-preenche o formulário superior para lançar um novo plot atualizado do mesmo contato.
+  - Clicar num alvo na lista do *Bogey Dope* seleciona-o automaticamente no Inspecionador de Alvos.
+  - Clicar no texto da ameaça dentro do Histórico de Plots abre diretamente a tela de alteração global daquele contato, sem precisar re-plotá-lo.
 
 ### VETOR BRAA e COORDENADAS
 - Cálculo em tempo real do vetor **Bearing / Range / Altitude / Aspect** entre a aeronave e o alvo inserido nos campos.
-- Exibição simultânea das coordenadas geográficas do alvo em **DDM** e **MGRS**.
+- **Visores Dinâmicos**: Se você lança em BE, a tela converte e exibe COORDENADAS (DDM e MGRS). Se você lança em COORD, a tela converte e exibe o BE (Radial/Dist).
 
 ### Posição Própria em Relação ao Bullseye
-- Exibido no cabeçalho do painel PLOT BE:
+- Exibido no cabeçalho em destaque:
   - **`OWN`** (verde): radial e distância da aeronave a partir do Bullseye ativo.
   - **`ALPHA`** (laranja): recíproca de OWN (defasagem de 180°), equivalente ao Alpha Check tático.
 - Atualiza a cada pulso de GPS.
@@ -56,7 +66,6 @@ TIZIU é um aplicativo de consciência situacional tática desenvolvido para ope
 
 ### Gerenciador de Ameaças
 - Cadastre ameaças **A/A** (ar-ar) e **A/G** (solo-ar) com código e alcance em NM.
-- Edição in-place de qualquer ameaça com propagação automática para todos os plots já salvos.
 - No teclado de ameaças: A/G em **laranja**, A/A em **azul**, com paginação automática.
 
 ### Importar / Exportar Cenário
