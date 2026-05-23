@@ -41,7 +41,8 @@
                 <button id="theme-toggle-btn" class="theme-btn" onclick="toggleTheme()">◐ CLARO</button>
                 <div class="header-status-group">
                     <span id="gps-status" class="status-indicator offline" onclick="initGPS()">GPS: OFF</span>
-                    <span id="compass-status" class="status-indicator offline" onclick="activateSensors()">ORIENTAÇÃO: OFF</span>
+                    <span id="compass-status" class="status-indicator offline" onclick="activateSensors()">ORIENTAÇÃO:
+                        OFF</span>
                 </div>
             </div>
         </header>
@@ -56,8 +57,12 @@
                         <h2 style="display: flex; align-items: center; gap: 12px; flex-wrap: nowrap;">
                             <span id="bull-badge-main" style="white-space: nowrap;">PLOT BE</span>
                             <span style="display: flex; flex-direction: column; gap: 4px; align-items: flex-start;">
-                                <span id="own-bull-pos-badge" style="font-size: 1rem; background: rgba(0, 255, 65, 0.15); color: var(--primary-color); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--primary-color); font-family: var(--font-mono); font-weight: bold; letter-spacing: 0.5px; opacity: 0.9; line-height: 1; white-space: nowrap;">OWN: ---/---</span>
-                                <span id="alpha-check-badge" style="font-size: 1rem; background: rgba(255, 176, 0, 0.15); color: #ffb000; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffb000; font-family: var(--font-mono); font-weight: bold; letter-spacing: 0.5px; opacity: 0.9; line-height: 1; white-space: nowrap;">ALPHA: ---/---</span>
+                                <span id="own-bull-pos-badge"
+                                    style="font-size: 1rem; background: rgba(0, 255, 65, 0.15); color: var(--primary-color); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--primary-color); font-family: var(--font-mono); font-weight: bold; letter-spacing: 0.5px; opacity: 0.9; line-height: 1; white-space: nowrap;">OWN:
+                                    ---/---</span>
+                                <span id="alpha-check-badge"
+                                    style="font-size: 1rem; background: rgba(255, 176, 0, 0.15); color: #ffb000; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffb000; font-family: var(--font-mono); font-weight: bold; letter-spacing: 0.5px; opacity: 0.9; line-height: 1; white-space: nowrap;">ALPHA:
+                                    ---/---</span>
                             </span>
                         </h2>
                         <div style="display: flex; gap: 10px; align-items: center;">
@@ -73,7 +78,8 @@
                         </div>
                     </div>
                     <div class="plot-input-row-horizontal">
-                        <button class="btn-clear-plot" onclick="clearPlotFields()" style="background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.4); color: #ff3b30; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; letter-spacing: 1px; width: 60px; height: 60px; flex-shrink: 0; box-shadow: 0 0 10px rgba(255, 59, 48, 0.2);">CLR</button>
+                        <button class="btn-clear-plot" onclick="clearPlotFields()"
+                            style="background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.4); color: #ff3b30; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; letter-spacing: 1px; width: 60px; height: 60px; flex-shrink: 0; box-shadow: 0 0 10px rgba(255, 59, 48, 0.2);">CLR</button>
                         <div class="input-group id-group">
                             <label>ID</label>
                             <input type="text" id="targetId" value="71" readonly class="custom-keyboard-input">
@@ -88,12 +94,14 @@
                             <input type="text" id="targetDist" placeholder="0 NM" readonly
                                 class="custom-keyboard-input">
                         </div>
-                        <div class="input-group lat-group plot-coord-input" style="display: none;" onclick="openKeypad('targetLat')">
+                        <div class="input-group lat-group plot-coord-input" style="display: none;"
+                            onclick="openKeypad('targetLat')">
                             <label>LAT</label>
                             <input type="text" id="targetLat" placeholder="S 00° 00.00'" readonly
                                 class="custom-keyboard-input">
                         </div>
-                        <div class="input-group lon-group plot-coord-input" style="display: none;" onclick="openKeypad('targetLon')">
+                        <div class="input-group lon-group plot-coord-input" style="display: none;"
+                            onclick="openKeypad('targetLon')">
                             <label>LON</label>
                             <input type="text" id="targetLon" placeholder="W 000° 00.00'" readonly
                                 class="custom-keyboard-input">
@@ -200,7 +208,8 @@
                             <div class="vertical-controls-group horizontal-mode">
                                 <button class="segment-btn" id="dclt-btn" onclick="toggleDeclutter()">DCLT</button>
                                 <button class="segment-btn active" id="orientation-toggle-btn">HDG UP</button>
-                                <button class="segment-btn" id="rings-be-btn" onclick="toggleRingsCenter()">RNG AC</button>
+                                <button class="segment-btn" id="rings-be-btn" onclick="toggleRingsCenter()">RNG
+                                    AC</button>
                             </div>
                         </div>
                     </div>
@@ -209,9 +218,12 @@
                 <!-- HISTORY SECTION -->
                 <section class="card history-section">
                     <div class="card-header" style="flex-direction: column; align-items: stretch; gap: 8px;">
-                        <h2>LISTA DE PLOTS <span style="font-size: 11px; font-weight: normal; opacity: 0.7; margin-left: 8px;">(clique no plot para atualizar)</span></h2>
+                        <h2>LISTA DE PLOTS <span
+                                style="font-size: 11px; font-weight: normal; opacity: 0.7; margin-left: 8px;">(clique no
+                                plot para atualizar)</span></h2>
                         <div class="plots-filter-bar">
-                            <button id="btn-filter-all" class="filter-btn active" onclick="setPlotsFilter('ALL')">TODOS</button>
+                            <button id="btn-filter-all" class="filter-btn active"
+                                onclick="setPlotsFilter('ALL')">TODOS</button>
                             <button id="btn-filter-ag" class="filter-btn" onclick="setPlotsFilter('A/G')">A/G</button>
                             <button id="btn-filter-aa" class="filter-btn" onclick="setPlotsFilter('A/A')">A/A</button>
                         </div>
@@ -367,7 +379,7 @@
         </main>
 
         <footer class="tactical-footer">
-            <p>TIZIU v1.0.0-beta.36 &copy; 2024</p>
+            <p>TIZIU v1.0.0-beta.36 &copy; FPT</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
     </div>
@@ -403,7 +415,8 @@
         </div>
         <div class="keypad-footer-grid">
             <button class="key-btn nav-btn-keypad" onclick="keypadNav(-1)">❮</button>
-            <button class="key-btn action-ent" onclick="confirmKeypad(true)" style="background: var(--secondary-color); color: #000; font-size: 2.2rem; font-weight: bold; box-shadow: 0 0 15px rgba(255, 176, 0, 0.4);">+</button>
+            <button class="key-btn action-ent" onclick="confirmKeypad(true)"
+                style="background: var(--secondary-color); color: #000; font-size: 2.2rem; font-weight: bold; box-shadow: 0 0 15px rgba(255, 176, 0, 0.4);">+</button>
             <button class="key-btn nav-btn-keypad" onclick="keypadNav(1)">❯</button>
         </div>
     </div>
