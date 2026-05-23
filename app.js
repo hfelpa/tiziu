@@ -1752,10 +1752,26 @@ function drawTacticalDisplay() {
     }
     
     ctx.strokeStyle = isLightMode ? 'rgba(30, 41, 59, 0.12)' : 'rgba(0, 255, 65, 0.12)'; ctx.lineWidth = 1;
-    [0.25, 0.5, 0.75, 1.0].forEach(r => {
-        const ringRadius = (scale * r) * pxPerNM;
-        ctx.beginPath(); ctx.arc(ringCenterX, ringCenterY, ringRadius, 0, Math.PI * 2); ctx.stroke();
+    
+    // Calculate max distance from ring center to the 4 corners of the canvas
+    const corners = [
+        {x: 0, y: 0}, {x: cw, y: 0}, {x: 0, y: ch}, {x: cw, y: ch}
+    ];
+    let maxDistToCorner = 0;
+    corners.forEach(c => {
+        const d = Math.hypot(c.x - ringCenterX, c.y - ringCenterY);
+        if (d > maxDistToCorner) maxDistToCorner = d;
     });
+    
+    // Step is 1/4 of the scale (e.g., if scale is 40, rings are every 10NM)
+    const stepPx = (scale * 0.25) * pxPerNM;
+    
+    // Draw rings until the radius exceeds the max distance to any canvas corner
+    for (let rPx = stepPx; rPx <= maxDistToCorner + stepPx; rPx += stepPx) {
+        ctx.beginPath(); 
+        ctx.arc(ringCenterX, ringCenterY, rPx, 0, Math.PI * 2); 
+        ctx.stroke();
+    }
 
     // DRAW COMPASS ROSE (HSI/ND style as in F-16 image)
     const bezelColor = isLightMode ? 'rgba(30, 41, 59, 1)' : 'rgba(0, 255, 65, 1)';
@@ -1815,13 +1831,16 @@ function drawTacticalDisplay() {
     // BILLBOARDED SCALE LABELS
     ctx.fillStyle = isLightMode ? 'rgba(30, 41, 59, 0.65)' : 'rgba(255, 255, 255, 0.35)';
     ctx.font = 'bold 9px "Outfit", "Inter", "JetBrains Mono", sans-serif';
-    [0.25, 0.5, 0.75, 1.0].forEach(r => {
-        const ringRadius = (scale * r) * pxPerNM;
-        // Don't draw label if it goes off screen
-        if (ringCenterY - ringRadius < 0) return;
-        const lx = ringCenterX + 5; const ly = ringCenterY - ringRadius + 12;
-        ctx.save(); ctx.translate(lx, ly); ctx.rotate(-rotationRad); ctx.fillText(`${Math.round(scale * r)} NM`, 0, 0); ctx.restore();
-    });
+    
+    let ringIndex = 1;
+    for (let rPx = stepPx; rPx <= maxDistToCorner + stepPx; rPx += stepPx) {
+        // Don't draw label if it goes off screen vertically
+        if (ringCenterY - rPx < 0) continue;
+        const currentNM = Math.round(scale * 0.25 * ringIndex);
+        const lx = ringCenterX + 5; const ly = ringCenterY - rPx + 12;
+        ctx.save(); ctx.translate(lx, ly); ctx.rotate(-rotationRad); ctx.fillText(`${currentNM} NM`, 0, 0); ctx.restore();
+        ringIndex++;
+    }
 
     if (!state.ownPos.lat) { ctx.restore(); return; }
 
