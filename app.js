@@ -1724,7 +1724,12 @@ function drawTacticalDisplay() {
     const activeBull = state.bullseyes.find(b => b.name === state.activeBullseyeName) || state.bullseyes[0];
     const magVar = activeBull ? activeBull.magVar : 0;
     
-    const trueHeading = state.ownPos.heading || 0;
+    let trueHeading = 0;
+    if (state.ownPos.compass !== null) {
+        trueHeading = state.ownPos.compass;
+    } else if (state.ownPos.heading !== null) {
+        trueHeading = state.ownPos.heading;
+    }
     
     // N UP: Magnetic North is UP -> Rotate canvas by -magVar
     // HDG UP: True Aircraft Heading is UP -> Rotate canvas by -trueHeading
