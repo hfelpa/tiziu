@@ -2202,7 +2202,7 @@ function drawTacticalDisplay() {
                 ctx.lineTo(x, y);
                 ctx.stroke();
 
-                if (plot.threatRange) {
+                if (plot.threatRange && d > plot.threatRange) {
                     const tickDist = plot.threatRange * pxPerNM;
                     // Tick mark should be drawn at threatRange distance *from the threat* towards ownship
                     const markX = x - Math.sin(toRad(b)) * tickDist;
