@@ -2196,3 +2196,32 @@ body.light-mode .vertical-controls-group {
     flex-wrap: nowrap !important;
     align-self: center;
 }
+
+/* Start ID config container */
+.start-id-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.start-id-label {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+/* Light mode overrides */
+body.light-mode .start-id-container {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .start-id-label {
+    color: var(--text-color);
+}

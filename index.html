@@ -330,10 +330,8 @@
                     </div>
 
                     <!-- CONFIGURAÇÃO DE START TARGET ID -->
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); padding: 10px 14px; border-radius: 8px; margin-bottom: 15px;">
-                        <span style="font-size: 0.8rem; font-weight: bold; color: #fff; letter-spacing: 0.5px;">PRIMEIRO
-                            ID DO ALVO (START ID)</span>
+                    <div class="start-id-container">
+                        <span class="start-id-label">PRIMEIRO ID DO ALVO (START ID)</span>
                         <input type="number" id="start-target-id-input" value="71" min="1"
                             style="max-width: 80px; text-align: center; font-family: var(--font-mono); font-weight: bold; border-radius: 6px; border: 1px solid var(--primary-color); background: rgba(0, 255, 65, 0.05); color: var(--primary-color); padding: 5px;"
                             onchange="updateStartTargetId(this.value)">
@@ -379,7 +377,7 @@
         </main>
 
         <footer class="tactical-footer">
-            <p>TIZIU v1.0.0-beta.39 &copy; FPT</p>
+            <p>TIZIU v1.0.0-beta.40 &copy; FPT</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
     </div>
@@ -432,7 +430,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=1.0.0-beta.39')
+                navigator.serviceWorker.register('sw.js?v=1.0.0-beta.40')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();
