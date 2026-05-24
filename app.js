@@ -2053,16 +2053,36 @@ function drawTacticalDisplay() {
         }
 
         // BILLBOARDED SCALE LABELS
-        ctx.fillStyle = isLightMode ? 'rgba(30, 41, 59, 0.65)' : 'rgba(255, 255, 255, 0.35)';
-        ctx.font = 'bold 9px "Outfit", "Inter", "JetBrains Mono", sans-serif';
-        
         let ringIndex = 1;
         for (let rPx = stepPx; rPx <= maxDistToCorner + stepPx; rPx += stepPx) {
             // Don't draw label if it goes off screen vertically
             if (ringCenterY - rPx < 0) continue;
-            const currentNM = Math.round(scale * 0.25 * ringIndex);
-            const lx = ringCenterX + 5; const ly = ringCenterY - rPx + 12;
-            ctx.save(); ctx.translate(lx, ly); ctx.rotate(-rotationRad); ctx.fillText(`${currentNM}`, 0, 0); ctx.restore();
+            const currentNM = Math.round(scale * 0.25 * ringIndex).toString();
+            const lx = ringCenterX; 
+            const ly = ringCenterY - rPx;
+            
+            ctx.save();
+            ctx.translate(lx, ly);
+            ctx.rotate(-rotationRad);
+            ctx.font = 'bold 9px "Outfit", "Inter", "JetBrains Mono", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Measure text for masking box
+            const tw = ctx.measureText(currentNM).width;
+            const th = 9; // font size
+            const padX = 5;
+            const padY = 3;
+            
+            // Draw masking background box (no borders)
+            ctx.fillStyle = isLightMode ? '#ffffff' : '#000000';
+            ctx.fillRect(-tw / 2 - padX, -th / 2 - padY, tw + padX * 2, th + padY * 2);
+            
+            // Draw text
+            ctx.fillStyle = isLightMode ? 'rgba(30, 41, 59, 0.75)' : 'rgba(255, 255, 255, 0.45)';
+            ctx.fillText(currentNM, 0, 0);
+            
+            ctx.restore();
             ringIndex++;
         }
     }
