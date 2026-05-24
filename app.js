@@ -116,7 +116,19 @@ const CONFIG = {
 };
 
 const state = {
-    ownPos: { lat: null, lon: null, heading: 0, compass: null },
+    ownPos: { 
+        lat: null, 
+        lon: null, 
+        gpsHeading: null, 
+        gpsSpeed: null, 
+        gpsMagneticHeading: null,
+        compassRaw: null, 
+        compassIsMagnetic: false, 
+        compassMagneticHeading: null,
+        activeMagneticHeading: null, 
+        activeTrueHeading: 0, 
+        activeHeadingSource: 'NONE'
+    },
     watchId: null,
     lastFixTime: 0,
     plots: [],
@@ -299,6 +311,190 @@ function getBearing(lat1, lon1, lat2, lon2) {
     const y = Math.sin(dLon) * Math.cos(rLat2);
     const x = Math.cos(rLat1) * Math.sin(rLat2) - Math.sin(rLat1) * Math.cos(rLat2) * Math.cos(dLon);
     return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
+const WMM_SIZE_STANDARD = 12;
+const size = WMM_SIZE_STANDARD + 1;
+
+function createMatrix(rows, cols, def = 0) {
+    return Array.from({ length: rows }, () => Array(cols).fill(def));
+}
+
+const WMM_2025_COEFFS = [[1, 0, -29351.8, 0.0, 12.0, 0.0], [1, 1, -1410.8, 4545.4, 9.7, -21.5], [2, 0, -2556.6, 0.0, -11.6, 0.0], [2, 1, 2951.1, -3133.6, -5.2, -27.7], [2, 2, 1649.3, -815.1, -8.0, -12.1], [3, 0, 1361.0, 0.0, -1.3, 0.0], [3, 1, -2404.1, -56.6, -4.2, 4.0], [3, 2, 1243.8, 237.5, 0.4, -0.3], [3, 3, 453.6, -549.5, -15.6, -4.1], [4, 0, 895.0, 0.0, -1.6, 0.0], [4, 1, 799.5, 278.6, -2.4, -1.1], [4, 2, 55.7, -133.9, -6.0, 4.1], [4, 3, -281.1, 212.0, 5.6, 1.6], [4, 4, 12.1, -375.6, -7.0, -4.4], [5, 0, -233.2, 0.0, 0.6, 0.0], [5, 1, 368.9, 45.4, 1.4, -0.5], [5, 2, 187.2, 220.2, 0.0, 2.2], [5, 3, -138.7, -122.9, 0.6, 0.4], [5, 4, -142.0, 43.0, 2.2, 1.7], [5, 5, 20.9, 106.1, 0.9, 1.9], [6, 0, 64.4, 0.0, -0.2, 0.0], [6, 1, 63.8, -18.4, -0.4, 0.3], [6, 2, 76.9, 16.8, 0.9, -1.6], [6, 3, -115.7, 48.8, 1.2, -0.4], [6, 4, -40.9, -59.8, -0.9, 0.9], [6, 5, 14.9, 10.9, 0.3, 0.7], [6, 6, -60.7, 72.7, 0.9, 0.9], [7, 0, 79.5, 0.0, -0.0, 0.0], [7, 1, -77.0, -48.9, -0.1, 0.6], [7, 2, -8.8, -14.4, -0.1, 0.5], [7, 3, 59.3, -1.0, 0.5, -0.8], [7, 4, 15.8, 23.4, -0.1, 0.0], [7, 5, 2.5, -7.4, -0.8, -1.0], [7, 6, -11.1, -25.1, -0.8, 0.6], [7, 7, 14.2, -2.3, 0.8, -0.2], [8, 0, 23.2, 0.0, -0.1, 0.0], [8, 1, 10.8, 7.1, 0.2, -0.2], [8, 2, -17.5, -12.6, 0.0, 0.5], [8, 3, 2.0, 11.4, 0.5, -0.4], [8, 4, -21.7, -9.7, -0.1, 0.4], [8, 5, 16.9, 12.7, 0.3, -0.5], [8, 6, 15.0, 0.7, 0.2, -0.6], [8, 7, -16.8, -5.2, -0.0, 0.3], [8, 8, 0.9, 3.9, 0.2, 0.2], [9, 0, 4.6, 0.0, -0.0, 0.0], [9, 1, 7.8, -24.8, -0.1, -0.3], [9, 2, 3.0, 12.2, 0.1, 0.3], [9, 3, -0.2, 8.3, 0.3, -0.3], [9, 4, -2.5, -3.3, -0.3, 0.3], [9, 5, -13.1, -5.2, 0.0, 0.2], [9, 6, 2.4, 7.2, 0.3, -0.1], [9, 7, 8.6, -0.6, -0.1, -0.2], [9, 8, -8.7, 0.8, 0.1, 0.4], [9, 9, -12.9, 10.0, -0.1, 0.1], [10, 0, -1.3, 0.0, 0.1, 0.0], [10, 1, -6.4, 3.3, 0.0, 0.0], [10, 2, 0.2, 0.0, 0.1, -0.0], [10, 3, 2.0, 2.4, 0.1, -0.2], [10, 4, -1.0, 5.3, -0.0, 0.1], [10, 5, -0.6, -9.1, -0.3, -0.1], [10, 6, -0.9, 0.4, 0.0, 0.1], [10, 7, 1.5, -4.2, -0.1, 0.0], [10, 8, 0.9, -3.8, -0.1, -0.1], [10, 9, -2.7, 0.9, -0.0, 0.2], [10, 10, -3.9, -9.1, -0.0, -0.0], [11, 0, 2.9, 0.0, 0.0, 0.0], [11, 1, -1.5, 0.0, -0.0, -0.0], [11, 2, -2.5, 2.9, 0.0, 0.1], [11, 3, 2.4, -0.6, 0.0, -0.0], [11, 4, -0.6, 0.2, 0.0, 0.1], [11, 5, -0.1, 0.5, -0.1, -0.0], [11, 6, -0.6, -0.3, 0.0, -0.0], [11, 7, -0.1, -1.2, -0.0, 0.1], [11, 8, 1.1, -1.7, -0.1, -0.0], [11, 9, -1.0, -2.9, -0.1, 0.0], [11, 10, -0.2, -1.8, -0.1, 0.0], [11, 11, 2.6, -2.3, -0.1, 0.0], [12, 0, -2.0, 0.0, 0.0, 0.0], [12, 1, -0.2, -1.3, 0.0, -0.0], [12, 2, 0.3, 0.7, -0.0, 0.0], [12, 3, 1.2, 1.0, -0.0, -0.1], [12, 4, -1.3, -1.4, -0.0, 0.1], [12, 5, 0.6, -0.0, -0.0, -0.0], [12, 6, 0.6, 0.6, 0.1, -0.0], [12, 7, 0.5, -0.1, -0.0, -0.0], [12, 8, -0.1, 0.8, 0.0, 0.0], [12, 9, -0.4, 0.1, 0.0, -0.0], [12, 10, -0.2, -1.0, -0.1, -0.0], [12, 11, -1.3, 0.1, -0.0, 0.0], [12, 12, -0.7, 0.2, -0.1, -0.1]];
+
+function calcWMMDeclination(glat, glon, altKm = 0, time = 2026.5) {
+    const c = createMatrix(size, size);
+    const cd = createMatrix(size, size);
+    const snorm = Array(size * size).fill(0);
+    const fn = Array(size).fill(0);
+    const fm = Array(size).fill(0);
+    const k = createMatrix(size, size);
+
+    const epoch = 2025.0;
+
+    c[0][0] = 0.0;
+    cd[0][0] = 0.0;
+
+    for (const [n, m, gnm, hnm, dgnm, dhnm] of WMM_2025_COEFFS) {
+        if (m > WMM_SIZE_STANDARD) break;
+        c[m][n] = gnm;
+        cd[m][n] = dgnm;
+        if (m !== 0) {
+            c[n][m - 1] = hnm;
+            cd[n][m - 1] = dhnm;
+        }
+    }
+
+    snorm[0] = 1.0;
+    fm[0] = 0.0;
+    for (let n = 1; n <= WMM_SIZE_STANDARD; n++) {
+        snorm[n] = snorm[n - 1] * (2 * n - 1) / n;
+        let j = 2;
+        let m = 0;
+        let D1 = 1;
+        let D2 = (n - m + D1) / D1;
+        while (D2 > 0) {
+            k[m][n] = ((n - 1) * (n - 1) - m * m) / ((2 * n - 1) * (2 * n - 3));
+            if (m > 0) {
+                const flnmj = ((n - m + 1) * j) / (n + m);
+                snorm[n + m * size] = snorm[n + (m - 1) * size] * Math.sqrt(flnmj);
+                j = 1;
+                c[n][m - 1] = snorm[n + m * size] * c[n][m - 1];
+                cd[n][m - 1] = snorm[n + m * size] * cd[n][m - 1];
+            }
+            c[m][n] = snorm[n + m * size] * c[m][n];
+            cd[m][n] = snorm[n + m * size] * cd[m][n];
+            D2 -= 1;
+            m += D1;
+        }
+        fn[n] = n + 1;
+        fm[n] = n;
+    }
+    k[1][1] = 0.0;
+
+    const tc = createMatrix(size, size);
+    const dp = createMatrix(size, size);
+    const sp = Array(size).fill(0);
+    const cp = Array(size).fill(0);
+    const pp = Array(size).fill(0);
+
+    sp[0] = 0.0;
+    cp[0] = pp[0] = 1.0;
+    dp[0][0] = 0.0;
+
+    const a = 6378.137;
+    const b = 6356.7523142;
+    const re = 6371.2;
+    const a2 = a * a;
+    const b2 = b * b;
+    const c2 = a2 - b2;
+    const a4 = a2 * a2;
+    const b4 = b2 * b2;
+    const c4 = a4 - b4;
+
+    const dt = time - epoch;
+
+    const rlon = glon * Math.PI / 180;
+    const rlat = glat * Math.PI / 180;
+    const srlon = Math.sin(rlon);
+    const srlat = Math.sin(rlat);
+    const crlon = Math.cos(rlon);
+    const crlat = Math.cos(rlat);
+    const srlat2 = srlat * srlat;
+    const crlat2 = crlat * crlat;
+
+    sp[1] = srlon;
+    cp[1] = crlon;
+
+    const q = Math.sqrt(a2 - c2 * srlat2);
+    const q1 = altKm * q;
+    const q2 = ((q1 + a2) / (q1 + b2)) * ((q1 + a2) / (q1 + b2));
+    const ct = srlat / Math.sqrt(q2 * crlat2 + srlat2);
+    const st = Math.sqrt(1.0 - (ct * ct));
+    const r2 = (altKm * altKm) + 2.0 * q1 + (a4 - c4 * srlat2) / (q * q);
+    const r = Math.sqrt(r2);
+    const dVal = Math.sqrt(a2 * crlat2 + b2 * srlat2);
+    const ca = (altKm + dVal) / r;
+    const sa = c2 * crlat * srlat / (r * dVal);
+
+    for (let m = 2; m <= WMM_SIZE_STANDARD; m++) {
+        sp[m] = sp[1] * cp[m - 1] + cp[1] * sp[m - 1];
+        cp[m] = cp[1] * cp[m - 1] - sp[1] * sp[m - 1];
+    }
+
+    let aor = re / r;
+    let ar = aor * aor;
+    let br = 0.0;
+    let bt = 0.0;
+    let bp = 0.0;
+    let bpp = 0.0;
+
+    for (let n = 1; n <= WMM_SIZE_STANDARD; n++) {
+        ar = ar * aor;
+        let m = 0;
+        let D3 = 1;
+        let D4 = (n + m + D3) / D3;
+        while (D4 > 0) {
+            if (n === m) {
+                snorm[n + m * size] = st * snorm[n - 1 + (m - 1) * size];
+                dp[m][n] = st * dp[m - 1][n - 1] + ct * snorm[n - 1 + (m - 1) * size];
+            } else if (n === 1 && m === 0) {
+                snorm[n + m * size] = ct * snorm[n - 1 + m * size];
+                dp[m][n] = ct * dp[m][n - 1] - st * snorm[n - 1 + m * size];
+            } else if (n > 1 && n !== m) {
+                if (m > n - 2) {
+                    snorm[n - 2 + m * size] = 0.0;
+                    dp[m][n - 2] = 0.0;
+                }
+                snorm[n + m * size] = ct * snorm[n - 1 + m * size] - k[m][n] * snorm[n - 2 + m * size];
+                dp[m][n] = ct * dp[m][n - 1] - st * snorm[n - 1 + m * size] - k[m][n] * dp[m][n - 2];
+            }
+
+            tc[m][n] = c[m][n] + dt * cd[m][n];
+            if (m !== 0) {
+                tc[n][m - 1] = c[n][m - 1] + dt * cd[n][m - 1];
+            }
+
+            const par = ar * snorm[n + m * size];
+            let temp1, temp2;
+            if (m === 0) {
+                temp1 = tc[m][n] * cp[m];
+                temp2 = tc[m][n] * sp[m];
+            } else {
+                temp1 = tc[m][n] * cp[m] + tc[n][m - 1] * sp[m];
+                temp2 = tc[m][n] * sp[m] - tc[n][m - 1] * cp[m];
+            }
+
+            bt = bt - ar * temp1 * dp[m][n];
+            bp = bp + fm[m] * temp2 * par;
+            br = br + fn[n] * temp1 * par;
+
+            if (st === 0.0 && m === 1) {
+                if (n === 1) {
+                    pp[n] = pp[n - 1];
+                } else {
+                    pp[n] = ct * pp[n - 1] - k[m][n] * pp[n - 2];
+                }
+                const parp = ar * pp[n];
+                bpp = bpp + fm[m] * temp2 * parp;
+            }
+
+            D4 -= 1;
+            m += D3;
+        }
+    }
+
+    if (st === 0.0) {
+        bp = bpp;
+    } else {
+        bp = bp / st;
+    }
+
+    const bx = -bt * ca - br * sa;
+    const by = bp;
+    const declination = Math.atan2(by, bx) * 180 / Math.PI;
+
+    return declination;
 }
 
 function toDDM(decimal, isLat) {
@@ -1658,10 +1854,7 @@ window.editTargetThreatCode = (targetId) => {
 
 
 function getMagneticHeading() {
-    const magVar = parseFloat(el.magVar.value) || 0;
-    if (state.ownPos.compass !== null) return state.ownPos.compass;
-    if (state.ownPos.heading !== null && state.ownPos.heading !== 0) return (state.ownPos.heading - magVar + 360) % 360;
-    return state.ownPos.heading || 0;
+    return state.ownPos.activeMagneticHeading !== null ? state.ownPos.activeMagneticHeading : 0;
 }
 
 function updateClosestThreats() {
@@ -1747,12 +1940,7 @@ function drawTacticalDisplay() {
     const activeBull = state.bullseyes.find(b => b.name === state.activeBullseyeName) || state.bullseyes[0];
     const magVar = activeBull ? activeBull.magVar : 0;
     
-    let trueHeading = 0;
-    if (state.ownPos.compass !== null) {
-        trueHeading = state.ownPos.compass;
-    } else if (state.ownPos.heading !== null) {
-        trueHeading = state.ownPos.heading;
-    }
+    const trueHeading = state.ownPos.activeTrueHeading || 0;
     
     // N UP: Magnetic North is UP -> Rotate canvas by -magVar
     // HDG UP: True Aircraft Heading is UP -> Rotate canvas by -trueHeading
@@ -2334,12 +2522,7 @@ el.canvas.addEventListener('click', (e) => {
     const activeBull = state.bullseyes.find(b => b.name === state.activeBullseyeName) || state.bullseyes[0];
     const magVar = activeBull ? activeBull.magVar : 0;
     
-    let trueHeading = 0;
-    if (state.ownPos.compass !== null) {
-        trueHeading = state.ownPos.compass;
-    } else if (state.ownPos.heading !== null) {
-        trueHeading = state.ownPos.heading;
-    }
+    const trueHeading = state.ownPos.activeTrueHeading || 0;
     const rotationRad = (state.orientation === 'HEADING') ? -toRad(trueHeading) : toRad(-magVar);
     
     const latestById = {}; state.plots.forEach(p => { if (!latestById[p.targetId] || p.timestamp > latestById[p.targetId].timestamp) latestById[p.targetId] = p; });
@@ -2362,19 +2545,85 @@ el.canvas.addEventListener('click', (e) => {
 /**
  * GPS & SENSORS
  */
+function updateOwnHeading() {
+    const activeBull = state.bullseyes.find(b => b.name === state.activeBullseyeName) || state.bullseyes[0];
+    const magVar = activeBull ? activeBull.magVar : 0;
+
+    // 1. Determine GPS Magnetic Course
+    if (state.ownPos.gpsHeading !== null && state.ownPos.gpsHeading !== undefined) {
+        state.ownPos.gpsMagneticHeading = (state.ownPos.gpsHeading - magVar + 360) % 360;
+    } else {
+        state.ownPos.gpsMagneticHeading = null;
+    }
+
+    // 2. Determine Compass Magnetic Heading
+    if (state.ownPos.compassRaw !== null && state.ownPos.compassRaw !== undefined) {
+        if (state.ownPos.compassIsMagnetic) {
+            state.ownPos.compassMagneticHeading = state.ownPos.compassRaw;
+        } else {
+            state.ownPos.compassMagneticHeading = (state.ownPos.compassRaw - magVar + 360) % 360;
+        }
+    } else {
+        state.ownPos.compassMagneticHeading = null;
+    }
+
+    // 3. Determine Active Orientation Heading
+    // Standardize: GPS track is extremely reliable when moving (speed > 2.5 m/s, i.e., ~5 knots)
+    if (state.ownPos.gpsMagneticHeading !== null && state.ownPos.gpsSpeed > 2.5) {
+        state.ownPos.activeMagneticHeading = state.ownPos.gpsMagneticHeading;
+        state.ownPos.activeHeadingSource = 'GPS';
+    } else if (state.ownPos.compassMagneticHeading !== null) {
+        state.ownPos.activeMagneticHeading = state.ownPos.compassMagneticHeading;
+        state.ownPos.activeHeadingSource = 'COMPASS';
+    } else if (state.ownPos.gpsMagneticHeading !== null) {
+        state.ownPos.activeMagneticHeading = state.ownPos.gpsMagneticHeading;
+        state.ownPos.activeHeadingSource = 'GPS';
+    } else {
+        state.ownPos.activeMagneticHeading = null;
+        state.ownPos.activeHeadingSource = 'NONE';
+    }
+
+    // Determine the corresponding True Heading for visualization
+    if (state.ownPos.activeMagneticHeading !== null) {
+        state.ownPos.activeTrueHeading = (state.ownPos.activeMagneticHeading + magVar + 360) % 360;
+    } else {
+        state.ownPos.activeTrueHeading = 0;
+    }
+    
+    // Call UI status update so blurring/unblurring is dynamic
+    window.updateCompassStatusUI();
+}
+
 function updatePosition(pos) {
-    const { latitude, longitude, heading } = pos.coords; el.ownLat.value = latitude.toFixed(6); el.ownLon.value = longitude.toFixed(6);
-    if (el.ownLatDisplay) el.ownLatDisplay.textContent = toDDM(latitude, true); if (el.ownLonDisplay) el.ownLonDisplay.textContent = toDDM(longitude, false);
-    state.ownPos.lat = latitude; state.ownPos.lon = longitude; state.ownPos.heading = heading || 0; state.lastFixTime = Date.now();
-    const now = new Date(); const timeStr = now.getUTCHours().toString().padStart(2, '0') + ":" + now.getUTCMinutes().toString().padStart(2, '0') + ":" + now.getUTCSeconds().toString().padStart(2, '0') + "Z";
-    el.gpsStatus.textContent = `GPS: LIVE [${timeStr}]`; el.gpsStatus.classList.remove('offline'); el.gpsStatus.classList.add('online'); calculateBRAA();
+    const { latitude, longitude, heading, speed } = pos.coords;
+    el.ownLat.value = latitude.toFixed(6);
+    el.ownLon.value = longitude.toFixed(6);
+    if (el.ownLatDisplay) el.ownLatDisplay.textContent = toDDM(latitude, true);
+    if (el.ownLonDisplay) el.ownLonDisplay.textContent = toDDM(longitude, false);
+    
+    state.ownPos.lat = latitude;
+    state.ownPos.lon = longitude;
+    state.ownPos.gpsHeading = (heading !== null && heading !== undefined && !isNaN(heading)) ? heading : null;
+    state.ownPos.gpsSpeed = (speed !== null && speed !== undefined && !isNaN(speed)) ? speed : null;
+    
+    updateOwnHeading();
+    
+    state.lastFixTime = Date.now();
+    const now = new Date();
+    const timeStr = now.getUTCHours().toString().padStart(2, '0') + ":" + now.getUTCMinutes().toString().padStart(2, '0') + ":" + now.getUTCSeconds().toString().padStart(2, '0') + "Z";
+    el.gpsStatus.textContent = `GPS: LIVE [${timeStr}]`;
+    el.gpsStatus.classList.remove('offline');
+    el.gpsStatus.classList.add('online');
+    
+    calculateBRAA();
     if (typeof updateOwnBullPosition === 'function') updateOwnBullPosition();
     drawTacticalDisplay();
 }
 
 window.updateCompassStatusUI = () => {
     const mainEl = document.querySelector('main');
-    if (state.sensorsActive) {
+    const isMoving = state.ownPos.gpsMagneticHeading !== null && state.ownPos.gpsSpeed > 2.5;
+    if (state.sensorsActive || isMoving) {
         if (mainEl) mainEl.classList.remove('compass-blurred');
         if (el.compassStatus) {
             el.compassStatus.innerHTML = "ORIENTAÇÃO: ATIVA";
@@ -2421,9 +2670,24 @@ window.activateSensors = (isAuto = false) => {
 
 function handleOrientation(event) {
     let heading = null;
-    if (event.webkitCompassHeading) { heading = event.webkitCompassHeading; }
-    else if (event.absolute && event.alpha) { heading = 360 - event.alpha; }
-    if (heading !== null) { state.ownPos.compass = heading; drawTacticalDisplay(); }
+    let isMagnetic = false;
+    if (event.webkitCompassHeading !== undefined && event.webkitCompassHeading !== null) {
+        heading = event.webkitCompassHeading;
+        isMagnetic = true;
+    } else if (event.absolute && event.alpha !== null && event.alpha !== undefined) {
+        heading = (360 - event.alpha) % 360;
+        isMagnetic = false;
+    } else if (event.alpha !== null && event.alpha !== undefined) {
+        heading = (360 - event.alpha) % 360;
+        isMagnetic = false;
+    }
+    
+    if (heading !== null) {
+        state.ownPos.compassRaw = heading;
+        state.ownPos.compassIsMagnetic = isMagnetic;
+        updateOwnHeading();
+        drawTacticalDisplay();
+    }
 }
 
 function handleGPSError(err) {
@@ -2555,6 +2819,24 @@ el.addThreatConfigBtn.addEventListener('click', () => {
 });
 el.missionFileInput.addEventListener('change', handleMissionFile);
 if (el.gpxFileInput) el.gpxFileInput.addEventListener('change', handleGpxFile);
+
+// Auto calculate magVar when entering Lat/Lon for new Bullseye
+const newBullLatEl = document.getElementById('newBullLat');
+const newBullLonEl = document.getElementById('newBullLon');
+const newBullMagVarEl = document.getElementById('newBullMagVar');
+
+const autoCalcBullMagVar = () => {
+    if (!newBullLatEl || !newBullLonEl || !newBullMagVarEl) return;
+    const lat = parseFloat(newBullLatEl.value);
+    const lon = parseFloat(newBullLonEl.value);
+    if (!isNaN(lat) && !isNaN(lon)) {
+        const dec = calcWMMDeclination(lat, lon, 0, 2026.5);
+        newBullMagVarEl.value = dec.toFixed(1);
+    }
+};
+
+if (newBullLatEl) newBullLatEl.addEventListener('input', autoCalcBullMagVar);
+if (newBullLonEl) newBullLonEl.addEventListener('input', autoCalcBullMagVar);
 
 // INITIAL LOAD
 window.initTheme();
