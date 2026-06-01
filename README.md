@@ -1,7 +1,5 @@
 # TIZIU — Consciência Situacional de Ameaças
 
-> **v1.0.0-beta.36** · PWA · Offline-first · iOS / iPadOS
-
 TIZIU é um aplicativo de consciência situacional tática desenvolvido para operações aéreas. Roda diretamente no iPad ou iPhone como um Progressive Web App (PWA), sem dependência de internet ou rede celular durante o emprego, com GPS e bússola magnética nativos do dispositivo.
 
 ---
