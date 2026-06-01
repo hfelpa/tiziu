@@ -6,23 +6,7 @@
 /* Version: 1.0.0-beta.34 */
 const CACHE_NAME = 'tiziu-v1.0.0-beta.36';
 
-const MISSIONS = {
-    TINIA26: {
-        name: 'TINIA26',
-        bullseye: { name: 'SILVER', lat: -15.520278, lon: -49.987222, magVar: -21.4 },
-        threats: [
-            { code: 'SA24', type: 'A/G', range: 3 },
-            { code: 'M60', type: 'A/G', range: 24 },
-            { code: 'R70', type: 'A/G', range: 3.5 },
-            { code: 'S7', type: 'A/G', range: 10 },
-            { code: 'SPY', type: 'A/G', range: 18 },
-            { code: 'MIS', type: 'A/G', range: 3 },
-            { code: 'SA23', type: 'A/G', range: 70 },
-            { code: 'F5', type: 'A/A', range: 25 },
-            { code: 'F39', type: 'A/A', range: 35 }
-        ]
-    }
-};
+
 
 // MGRS LIBRARY (Mini-bundle)
 const mgrs = (function () {
@@ -138,10 +122,8 @@ const state = {
     rangeScale: 40,
     orientation: 'HEADING', // HEADING or NORTH
     threats: [],
-    bullseyes: [
-        { name: "SILVER", lat: -15.520278, lon: -49.987222, magVar: -21.4 }
-    ],
-    activeBullseyeName: "SILVER",
+    bullseyes: [],
+    activeBullseyeName: "",
     route: [],
     activeInputId: null,
     activePlotIndex: null,
@@ -321,6 +303,34 @@ function createMatrix(rows, cols, def = 0) {
 }
 
 const WMM_2025_COEFFS = [[1, 0, -29351.8, 0.0, 12.0, 0.0], [1, 1, -1410.8, 4545.4, 9.7, -21.5], [2, 0, -2556.6, 0.0, -11.6, 0.0], [2, 1, 2951.1, -3133.6, -5.2, -27.7], [2, 2, 1649.3, -815.1, -8.0, -12.1], [3, 0, 1361.0, 0.0, -1.3, 0.0], [3, 1, -2404.1, -56.6, -4.2, 4.0], [3, 2, 1243.8, 237.5, 0.4, -0.3], [3, 3, 453.6, -549.5, -15.6, -4.1], [4, 0, 895.0, 0.0, -1.6, 0.0], [4, 1, 799.5, 278.6, -2.4, -1.1], [4, 2, 55.7, -133.9, -6.0, 4.1], [4, 3, -281.1, 212.0, 5.6, 1.6], [4, 4, 12.1, -375.6, -7.0, -4.4], [5, 0, -233.2, 0.0, 0.6, 0.0], [5, 1, 368.9, 45.4, 1.4, -0.5], [5, 2, 187.2, 220.2, 0.0, 2.2], [5, 3, -138.7, -122.9, 0.6, 0.4], [5, 4, -142.0, 43.0, 2.2, 1.7], [5, 5, 20.9, 106.1, 0.9, 1.9], [6, 0, 64.4, 0.0, -0.2, 0.0], [6, 1, 63.8, -18.4, -0.4, 0.3], [6, 2, 76.9, 16.8, 0.9, -1.6], [6, 3, -115.7, 48.8, 1.2, -0.4], [6, 4, -40.9, -59.8, -0.9, 0.9], [6, 5, 14.9, 10.9, 0.3, 0.7], [6, 6, -60.7, 72.7, 0.9, 0.9], [7, 0, 79.5, 0.0, -0.0, 0.0], [7, 1, -77.0, -48.9, -0.1, 0.6], [7, 2, -8.8, -14.4, -0.1, 0.5], [7, 3, 59.3, -1.0, 0.5, -0.8], [7, 4, 15.8, 23.4, -0.1, 0.0], [7, 5, 2.5, -7.4, -0.8, -1.0], [7, 6, -11.1, -25.1, -0.8, 0.6], [7, 7, 14.2, -2.3, 0.8, -0.2], [8, 0, 23.2, 0.0, -0.1, 0.0], [8, 1, 10.8, 7.1, 0.2, -0.2], [8, 2, -17.5, -12.6, 0.0, 0.5], [8, 3, 2.0, 11.4, 0.5, -0.4], [8, 4, -21.7, -9.7, -0.1, 0.4], [8, 5, 16.9, 12.7, 0.3, -0.5], [8, 6, 15.0, 0.7, 0.2, -0.6], [8, 7, -16.8, -5.2, -0.0, 0.3], [8, 8, 0.9, 3.9, 0.2, 0.2], [9, 0, 4.6, 0.0, -0.0, 0.0], [9, 1, 7.8, -24.8, -0.1, -0.3], [9, 2, 3.0, 12.2, 0.1, 0.3], [9, 3, -0.2, 8.3, 0.3, -0.3], [9, 4, -2.5, -3.3, -0.3, 0.3], [9, 5, -13.1, -5.2, 0.0, 0.2], [9, 6, 2.4, 7.2, 0.3, -0.1], [9, 7, 8.6, -0.6, -0.1, -0.2], [9, 8, -8.7, 0.8, 0.1, 0.4], [9, 9, -12.9, 10.0, -0.1, 0.1], [10, 0, -1.3, 0.0, 0.1, 0.0], [10, 1, -6.4, 3.3, 0.0, 0.0], [10, 2, 0.2, 0.0, 0.1, -0.0], [10, 3, 2.0, 2.4, 0.1, -0.2], [10, 4, -1.0, 5.3, -0.0, 0.1], [10, 5, -0.6, -9.1, -0.3, -0.1], [10, 6, -0.9, 0.4, 0.0, 0.1], [10, 7, 1.5, -4.2, -0.1, 0.0], [10, 8, 0.9, -3.8, -0.1, -0.1], [10, 9, -2.7, 0.9, -0.0, 0.2], [10, 10, -3.9, -9.1, -0.0, -0.0], [11, 0, 2.9, 0.0, 0.0, 0.0], [11, 1, -1.5, 0.0, -0.0, -0.0], [11, 2, -2.5, 2.9, 0.0, 0.1], [11, 3, 2.4, -0.6, 0.0, -0.0], [11, 4, -0.6, 0.2, 0.0, 0.1], [11, 5, -0.1, 0.5, -0.1, -0.0], [11, 6, -0.6, -0.3, 0.0, -0.0], [11, 7, -0.1, -1.2, -0.0, 0.1], [11, 8, 1.1, -1.7, -0.1, -0.0], [11, 9, -1.0, -2.9, -0.1, 0.0], [11, 10, -0.2, -1.8, -0.1, 0.0], [11, 11, 2.6, -2.3, -0.1, 0.0], [12, 0, -2.0, 0.0, 0.0, 0.0], [12, 1, -0.2, -1.3, 0.0, -0.0], [12, 2, 0.3, 0.7, -0.0, 0.0], [12, 3, 1.2, 1.0, -0.0, -0.1], [12, 4, -1.3, -1.4, -0.0, 0.1], [12, 5, 0.6, -0.0, -0.0, -0.0], [12, 6, 0.6, 0.6, 0.1, -0.0], [12, 7, 0.5, -0.1, -0.0, -0.0], [12, 8, -0.1, 0.8, 0.0, 0.0], [12, 9, -0.4, 0.1, 0.0, -0.0], [12, 10, -0.2, -1.0, -0.1, -0.0], [12, 11, -1.3, 0.1, -0.0, 0.0], [12, 12, -0.7, 0.2, -0.1, -0.1]];
+
+function parseGGMM_MM(str, isLat) {
+    if (!str) return NaN;
+    let clean = str.trim().toUpperCase().replace(/[°'"\s]/g, '');
+    let sign = 1;
+    if (clean.includes('S') || clean.includes('W') || clean.startsWith('-')) {
+        sign = -1;
+    }
+    clean = clean.replace(/[NSWE-]/g, '');
+    const dotIndex = clean.indexOf('.');
+    let degPart = "";
+    let minPart = "";
+    if (dotIndex !== -1) {
+        const wholePart = clean.substring(0, dotIndex);
+        const decPart = clean.substring(dotIndex + 1);
+        if (wholePart.length < 2) return NaN;
+        minPart = wholePart.slice(-2) + '.' + decPart;
+        degPart = wholePart.slice(0, -2);
+    } else {
+        if (clean.length < 2) return NaN;
+        minPart = clean.slice(-2);
+        degPart = clean.slice(0, -2);
+    }
+    const degrees = parseFloat(degPart) || 0;
+    const minutes = parseFloat(minPart) || 0;
+    if (minutes >= 60) return NaN;
+    return sign * (degrees + minutes / 60);
+}
 
 function calcWMMDeclination(glat, glon, altKm = 0, time = 2026.5) {
     const c = createMatrix(size, size);
@@ -930,6 +940,7 @@ function handleMissionFile(event) {
                     alert("Preparação de cenário importada com sucesso!");
                 }
                 event.target.value = '';
+                saveState();
                 return;
             }
             const lines = content.split('\n'); const newThreats = [];
@@ -940,6 +951,7 @@ function handleMissionFile(event) {
             });
             if (newThreats.length > 0) { state.threats = newThreats; updateThreatDropdowns(); }
             alert("Cenário de texto importado com sucesso!");
+            saveState();
         } catch (err) {
             console.error("Erro ao ler arquivo.", err);
             alert("Erro ao decodificar o arquivo de cenário: " + err.message);
@@ -969,6 +981,7 @@ function handleGpxFile(event) {
             }
             if (state.route.length > 0) alert(`Rota carregada com ${state.route.length} pontos.`);
             drawTacticalDisplay();
+            saveState();
         } catch (err) { console.error("Erro ao ler arquivo GPX.", err); }
     };
     reader.readAsText(file);
@@ -1015,7 +1028,7 @@ function updateBullseyesTable() {
                 ? `<span class="badge-active-bullseye">ATIVO</span>`
                 : `<button class="btn-tiny" onclick="selectActiveBullseye('${escapedName}')">ATIVAR</button>`
             }
-                    ${b.name !== 'SILVER' ? `<button class="btn-tiny btn-tiny-remove" onclick="removeBullseye(${index})">REMOVER</button>` : ''}
+                    <button class="btn-tiny btn-tiny-remove" onclick="removeBullseye(${index})">REMOVER</button>
                 </div>
             </td>
         `;
@@ -1051,7 +1064,7 @@ window.updateOwnBullPosition = () => {
 };
 
 window.selectActiveBullseye = (name) => {
-    state.activeBullseyeName = name;
+    state.activeBullseyeName = name || "";
     const bull = state.bullseyes.find(b => b.name === name);
     if (bull) {
         if (el.bullLat) el.bullLat.value = bull.lat;
@@ -1061,7 +1074,7 @@ window.selectActiveBullseye = (name) => {
         const badge = document.getElementById('bull-badge');
         if (badge) {
             badge.textContent = `BULLSEYE ${bull.name}`;
-            badge.className = `badge-${bull.name.toLowerCase() === 'silver' ? 'silver' : 'gold'}`;
+            badge.className = 'badge-gold';
         }
 
         const activeSelect = document.getElementById('active-bullseye-select');
@@ -1071,13 +1084,32 @@ window.selectActiveBullseye = (name) => {
         if (badgeMain) {
             badgeMain.textContent = 'PLOT BE';
         }
+    } else {
+        if (el.bullLat) el.bullLat.value = "";
+        if (el.bullLon) el.bullLon.value = "";
+        if (el.magVar) el.magVar.value = "0";
 
-        calculateBRAA();
-        calculateBullCoord();
-        drawTacticalDisplay();
-        updateBullseyesTable();
-        if (typeof updateOwnBullPosition === 'function') updateOwnBullPosition();
+        const badge = document.getElementById('bull-badge');
+        if (badge) {
+            badge.textContent = 'BULLSEYE NENHUM';
+            badge.className = 'badge-silver';
+        }
+
+        const activeSelect = document.getElementById('active-bullseye-select');
+        if (activeSelect) activeSelect.value = "";
+
+        const badgeMain = document.getElementById('bull-badge-main');
+        if (badgeMain) {
+            badgeMain.textContent = 'PLOT BE (OFF)';
+        }
     }
+
+    calculateBRAA();
+    calculateBullCoord();
+    drawTacticalDisplay();
+    updateBullseyesTable();
+    if (typeof updateOwnBullPosition === 'function') updateOwnBullPosition();
+    saveState();
 };
 
 window.toggleDeclutter = () => {
@@ -1091,6 +1123,7 @@ window.toggleDeclutter = () => {
         }
     }
     drawTacticalDisplay();
+    saveState();
 };
 
 window.toggleRingsCenter = () => {
@@ -1106,6 +1139,7 @@ window.toggleRingsCenter = () => {
         }
     }
     drawTacticalDisplay();
+    saveState();
 };
 
 window.toggleClosestThreatsOverlay = () => {
@@ -1118,6 +1152,7 @@ window.toggleClosestThreatsOverlay = () => {
             overlay.classList.add('collapsed');
         }
     }
+    saveState();
 };
 
 window.changeRangeScale = (direction) => {
@@ -1141,6 +1176,7 @@ window.changeRangeScale = (direction) => {
     }
 
     drawTacticalDisplay();
+    saveState();
 };
 
 function getActiveTargetIds() {
@@ -1268,15 +1304,14 @@ function updateTargetInspector() {
 
 window.removeBullseye = (index) => {
     const bull = state.bullseyes[index];
-    if (bull.name === 'SILVER') return;
-
     if (confirm(`Remover Bullseye ${bull.name}?`)) {
         state.bullseyes.splice(index, 1);
         if (state.activeBullseyeName === bull.name) {
-            selectActiveBullseye('SILVER');
+            selectActiveBullseye(state.bullseyes[0]?.name || '');
         }
         updateBullseyeDropdowns();
         updateBullseyesTable();
+        saveState();
     }
 };
 
@@ -1284,12 +1319,10 @@ window.addBullseyeConfig = () => {
     const nameInput = document.getElementById('newBullName');
     const latInput = document.getElementById('newBullLat');
     const lonInput = document.getElementById('newBullLon');
-    const magInput = document.getElementById('newBullMagVar');
 
     const name = nameInput.value.trim().toUpperCase();
-    const lat = parseFloat(latInput.value);
-    const lon = parseFloat(lonInput.value);
-    const magVar = parseFloat(magInput.value) || 0;
+    const lat = parseGGMM_MM(latInput.value, true);
+    const lon = parseGGMM_MM(lonInput.value, false);
 
     if (!name || isNaN(lat) || isNaN(lon)) {
         alert("Preencha o Nome, Latitude e Longitude do Bullseye.");
@@ -1301,11 +1334,13 @@ window.addBullseyeConfig = () => {
         return;
     }
 
+    const calculatedMagVar = calcWMMDeclination(lat, lon, 0, 2026.5);
+    const magVar = Math.round(calculatedMagVar * 10) / 10;
+
     state.bullseyes.push({ name, lat, lon, magVar });
     nameInput.value = '';
     latInput.value = '';
     lonInput.value = '';
-    magInput.value = '';
 
     updateBullseyeDropdowns();
     updateBullseyesTable();
@@ -1333,17 +1368,7 @@ function applyBullseye(bull) {
     selectActiveBullseye(existing.name);
 }
 
-window.loadDefaultMission = (showAlert = false) => {
-    state.bullseyes = [
-        { name: "SILVER", lat: -15.520278, lon: -49.987222, magVar: -21.4 }
-    ];
-    updateBullseyeDropdowns();
-    updateBullseyesTable();
-    const m = MISSIONS.TINIA26; applyBullseye(m.bullseye); state.threats = JSON.parse(JSON.stringify(m.threats)); updateThreatDropdowns();
-    if (showAlert) alert(`Missão ${m.name} carregada.`);
-};
-
-window.resetThreats = () => { if (confirm("Limpar todas as ameaças?")) { state.threats = []; updateThreatDropdowns(); } };
+window.resetThreats = () => { if (confirm("Limpar todas as ameaças?")) { state.threats = []; updateThreatDropdowns(); saveState(); } };
 
 /**
  * CORE LOGIC
@@ -1351,6 +1376,12 @@ window.resetThreats = () => { if (confirm("Limpar todas as ameaças?")) { state.
 function calculateBRAA() {
     const bullLat = parseFloat(el.bullLat.value); const bullLon = parseFloat(el.bullLon.value); const magVar = parseFloat(el.magVar.value) || 0;
     const ownLat = state.ownPos.lat; const ownLon = state.ownPos.lon;
+
+    if (isNaN(bullLat) || isNaN(bullLon)) {
+        el.resBearing.textContent = "---°";
+        el.resRange.textContent = "---";
+        return;
+    }
 
     let targetPos = null;
     let radial = NaN, dist = NaN;
@@ -1387,6 +1418,18 @@ function calculateBRAA() {
 
 function calculateBullCoord() {
     const bullLat = parseFloat(el.bullLat.value); const bullLon = parseFloat(el.bullLon.value); const magVar = parseFloat(el.magVar.value) || 0;
+
+    if (isNaN(bullLat) || isNaN(bullLon)) {
+        if (state.plotMode === 'BE') {
+            el.bullResLat.textContent = "S 00° 00.00'";
+            el.bullResLon.textContent = "W 000° 00.00'";
+            el.resMGRS.textContent = "---";
+        } else {
+            el.bullResRadial.textContent = "---°";
+            el.bullResDist.textContent = "---";
+        }
+        return;
+    }
 
     if (state.plotMode === 'BE') {
         const radial = parseFloat(el.targetRadial.value); const dist = parseFloat(el.targetDist.value);
@@ -1444,6 +1487,7 @@ function deleteThreat(index) {
         state.threats.splice(index, 1);
         updateThreatDropdowns();
         drawTacticalDisplay();
+        saveState();
     }
 }
 
@@ -1488,6 +1532,7 @@ window.editThreat = (index) => {
     });
 
     updateThreatDropdowns();
+    saveState();
     drawTacticalDisplay();
     renderHistory();
 };
@@ -1582,6 +1627,7 @@ function addPlot() {
 
     renderHistory();
     drawTacticalDisplay();
+    saveState();
 }
 
 window.clearPlotFields = () => {
@@ -1613,6 +1659,7 @@ window.clearPlotFields = () => {
 window.updateStartTargetId = (val) => {
     const parsed = parseInt(val) || 1;
     state.startTargetId = Math.max(1, parsed);
+    saveState();
 
     // Auto-update next target ID input field if it's currently free and below the new start ID
     const usedIds = new Set(state.plots.map(p => p.targetId));
@@ -1752,6 +1799,7 @@ window.setPlotsFilter = (filter) => {
         if (btn) btn.classList.add('active');
     }
     renderHistory();
+    saveState();
 };
 
 window.toggleTheme = () => {
@@ -1801,23 +1849,23 @@ window.updatePlot = (index, field, value) => {
         plot[field] = parseFloat(value);
     }
 
-    const bullLat = parseFloat(el.bullLat.value);
-    const bullLon = parseFloat(el.bullLon.value);
-    const magVar = parseFloat(el.magVar.value) || 0;
-    const trueRadial = (plot.radial + magVar + 360) % 360;
-
-    const pos = getDestPoint(bullLat, bullLon, trueRadial, plot.dist);
-    plot.lat = pos.lat;
-    plot.lon = pos.lon;
+    if (!isNaN(bullLat) && !isNaN(bullLon)) {
+        const trueRadial = (plot.radial + magVar + 360) % 360;
+        const pos = getDestPoint(bullLat, bullLon, trueRadial, plot.dist);
+        plot.lat = pos.lat;
+        plot.lon = pos.lon;
+    }
 
     drawTacticalDisplay();
     renderHistory();
+    saveState();
 };
 
 window.removePlot = (index) => {
     state.plots.splice(index, 1);
     renderHistory();
     drawTacticalDisplay();
+    saveState();
 };
 
 window.removeTargetTrack = (targetId) => {
@@ -2807,6 +2855,7 @@ document.querySelectorAll('#plot-mode-segmented .segment-btn').forEach(btn => {
             document.getElementById('res-bull-display').style.display = '';
         }
         clearPlotFields();
+        saveState();
     });
 });
 
@@ -2822,6 +2871,7 @@ if (orientationBtn) {
             orientationBtn.textContent = 'HDG UP';
         }
         drawTacticalDisplay();
+        saveState();
     });
 }
 
@@ -2835,32 +2885,226 @@ el.addThreatConfigBtn.addEventListener('click', () => {
         state.threats.push({ code, type, range });
         el.newThreatCode.value = '';
         updateThreatDropdowns();
+        saveState();
     }
 });
 el.missionFileInput.addEventListener('change', handleMissionFile);
-if (el.gpxFileInput) el.gpxFileInput.addEventListener('change', handleGpxFile);
+if (el.gpxFileInput) el.gpxFileInput.addEventListener('change', (e) => {
+    handleGpxFile(e);
+    // handleGpxFile will handle saveState inside its callback after reading
+});
 
-// Auto calculate magVar when entering Lat/Lon for new Bullseye
-const newBullLatEl = document.getElementById('newBullLat');
-const newBullLonEl = document.getElementById('newBullLon');
-const newBullMagVarEl = document.getElementById('newBullMagVar');
+// SCENARIO PERSISTENCE FUNCTIONS
+function saveState() {
+    try {
+        const data = {
+            plots: state.plots,
+            threats: state.threats,
+            bullseyes: state.bullseyes,
+            activeBullseyeName: state.activeBullseyeName,
+            rangeScale: state.rangeScale,
+            orientation: state.orientation,
+            plotMode: state.plotMode,
+            declutter: state.declutter,
+            showClosestThreats: state.showClosestThreats,
+            plotsFilter: state.plotsFilter,
+            ringsOnBullseye: state.ringsOnBullseye,
+            startTargetId: state.startTargetId,
+            route: state.route
+        };
+        localStorage.setItem('tiziu_scenario_state', JSON.stringify(data));
+    } catch (e) {
+        console.error("Error saving state to localStorage", e);
+    }
+}
 
-const autoCalcBullMagVar = () => {
-    if (!newBullLatEl || !newBullLonEl || !newBullMagVarEl) return;
-    const lat = parseFloat(newBullLatEl.value);
-    const lon = parseFloat(newBullLonEl.value);
-    if (!isNaN(lat) && !isNaN(lon)) {
-        const dec = calcWMMDeclination(lat, lon, 0, 2026.5);
-        newBullMagVarEl.value = dec.toFixed(1);
+function syncPlotModeUI() {
+    const segmentedBtn = document.querySelector(`#plot-mode-segmented .segment-btn[data-val="${state.plotMode}"]`);
+    if (segmentedBtn) {
+        document.querySelectorAll('#plot-mode-segmented .segment-btn').forEach(b => b.classList.remove('active'));
+        segmentedBtn.classList.add('active');
+    }
+    const beInputs = document.querySelectorAll('.plot-be-input');
+    const coordInputs = document.querySelectorAll('.plot-coord-input');
+    if (state.plotMode === 'BE') {
+        beInputs.forEach(el => el.style.display = '');
+        coordInputs.forEach(el => el.style.display = 'none');
+        document.getElementById('res-coord-label').textContent = 'COORDENADAS';
+        document.getElementById('res-coord-display').style.display = '';
+        document.getElementById('res-bull-display').style.display = 'none';
+    } else {
+        beInputs.forEach(el => el.style.display = 'none');
+        coordInputs.forEach(el => el.style.display = '');
+        document.getElementById('res-coord-label').textContent = 'BULLSEYE';
+        document.getElementById('res-coord-display').style.display = 'none';
+        document.getElementById('res-bull-display').style.display = '';
+    }
+}
+
+function loadSavedState() {
+    try {
+        const saved = localStorage.getItem('tiziu_scenario_state');
+        if (!saved) return false;
+        const data = JSON.parse(saved);
+        if (!data) return false;
+
+        if (Array.isArray(data.plots)) state.plots = data.plots;
+        if (Array.isArray(data.threats)) state.threats = data.threats;
+        if (Array.isArray(data.bullseyes)) state.bullseyes = data.bullseyes;
+        if (typeof data.activeBullseyeName === 'string') state.activeBullseyeName = data.activeBullseyeName;
+        if (typeof data.rangeScale === 'number') state.rangeScale = data.rangeScale;
+        if (typeof data.orientation === 'string') state.orientation = data.orientation;
+        if (typeof data.plotMode === 'string') state.plotMode = data.plotMode;
+        if (typeof data.declutter === 'boolean') state.declutter = data.declutter;
+        if (typeof data.showClosestThreats === 'boolean') state.showClosestThreats = data.showClosestThreats;
+        if (typeof data.plotsFilter === 'string') state.plotsFilter = data.plotsFilter;
+        if (typeof data.ringsOnBullseye === 'boolean') state.ringsOnBullseye = data.ringsOnBullseye;
+        if (typeof data.startTargetId === 'number') state.startTargetId = data.startTargetId;
+        if (Array.isArray(data.route)) state.route = data.route;
+
+        updateBullseyeDropdowns();
+        updateBullseyesTable();
+        updateThreatDropdowns();
+
+        if (state.activeBullseyeName) {
+            selectActiveBullseye(state.activeBullseyeName);
+        } else {
+            selectActiveBullseye("");
+        }
+
+        const display = document.getElementById('zoom-level-display');
+        if (display) {
+            display.textContent = `${state.rangeScale}`;
+        }
+
+        const orientationBtn = document.getElementById('orientation-toggle-btn');
+        if (orientationBtn) {
+            if (state.orientation === 'NORTH') {
+                orientationBtn.textContent = 'N UP';
+            } else {
+                orientationBtn.textContent = 'HDG UP';
+            }
+        }
+
+        const declutterBtn = document.getElementById('dclt-btn');
+        if (declutterBtn) {
+            if (state.declutter) {
+                declutterBtn.classList.add('active');
+            } else {
+                declutterBtn.classList.remove('active');
+            }
+        }
+
+        const ringsBtn = document.getElementById('rings-be-btn');
+        if (ringsBtn) {
+            if (state.ringsOnBullseye) {
+                ringsBtn.classList.add('active');
+                ringsBtn.textContent = 'RNG BE';
+            } else {
+                ringsBtn.classList.remove('active');
+                ringsBtn.textContent = 'RNG AC';
+            }
+        }
+
+        const overlay = document.getElementById('closest-threats-overlay');
+        if (overlay) {
+            if (state.showClosestThreats) {
+                overlay.classList.remove('collapsed');
+            } else {
+                overlay.classList.add('collapsed');
+            }
+        }
+
+        if (state.startTargetId) {
+            const startInput = document.getElementById('start-target-id-input');
+            if (startInput) startInput.value = state.startTargetId;
+        }
+
+        setPlotsFilter(state.plotsFilter);
+        syncPlotModeUI();
+        renderHistory();
+        drawTacticalDisplay();
+        return true;
+    } catch (e) {
+        console.error("Error loading state from localStorage", e);
+        return false;
+    }
+}
+
+window.resetScenario = () => {
+    if (confirm("Deseja realmente limpar completamente o cenário atual? Isso apagará todos os alvos, ameaças, rotas e bullseyes cadastrados.")) {
+        localStorage.removeItem('tiziu_scenario_state');
+        state.plots = [];
+        state.threats = [];
+        state.bullseyes = [];
+        state.activeBullseyeName = "";
+        state.rangeScale = 40;
+        state.orientation = 'HEADING';
+        state.plotMode = 'BE';
+        state.declutter = false;
+        state.showClosestThreats = true;
+        state.plotsFilter = 'ALL';
+        state.ringsOnBullseye = false;
+        state.startTargetId = 71;
+        state.route = [];
+
+        if (el.bullLat) el.bullLat.value = "";
+        if (el.bullLon) el.bullLon.value = "";
+        if (el.magVar) el.magVar.value = "0";
+
+        const badge = document.getElementById('bull-badge');
+        if (badge) {
+            badge.textContent = `BULLSEYE NENHUM`;
+            badge.className = 'badge-silver';
+        }
+
+        const activeSelect = document.getElementById('active-bullseye-select');
+        if (activeSelect) activeSelect.value = "";
+
+        const display = document.getElementById('zoom-level-display');
+        if (display) display.textContent = `${state.rangeScale}`;
+
+        const orientationBtn = document.getElementById('orientation-toggle-btn');
+        if (orientationBtn) {
+            orientationBtn.textContent = 'HDG UP';
+        }
+
+        const declutterBtn = document.getElementById('dclt-btn');
+        if (declutterBtn) declutterBtn.classList.remove('active');
+
+        const ringsBtn = document.getElementById('rings-be-btn');
+        if (ringsBtn) {
+            ringsBtn.classList.remove('active');
+            ringsBtn.textContent = 'RNG AC';
+        }
+
+        const overlay = document.getElementById('closest-threats-overlay');
+        if (overlay) overlay.classList.remove('collapsed');
+
+        const startInput = document.getElementById('start-target-id-input');
+        if (startInput) startInput.value = "71";
+
+        syncPlotModeUI();
+        clearPlotFields();
+        updateBullseyeDropdowns();
+        updateBullseyesTable();
+        updateThreatDropdowns();
+        setPlotsFilter('ALL');
+        renderHistory();
+        drawTacticalDisplay();
     }
 };
 
-if (newBullLatEl) newBullLatEl.addEventListener('input', autoCalcBullMagVar);
-if (newBullLonEl) newBullLonEl.addEventListener('input', autoCalcBullMagVar);
-
 // INITIAL LOAD
 window.initTheme();
-loadDefaultMission(false);
+const loaded = loadSavedState();
+if (!loaded) {
+    // If no state is saved, make sure we have a clean environment with no loaded defaults
+    updateBullseyeDropdowns();
+    updateBullseyesTable();
+    updateThreatDropdowns();
+    selectActiveBullseye("");
+}
 initGPS();
 window.activateSensors(true);
 window.updateCompassStatusUI();

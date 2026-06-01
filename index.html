@@ -313,16 +313,12 @@
                                     style="text-transform: uppercase;">
                             </div>
                             <div class="input-group">
-                                <label>LAT (DD)</label>
-                                <input type="number" id="newBullLat" step="any" placeholder="-15.52">
+                                <label>LAT (GGMM.MM')</label>
+                                <input type="text" id="newBullLat" placeholder="1530.00S">
                             </div>
                             <div class="input-group">
-                                <label>LON (DD)</label>
-                                <input type="number" id="newBullLon" step="any" placeholder="-49.98">
-                            </div>
-                            <div class="input-group" style="flex: 0.8 !important;">
-                                <label>MAGVAR</label>
-                                <input type="number" id="newBullMagVar" step="any" placeholder="-21.4">
+                                <label>LON (GGMM.MM')</label>
+                                <input type="text" id="newBullLon" placeholder="04930.00W">
                             </div>
                             <button id="add-bull-btn" class="btn-add-threat-inline-horizontal"
                                 onclick="addBullseyeConfig()">+</button>
@@ -340,9 +336,7 @@
                     <!-- THREAT DATA -->
                     <div class="card threat-management-card">
                         <div class="mission-action-row">
-                            <button class="btn-mission-reset" onclick="resetThreats()">LIMPAR TUDO</button>
-                            <button class="btn-mission-default" onclick="loadDefaultMission(true)">RELOAD
-                                TINIA26</button>
+                            <button class="btn-mission-reset" onclick="resetScenario()">LIMPAR CENÁRIO</button>
                         </div>
 
                         <div class="threat-add-form-horizontal">
@@ -377,7 +371,7 @@
         </main>
 
         <footer class="tactical-footer">
-            <p>TIZIU v1.0.0-beta.41 &copy; FPT</p>
+            <p>TIZIU v1.0.0 &copy; FPT</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
     </div>
@@ -422,15 +416,15 @@
     <!-- Hidden native inputs -->
     <input type="hidden" id="ownLat" value="">
     <input type="hidden" id="ownLon" value="">
-    <input type="hidden" id="bullLat" value="-15.520278">
-    <input type="hidden" id="bullLon" value="-49.987222">
-    <input type="hidden" id="magVar" value="-21.4">
+    <input type="hidden" id="bullLat" value="">
+    <input type="hidden" id="bullLon" value="">
+    <input type="hidden" id="magVar" value="0">
 
     <script src="app.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=1.0.0-beta.41')
+                navigator.serviceWorker.register('sw.js?v=1.0.0')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();
