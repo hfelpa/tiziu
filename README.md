@@ -78,13 +78,13 @@ O botão **IMPORTAR CENÁRIO** detecta automaticamente o formato do arquivo:
 
 #### Sintaxe `.txt`
 ```
-BULLSEYE [NOME] [LAT_DD] [LON_DD] [DECLINAÇÃO_MAG]
+BULLSEYE [NOME] [LAT_DD] [LON_DD]
 [CÓDIGO] [TIPO] [ALCANCE_NM]
 ```
 
 Exemplo:
 ```
-BULLSEYE SILVER -15.520278 -49.987222 -21.4
+BULLSEYE SILVER -15.520278 -49.987222
 SA24 A/G 3
 M60 A/G 24
 F5 A/A 23
