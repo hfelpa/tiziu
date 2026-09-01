@@ -3,7 +3,7 @@
  * Core Logic & Math
  */
 
-/* Version: 1.0.5 */
+/* Version: 1.0.6 */
 
 const SARNEG_DAYS = {
     "MON": { name: "MON", word: "BEACHGIRLS", label: "MON - BEACHGIRLS" },
@@ -1480,6 +1480,39 @@ function parseCSARToCoords(str) {
     return null;
 }
 
+// Parse SARDOT Vector from plain or decrypted text (e.g. "120 15", "120/15", "12015", "090 08")
+function parseSardotVector(str) {
+    if (!str) return null;
+    const clean = str.trim().toUpperCase();
+
+    // Ignore if it matches a full 12-digit CSAR coordinate or contains degree symbols with letters
+    const pureDigits = clean.replace(/\D/g, '');
+    if (pureDigits.length >= 10 && (clean.includes('.') || pureDigits.length >= 12)) {
+        return null;
+    }
+
+    // Pattern 1: Delimited by space, slash, dash, comma (e.g. "120 15", "120/15", "120-15", "090 08")
+    const parts = clean.split(/[\s\/\-,\:]+/).filter(Boolean);
+    if (parts.length === 2) {
+        const rad = parseFloat(parts[0]);
+        const dist = parseFloat(parts[1]);
+        if (!isNaN(rad) && !isNaN(dist) && rad >= 0 && rad <= 360 && dist >= 0 && dist < 1000) {
+            return { radial: rad, dist: dist };
+        }
+    }
+
+    // Pattern 2: Pure digits of 4 to 6 chars (e.g. "12015" -> 120/15, "09008" -> 90/8, "0908" -> 90/8, "120120" -> 120/120)
+    if (pureDigits.length >= 4 && pureDigits.length <= 6) {
+        const rad = parseInt(pureDigits.slice(0, 3), 10);
+        const dist = parseInt(pureDigits.slice(3), 10);
+        if (!isNaN(rad) && !isNaN(dist) && rad >= 0 && rad <= 360 && dist >= 0 && dist < 1000) {
+            return { radial: rad, dist: dist };
+        }
+    }
+
+    return null;
+}
+
 window.resetToCampariSardot = () => {
     state.sardot = {
         name: "CAMPARI",
@@ -1809,6 +1842,41 @@ window.decryptSarneg = (cipherText) => {
     return result;
 };
 
+window.updateSarnegPreview = (plainVal) => {
+    const previewEl = document.getElementById('sarneg-decoded-preview');
+    if (!previewEl) return;
+
+    if (!plainVal || !plainVal.trim()) {
+        previewEl.textContent = '';
+        return;
+    }
+
+    const val = plainVal.trim();
+
+    // Check SARDOT vector (e.g. 120 15, 120/15, 12015)
+    const vector = parseSardotVector(val);
+    if (vector) {
+        if (state.sardot && state.sardot.lat !== null) {
+            const trueRadial = (vector.radial + state.sardot.magVar + 360) % 360;
+            const dest = getDestPoint(state.sardot.lat, state.sardot.lon, trueRadial, vector.dist);
+            const csarFormat = formatCoordsToCSAR(dest.lat, dest.lon);
+            previewEl.textContent = `📍 VETOR ${state.sardot.name}: RAD ${vector.radial.toString().padStart(3, '0')}° / ${vector.dist} NM ➔ ${toDDM(dest.lat, true)} ${toDDM(dest.lon, false)} [${csarFormat}]`;
+        } else {
+            previewEl.textContent = `📍 VETOR SARDOT: RAD ${vector.radial.toString().padStart(3, '0')}° / ${vector.dist} NM (CADASTRE O SARDOT)`;
+        }
+        return;
+    }
+
+    // Check CSAR DD MM.CC
+    const parsed = parseCSARToCoords(val);
+    if (parsed) {
+        previewEl.textContent = `🌐 COORD CSAR: ${parsed.latStr} ${parsed.lonStr}`;
+        return;
+    }
+
+    previewEl.textContent = '';
+};
+
 window.handleSarnegLiveConversion = (source, value) => {
     const plainInput = document.getElementById('sarnegPlainInput');
     const cipherInput = document.getElementById('sarnegCipherInput');
@@ -1819,16 +1887,21 @@ window.handleSarnegLiveConversion = (source, value) => {
 
     if (source === 'plain') {
         if (cipherInput) cipherInput.value = encryptSarneg(value);
+        updateSarnegPreview(value);
     } else if (source === 'cipher') {
-        if (plainInput) plainInput.value = decryptSarneg(value);
+        const decrypted = decryptSarneg(value);
+        if (plainInput) plainInput.value = decrypted;
+        updateSarnegPreview(decrypted);
     }
 };
 
 window.clearSarnegConverter = () => {
     const plainInput = document.getElementById('sarnegPlainInput');
     const cipherInput = document.getElementById('sarnegCipherInput');
+    const previewEl = document.getElementById('sarneg-decoded-preview');
     if (plainInput) plainInput.value = '';
     if (cipherInput) cipherInput.value = '';
+    if (previewEl) previewEl.textContent = '';
 };
 
 window.copySarnegResult = () => {
@@ -1842,13 +1915,38 @@ window.copySarnegResult = () => {
 
 window.sendDecryptedToTargetPlot = () => {
     const plainInput = document.getElementById('sarnegPlainInput');
-    if (!plainInput || !plainInput.value) {
-        alert("Preencha ou descriptografe as coordenadas primeiro.");
+    const cipherInput = document.getElementById('sarnegCipherInput');
+
+    // Auto decrypt if plain input is empty but cipher input has content
+    if ((!plainInput || !plainInput.value.trim()) && cipherInput && cipherInput.value.trim()) {
+        handleSarnegLiveConversion('cipher', cipherInput.value);
+    }
+
+    if (!plainInput || !plainInput.value.trim()) {
+        alert("Preencha ou descriptografe o vetor SARDOT (ex: ABC DE) ou coordenadas primeiro.");
         return;
     }
 
-    const parsed = parseCSARToCoords(plainInput.value);
-    if (parsed) {
+    const val = plainInput.value.trim();
+
+    // 1. SARDOT Vector Check (e.g. "120 15", "120/15", "12015", or decoded "ABC DE")
+    const vector = parseSardotVector(val);
+    if (vector) {
+        if (!state.sardot || state.sardot.lat === null) {
+            alert("Cadastre ou ative o SARDOT (ex: CAMPARI) para plotar este vetor!");
+            return;
+        }
+
+        const trueRadial = (vector.radial + state.sardot.magVar + 360) % 360;
+        const dest = getDestPoint(state.sardot.lat, state.sardot.lon, trueRadial, vector.dist);
+
+        // Update SARDOT vector calculator fields as well
+        const radInput = document.getElementById('sardotCalcRadial');
+        const distInput = document.getElementById('sardotCalcDist');
+        if (radInput) radInput.value = vector.radial;
+        if (distInput) distInput.value = vector.dist;
+        calculateFromSardotVector();
+
         // Switch to EMPREGO page
         const empregoBtn = document.querySelector('.nav-btn[data-page="calc-page"]');
         if (empregoBtn) empregoBtn.click();
@@ -1859,16 +1957,37 @@ window.sendDecryptedToTargetPlot = () => {
 
         const latInput = document.getElementById('targetLat');
         const lonInput = document.getElementById('targetLon');
+        if (latInput) latInput.value = toDDM(dest.lat, true);
+        if (lonInput) lonInput.value = toDDM(dest.lon, false);
+
+        calculateBRAA();
+        calculateBullCoord();
+        alert(`Vetor SARDOT (RAD ${vector.radial.toString().padStart(3, '0')}° / DIST ${vector.dist} NM a partir de ${state.sardot.name}) plotado com sucesso na tela de EMPREGO!`);
+        return;
+    }
+
+    // 2. CSAR DD MM.CC Coordinate Check
+    const parsed = parseCSARToCoords(val);
+    if (parsed) {
+        const empregoBtn = document.querySelector('.nav-btn[data-page="calc-page"]');
+        if (empregoBtn) empregoBtn.click();
+
+        const coordBtn = document.querySelector('#plot-mode-segmented .segment-btn[data-val="COORD"]');
+        if (coordBtn) coordBtn.click();
+
+        const latInput = document.getElementById('targetLat');
+        const lonInput = document.getElementById('targetLon');
         if (latInput) latInput.value = parsed.latStr;
         if (lonInput) lonInput.value = parsed.lonStr;
 
         calculateBRAA();
         calculateBullCoord();
+        alert(`Coordenadas CSAR (${parsed.latStr} ${parsed.lonStr}) enviadas para a tela de EMPREGO!`);
         return;
     }
 
-    // Fallback: standard digit extraction (12 digits DDMMCC DDMMCC)
-    const digits = plainInput.value.replace(/\D/g, '');
+    // 3. Fallback: 12-digit standard extraction
+    const digits = val.replace(/\D/g, '');
     if (digits.length >= 12) {
         const empregoBtn = document.querySelector('.nav-btn[data-page="calc-page"]');
         if (empregoBtn) empregoBtn.click();
@@ -1887,8 +2006,9 @@ window.sendDecryptedToTargetPlot = () => {
 
         calculateBRAA();
         calculateBullCoord();
+        alert("Coordenadas enviadas para a tela de EMPREGO!");
     } else {
-        alert("Coordenada decodificada não possui os 12 dígitos do formato DD MM.CC (ex: 20 28.98 55 47.77).");
+        alert("Formato não reconhecido. Digite um Vetor SARDOT (ex: ABC DE ou 120 15) ou Coordenadas CSAR (ex: 20 28.98 55 47.77).");
     }
 };
 

@@ -302,22 +302,23 @@
 
                         <!-- CONVERSOR BIDIRECIONAL SARNEG -->
                         <div class="card-header-inner" style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                            <span style="font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">CONVERSOR RÁPIDO (DD MM.CC OU MGRS 8D)</span>
-                            <span style="font-size: 0.75rem; color: #888;">LON: 1º ZERO SUPRIMIDO</span>
+                            <span style="font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">CONVERSOR RÁPIDO (VETOR SARDOT / DD MM.CC / MGRS)</span>
+                            <span style="font-size: 0.75rem; color: #888;">EX: ABC DE (VETOR) OU DD MM.CC</span>
                         </div>
                         <div class="sarneg-converter-container">
                             <div class="input-group" style="margin-bottom: 10px;">
-                                <label>CLARO (DD MM.CC / MGRS 8D / COORDENADAS)</label>
-                                <input type="text" id="sarnegPlainInput" placeholder="EX: 20 28.98 55 47.77 ou 21K VB 1234 5678"
+                                <label>CLARO (VETOR SARDOT: 120 15 / DD MM.CC / MGRS)</label>
+                                <input type="text" id="sarnegPlainInput" placeholder="EX: 120 15 (Vetor) ou 20 28.98 55 47.77 ou 21K VB 1234 5678"
                                     style="font-family: var(--font-mono); font-size: 1.1rem; font-weight: bold; color: var(--primary-color);"
                                     oninput="handleSarnegLiveConversion('plain', this.value)">
                             </div>
-                            <div class="input-group" style="margin-bottom: 12px;">
+                            <div class="input-group" style="margin-bottom: 10px;">
                                 <label>CIFRADO (SARNEG CRIPTOGRAFADO)</label>
-                                <input type="text" id="sarnegCipherInput" placeholder="EX: AB AL.SL GG HR.RR ou 21K VB EACH GILS"
+                                <input type="text" id="sarnegCipherInput" placeholder="EX: ABC DE (Vetor) ou AB AL.SL GG HR.RR"
                                     style="font-family: var(--font-mono); font-size: 1.1rem; font-weight: bold; color: #ffb000; text-transform: uppercase;"
                                     oninput="handleSarnegLiveConversion('cipher', this.value)">
                             </div>
+                            <div id="sarneg-decoded-preview" style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--primary-color); min-height: 18px; margin-bottom: 10px; font-weight: bold;"></div>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                 <button class="btn-import-mission btn-green" style="flex: 1; min-width: 140px;" onclick="copySarnegResult()">COPIAR CIFRADO</button>
                                 <button class="btn-import-mission btn-purple" style="flex: 1; min-width: 140px;" onclick="sendDecryptedToTargetPlot()">ENVIAR P/ PLOT</button>
@@ -546,7 +547,7 @@
         </main>
 
         <footer class="tactical-footer">
-            <p>TIZIU v1.0.5 &copy; FPT</p>
+            <p>TIZIU v1.0.6 &copy; FPT</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
     </div>
@@ -599,7 +600,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=1.0.5')
+                navigator.serviceWorker.register('sw.js?v=1.0.6')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();
