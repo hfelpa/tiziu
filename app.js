@@ -3,8 +3,7 @@
  * Core Logic & Math
  */
 
-/* Version: 1.0.0-beta.34 */
-const CACHE_NAME = 'tiziu-v1.0.0-beta.36';
+/* Version: 1.0.1 */
 
 
 
@@ -204,7 +203,6 @@ const el = {
     bullLat: document.getElementById('bullLat'),
     bullLon: document.getElementById('bullLon'),
     magVar: document.getElementById('magVar'),
-    bullBadge: document.getElementById('bull-badge'),
     targetRadial: document.getElementById('targetRadial'),
     targetDist: document.getElementById('targetDist'),
     targetId: document.getElementById('targetId'),
@@ -224,7 +222,6 @@ const el = {
     targetLon: document.getElementById('targetLon'),
     canvas: document.getElementById('tactical-canvas'),
     addPlotBtn: document.getElementById('add-plot-btn'),
-    threatSelect: document.getElementById('threat-select'),
     historyGroups: document.getElementById('history-groups'),
     threatsConfigList: document.getElementById('threats-config-list'),
     threatCountBadge: document.getElementById('threat-count-badge'),
@@ -1071,12 +1068,6 @@ window.selectActiveBullseye = (name) => {
         if (el.bullLon) el.bullLon.value = bull.lon;
         if (el.magVar) el.magVar.value = bull.magVar;
 
-        const badge = document.getElementById('bull-badge');
-        if (badge) {
-            badge.textContent = `BULLSEYE ${bull.name}`;
-            badge.className = 'badge-gold';
-        }
-
         const activeSelect = document.getElementById('active-bullseye-select');
         if (activeSelect) activeSelect.value = bull.name;
 
@@ -1088,12 +1079,6 @@ window.selectActiveBullseye = (name) => {
         if (el.bullLat) el.bullLat.value = "";
         if (el.bullLon) el.bullLon.value = "";
         if (el.magVar) el.magVar.value = "0";
-
-        const badge = document.getElementById('bull-badge');
-        if (badge) {
-            badge.textContent = 'BULLSEYE NENHUM';
-            badge.className = 'badge-silver';
-        }
 
         const activeSelect = document.getElementById('active-bullseye-select');
         if (activeSelect) activeSelect.value = "";
@@ -1848,6 +1833,10 @@ window.updatePlot = (index, field, value) => {
     } else {
         plot[field] = parseFloat(value);
     }
+
+    const bullLat = parseFloat(el.bullLat.value);
+    const bullLon = parseFloat(el.bullLon.value);
+    const magVar = parseFloat(el.magVar.value) || 0;
 
     if (!isNaN(bullLat) && !isNaN(bullLon)) {
         const trueRadial = (plot.radial + magVar + 360) % 360;
@@ -3051,12 +3040,6 @@ window.resetScenario = () => {
         if (el.bullLat) el.bullLat.value = "";
         if (el.bullLon) el.bullLon.value = "";
         if (el.magVar) el.magVar.value = "0";
-
-        const badge = document.getElementById('bull-badge');
-        if (badge) {
-            badge.textContent = `BULLSEYE NENHUM`;
-            badge.className = 'badge-silver';
-        }
 
         const activeSelect = document.getElementById('active-bullseye-select');
         if (activeSelect) activeSelect.value = "";
