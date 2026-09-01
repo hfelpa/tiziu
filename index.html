@@ -72,7 +72,7 @@
                                 <button class="segment-btn" data-val="COORD">COORD</button>
                             </div>
                             <select id="active-bullseye-select" class="select-small"
-                                style="max-width: 140px; background: rgba(0, 255, 65, 0.1); border: 1px solid var(--primary-color); color: var(--primary-color); font-weight: bold; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.85rem;"
+                                style="max-width: 140px; background: #000000; border: 1px solid var(--primary-color); color: var(--primary-color); font-weight: bold; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.85rem;"
                                 onchange="selectActiveBullseye(this.value)">
                                 <option value="SILVER">SILVER</option>
                             </select>
@@ -249,16 +249,16 @@
                             <div class="input-group" style="flex: 1.3;">
                                 <label>DIA DA SEMANA (SARNEG FIXO)</label>
                                 <select id="sarnegDaySelect" class="select-small"
-                                    style="height: 52px; background: rgba(0, 255, 65, 0.1); border: 1px solid var(--primary-color); color: var(--primary-color); font-weight: bold; padding: 4px 8px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.95rem; width: 100%;"
+                                    style="height: 52px; background: #000000; border: 1px solid var(--primary-color); color: var(--primary-color); font-weight: bold; padding: 4px 8px; border-radius: 6px; font-family: var(--font-mono); font-size: 0.95rem; width: 100%;"
                                     onchange="selectSarnegDay(this.value)">
-                                    <option value="MON">MON - BEACHGIRLS</option>
-                                    <option value="TUE">TUE - BLUEPRINTS</option>
-                                    <option value="WED">WED - SYMPATHIZE</option>
-                                    <option value="THU">THU - TUNAFISHER</option>
-                                    <option value="FRI">FRI - BLACKSMITH</option>
-                                    <option value="SAT">SAT - LENGTHWAYS</option>
-                                    <option value="SUN">SUN - LUMBERJACK</option>
-                                    <option value="CUSTOM">CUSTOM - PERSONALIZADA</option>
+                                    <option value="MON" style="background:#0a0a0a; color:var(--primary-color);">MON - BEACHGIRLS</option>
+                                    <option value="TUE" style="background:#0a0a0a; color:var(--primary-color);">TUE - BLUEPRINTS</option>
+                                    <option value="WED" style="background:#0a0a0a; color:var(--primary-color);">WED - SYMPATHIZE</option>
+                                    <option value="THU" style="background:#0a0a0a; color:var(--primary-color);">THU - TUNAFISHER</option>
+                                    <option value="FRI" style="background:#0a0a0a; color:var(--primary-color);">FRI - BLACKSMITH</option>
+                                    <option value="SAT" style="background:#0a0a0a; color:var(--primary-color);">SAT - LENGTHWAYS</option>
+                                    <option value="SUN" style="background:#0a0a0a; color:var(--primary-color);">SUN - LUMBERJACK</option>
+                                    <option value="CUSTOM" style="background:#0a0a0a; color:var(--primary-color);">CUSTOM - PERSONALIZADA</option>
                                 </select>
                             </div>
                             <div class="input-group" style="flex: 1;">
@@ -546,7 +546,7 @@
         </main>
 
         <footer class="tactical-footer">
-            <p>TIZIU v1.0.4 &copy; FPT</p>
+            <p>TIZIU v1.0.5 &copy; FPT</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
     </div>
@@ -599,7 +599,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=1.0.4')
+                navigator.serviceWorker.register('sw.js?v=1.0.5')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();

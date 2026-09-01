@@ -3,7 +3,7 @@
  * Core Logic & Math
  */
 
-/* Version: 1.0.4 */
+/* Version: 1.0.5 */
 
 const SARNEG_DAYS = {
     "MON": { name: "MON", word: "BEACHGIRLS", label: "MON - BEACHGIRLS" },

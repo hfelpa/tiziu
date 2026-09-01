@@ -489,6 +489,12 @@ input, select {
     height: 60px;
 }
 
+select option,
+.select-small option {
+    background: #000000;
+    color: var(--primary-color);
+}
+
 input[readonly] { cursor: pointer; border-color: rgba(0, 255, 65, 0.3); }
 input:focus, select:focus { border-color: var(--primary-color); outline: none; background: #111; }
 
