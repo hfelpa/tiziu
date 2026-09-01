@@ -1,5 +1,5 @@
-/* Version: 1.0.6 */
-const CACHE_NAME = 'tiziu-v1.0.6';
+/* Version: 1.0.7 */
+const CACHE_NAME = 'tiziu-v1.0.7';
 const ASSETS = [
     './',
     './index.html',

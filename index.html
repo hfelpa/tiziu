@@ -318,10 +318,9 @@
                                     style="font-family: var(--font-mono); font-size: 1.1rem; font-weight: bold; color: #ffb000; text-transform: uppercase;"
                                     oninput="handleSarnegLiveConversion('cipher', this.value)">
                             </div>
-                            <div id="sarneg-decoded-preview" style="font-size: 0.8rem; font-family: var(--font-mono); color: var(--primary-color); min-height: 18px; margin-bottom: 10px; font-weight: bold;"></div>
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                 <button class="btn-import-mission btn-green" style="flex: 1; min-width: 140px;" onclick="copySarnegResult()">COPIAR CIFRADO</button>
-                                <button class="btn-import-mission btn-purple" style="flex: 1; min-width: 140px;" onclick="sendDecryptedToTargetPlot()">ENVIAR P/ PLOT</button>
+                                <button class="btn-import-mission btn-purple" style="flex: 1; min-width: 140px;" onclick="sendDecryptedToTargetPlot()">PLOT</button>
                                 <button class="btn-mission-reset" style="width: auto; padding: 0 16px;" onclick="clearSarnegConverter()">LIMPAR</button>
                             </div>
                         </div>
@@ -547,7 +546,7 @@
         </main>
 
         <footer class="tactical-footer">
-            <p>TIZIU v1.0.6 &copy; FPT</p>
+            <p>TIZIU v1.0.7 &copy; FPT</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
     </div>
@@ -600,7 +599,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=1.0.6')
+                navigator.serviceWorker.register('sw.js?v=1.0.7')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();

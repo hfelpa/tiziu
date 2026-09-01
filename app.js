@@ -3,7 +3,7 @@
  * Core Logic & Math
  */
 
-/* Version: 1.0.6 */
+/* Version: 1.0.7 */
 
 const SARNEG_DAYS = {
     "MON": { name: "MON", word: "BEACHGIRLS", label: "MON - BEACHGIRLS" },
@@ -1842,41 +1842,6 @@ window.decryptSarneg = (cipherText) => {
     return result;
 };
 
-window.updateSarnegPreview = (plainVal) => {
-    const previewEl = document.getElementById('sarneg-decoded-preview');
-    if (!previewEl) return;
-
-    if (!plainVal || !plainVal.trim()) {
-        previewEl.textContent = '';
-        return;
-    }
-
-    const val = plainVal.trim();
-
-    // Check SARDOT vector (e.g. 120 15, 120/15, 12015)
-    const vector = parseSardotVector(val);
-    if (vector) {
-        if (state.sardot && state.sardot.lat !== null) {
-            const trueRadial = (vector.radial + state.sardot.magVar + 360) % 360;
-            const dest = getDestPoint(state.sardot.lat, state.sardot.lon, trueRadial, vector.dist);
-            const csarFormat = formatCoordsToCSAR(dest.lat, dest.lon);
-            previewEl.textContent = `📍 VETOR ${state.sardot.name}: RAD ${vector.radial.toString().padStart(3, '0')}° / ${vector.dist} NM ➔ ${toDDM(dest.lat, true)} ${toDDM(dest.lon, false)} [${csarFormat}]`;
-        } else {
-            previewEl.textContent = `📍 VETOR SARDOT: RAD ${vector.radial.toString().padStart(3, '0')}° / ${vector.dist} NM (CADASTRE O SARDOT)`;
-        }
-        return;
-    }
-
-    // Check CSAR DD MM.CC
-    const parsed = parseCSARToCoords(val);
-    if (parsed) {
-        previewEl.textContent = `🌐 COORD CSAR: ${parsed.latStr} ${parsed.lonStr}`;
-        return;
-    }
-
-    previewEl.textContent = '';
-};
-
 window.handleSarnegLiveConversion = (source, value) => {
     const plainInput = document.getElementById('sarnegPlainInput');
     const cipherInput = document.getElementById('sarnegCipherInput');
@@ -1887,21 +1852,17 @@ window.handleSarnegLiveConversion = (source, value) => {
 
     if (source === 'plain') {
         if (cipherInput) cipherInput.value = encryptSarneg(value);
-        updateSarnegPreview(value);
     } else if (source === 'cipher') {
         const decrypted = decryptSarneg(value);
         if (plainInput) plainInput.value = decrypted;
-        updateSarnegPreview(decrypted);
     }
 };
 
 window.clearSarnegConverter = () => {
     const plainInput = document.getElementById('sarnegPlainInput');
     const cipherInput = document.getElementById('sarnegCipherInput');
-    const previewEl = document.getElementById('sarneg-decoded-preview');
     if (plainInput) plainInput.value = '';
     if (cipherInput) cipherInput.value = '';
-    if (previewEl) previewEl.textContent = '';
 };
 
 window.copySarnegResult = () => {
@@ -1928,6 +1889,9 @@ window.sendDecryptedToTargetPlot = () => {
     }
 
     const val = plainInput.value.trim();
+    let dest = null;
+    let originalRadial = null;
+    let originalDist = null;
 
     // 1. SARDOT Vector Check (e.g. "120 15", "120/15", "12015", or decoded "ABC DE")
     const vector = parseSardotVector(val);
@@ -1938,7 +1902,9 @@ window.sendDecryptedToTargetPlot = () => {
         }
 
         const trueRadial = (vector.radial + state.sardot.magVar + 360) % 360;
-        const dest = getDestPoint(state.sardot.lat, state.sardot.lon, trueRadial, vector.dist);
+        dest = getDestPoint(state.sardot.lat, state.sardot.lon, trueRadial, vector.dist);
+        originalRadial = vector.radial;
+        originalDist = vector.dist;
 
         // Update SARDOT vector calculator fields as well
         const radInput = document.getElementById('sardotCalcRadial');
@@ -1946,70 +1912,101 @@ window.sendDecryptedToTargetPlot = () => {
         if (radInput) radInput.value = vector.radial;
         if (distInput) distInput.value = vector.dist;
         calculateFromSardotVector();
-
-        // Switch to EMPREGO page
-        const empregoBtn = document.querySelector('.nav-btn[data-page="calc-page"]');
-        if (empregoBtn) empregoBtn.click();
-
-        // Switch plot mode to COORD
-        const coordBtn = document.querySelector('#plot-mode-segmented .segment-btn[data-val="COORD"]');
-        if (coordBtn) coordBtn.click();
-
-        const latInput = document.getElementById('targetLat');
-        const lonInput = document.getElementById('targetLon');
-        if (latInput) latInput.value = toDDM(dest.lat, true);
-        if (lonInput) lonInput.value = toDDM(dest.lon, false);
-
-        calculateBRAA();
-        calculateBullCoord();
-        alert(`Vetor SARDOT (RAD ${vector.radial.toString().padStart(3, '0')}° / DIST ${vector.dist} NM a partir de ${state.sardot.name}) plotado com sucesso na tela de EMPREGO!`);
-        return;
-    }
-
-    // 2. CSAR DD MM.CC Coordinate Check
-    const parsed = parseCSARToCoords(val);
-    if (parsed) {
-        const empregoBtn = document.querySelector('.nav-btn[data-page="calc-page"]');
-        if (empregoBtn) empregoBtn.click();
-
-        const coordBtn = document.querySelector('#plot-mode-segmented .segment-btn[data-val="COORD"]');
-        if (coordBtn) coordBtn.click();
-
-        const latInput = document.getElementById('targetLat');
-        const lonInput = document.getElementById('targetLon');
-        if (latInput) latInput.value = parsed.latStr;
-        if (lonInput) lonInput.value = parsed.lonStr;
-
-        calculateBRAA();
-        calculateBullCoord();
-        alert(`Coordenadas CSAR (${parsed.latStr} ${parsed.lonStr}) enviadas para a tela de EMPREGO!`);
-        return;
-    }
-
-    // 3. Fallback: 12-digit standard extraction
-    const digits = val.replace(/\D/g, '');
-    if (digits.length >= 12) {
-        const empregoBtn = document.querySelector('.nav-btn[data-page="calc-page"]');
-        if (empregoBtn) empregoBtn.click();
-
-        const coordBtn = document.querySelector('#plot-mode-segmented .segment-btn[data-val="COORD"]');
-        if (coordBtn) coordBtn.click();
-
-        const latDigits = digits.slice(0, 6);
-        const lonDigits = digits.slice(6, 12);
-        const fullLonDigits = '0' + lonDigits; // Add leading zero to longitude for 3-digit degrees
-
-        const latInput = document.getElementById('targetLat');
-        const lonInput = document.getElementById('targetLon');
-        if (latInput) latInput.value = formatCoordinateRealtime(latDigits, false);
-        if (lonInput) lonInput.value = formatCoordinateRealtime(fullLonDigits, true);
-
-        calculateBRAA();
-        calculateBullCoord();
-        alert("Coordenadas enviadas para a tela de EMPREGO!");
     } else {
-        alert("Formato não reconhecido. Digite um Vetor SARDOT (ex: ABC DE ou 120 15) ou Coordenadas CSAR (ex: 20 28.98 55 47.77).");
+        // 2. CSAR DD MM.CC Coordinate Check
+        const parsed = parseCSARToCoords(val);
+        if (parsed) {
+            dest = { lat: parsed.lat, lon: parsed.lon };
+        } else {
+            // 3. Fallback: 12-digit standard extraction
+            const digits = val.replace(/\D/g, '');
+            if (digits.length >= 12) {
+                const latDeg = parseInt(digits.slice(0, 2), 10);
+                const latMin = parseFloat(digits.slice(2, 4) + '.' + digits.slice(4, 6));
+                const lonDeg = parseInt(digits.slice(6, 8), 10);
+                const lonMin = parseFloat(digits.slice(8, 10) + '.' + digits.slice(10, 12));
+
+                const isNorth = val.toUpperCase().includes('N');
+                const isEast = val.toUpperCase().includes('E');
+                const signLat = isNorth ? 1 : -1;
+                const signLon = isEast ? 1 : -1;
+
+                dest = {
+                    lat: signLat * (latDeg + latMin / 60),
+                    lon: signLon * (lonDeg + lonMin / 60)
+                };
+            }
+        }
     }
+
+    if (!dest || isNaN(dest.lat) || isNaN(dest.lon)) {
+        alert("Formato não reconhecido. Digite um Vetor SARDOT (ex: ABC DE ou 120 15) ou Coordenadas CSAR (ex: 20 28.98 55 47.77).");
+        return;
+    }
+
+    // Calculate Bullseye radial & distance from active Bullseye (if configured) or SARDOT
+    let magRadial = originalRadial !== null ? Math.round(originalRadial) : 0;
+    let distVal = originalDist !== null ? Math.round(originalDist) : 0;
+
+    const bullLat = parseFloat(el.bullLat ? el.bullLat.value : '');
+    const bullLon = parseFloat(el.bullLon ? el.bullLon.value : '');
+    const magVar = parseFloat(el.magVar ? el.magVar.value : '0') || (state.sardot ? state.sardot.magVar : 0);
+
+    if (!isNaN(bullLat) && !isNaN(bullLon)) {
+        const trueBearing = getBearing(bullLat, bullLon, dest.lat, dest.lon);
+        magRadial = Math.round((trueBearing - magVar + 360) % 360);
+        distVal = Math.round(getDistance(bullLat, bullLon, dest.lat, dest.lon));
+    } else if (state.sardot && state.sardot.lat !== null) {
+        const trueBearing = getBearing(state.sardot.lat, state.sardot.lon, dest.lat, dest.lon);
+        magRadial = Math.round((trueBearing - state.sardot.magVar + 360) % 360);
+        distVal = Math.round(getDistance(state.sardot.lat, state.sardot.lon, dest.lat, dest.lon));
+    }
+
+    // Find next available Target ID
+    const usedIds = new Set(state.plots.map(p => p.targetId));
+    let nextId = state.startTargetId || 1;
+    while (usedIds.has(nextId.toString())) { nextId++; }
+
+    // Plot directly into state.plots
+    state.plots.push({
+        lat: dest.lat,
+        lon: dest.lon,
+        radial: magRadial,
+        dist: distVal,
+        targetId: nextId.toString(),
+        threatCode: "CSAR",
+        threatRange: null,
+        threatType: "A/G",
+        timestamp: Date.now()
+    });
+
+    state.selectedTargetId = nextId.toString();
+
+    // Update input fields on EMPREGO page
+    if (el.targetLat) el.targetLat.value = toDDM(dest.lat, true);
+    if (el.targetLon) el.targetLon.value = toDDM(dest.lon, false);
+    if (el.targetRadial) el.targetRadial.value = magRadial.toString().padStart(3, '0');
+    if (el.targetDist) el.targetDist.value = distVal.toString();
+    if (el.targetThreat) el.targetThreat.value = "CSAR";
+
+    // Set next available ID for upcoming plots
+    const nextUsedIds = new Set(state.plots.map(p => p.targetId));
+    let subsequentId = state.startTargetId || 1;
+    while (nextUsedIds.has(subsequentId.toString())) { subsequentId++; }
+    if (el.targetId) el.targetId.value = subsequentId.toString();
+
+    // Switch to EMPREGO page
+    const empregoBtn = document.querySelector('.nav-btn[data-page="calc-page"]');
+    if (empregoBtn) empregoBtn.click();
+
+    // Re-render and redraw tactical display
+    renderHistory();
+    drawTacticalDisplay();
+    saveState();
+    calculateBRAA();
+    calculateBullCoord();
+
+    alert(`Ponto CSAR (ID ${nextId}) plotado com sucesso na tela de EMPREGO!`);
 };
 
 window.resetThreats = () => { if (confirm("Limpar todas as ameaças?")) { state.threats = []; updateThreatDropdowns(); saveState(); } };
