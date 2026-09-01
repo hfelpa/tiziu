@@ -3,9 +3,34 @@
  * Core Logic & Math
  */
 
-/* Version: 1.0.3 */
+/* Version: 1.0.4 */
 
+const SARNEG_DAYS = {
+    "MON": { name: "MON", word: "BEACHGIRLS", label: "MON - BEACHGIRLS" },
+    "TUE": { name: "TUE", word: "BLUEPRINTS", label: "TUE - BLUEPRINTS" },
+    "WED": { name: "WED", word: "SYMPATHIZE", label: "WED - SYMPATHIZE" },
+    "THU": { name: "THU", word: "TUNAFISHER", label: "THU - TUNAFISHER" },
+    "FRI": { name: "FRI", word: "BLACKSMITH", label: "FRI - BLACKSMITH" },
+    "SAT": { name: "SAT", word: "LENGTHWAYS", label: "SAT - LENGTHWAYS" },
+    "SUN": { name: "SUN", word: "LUMBERJACK", label: "SUN - LUMBERJACK" }
+};
 
+function getDefaultDayOfWeek() {
+    const dayIndex = new Date().getDay(); // 0 = SUN, 1 = MON, ..., 6 = SAT
+    const map = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    return map[dayIndex] || "MON";
+}
+
+// SARDOT CAMPARI: S 20° 28' 59" W 055° 47' 46"
+const CAMPARI_LAT = -(20 + 28 / 60 + 59 / 3600);
+const CAMPARI_LON = -(55 + 47 / 60 + 46 / 3600);
+const DEFAULT_SARDOT = {
+    name: "CAMPARI",
+    lat: CAMPARI_LAT,
+    lon: CAMPARI_LON,
+    magVar: -17.8,
+    active: true
+};
 
 // MGRS LIBRARY (Mini-bundle)
 const mgrs = (function () {
@@ -98,6 +123,8 @@ const CONFIG = {
     TO_DEG: 180 / Math.PI
 };
 
+const initialDay = getDefaultDayOfWeek();
+
 const state = {
     ownPos: { 
         lat: null, 
@@ -136,14 +163,9 @@ const state = {
     selectedTargetId: null,
     plotsFilter: 'ALL',
     ringsOnBullseye: false,
-    sardot: {
-        name: "SARDOT",
-        lat: null,
-        lon: null,
-        magVar: 0,
-        active: false
-    },
-    sarnegWord: ""
+    sardot: { ...DEFAULT_SARDOT },
+    sarnegWord: SARNEG_DAYS[initialDay].word,
+    sarnegDay: initialDay
 };
 
 const INPUT_SEQUENCE_BE = ["targetId", "targetRadial", "targetDist", "targetThreat"];
@@ -1397,17 +1419,103 @@ function applyBullseye(bull) {
 /**
  * CSAR (SARDOT & SARNEG) MODULE
  */
+
+// Format coordinates to CSAR standard DD MM.CC with first zero of longitude suppressed
+function formatCoordsToCSAR(lat, lon) {
+    if (lat === null || lon === null || isNaN(lat) || isNaN(lon)) return "";
+    const absLat = Math.abs(lat);
+    const absLon = Math.abs(lon);
+
+    const latDeg = Math.floor(absLat).toString().padStart(2, '0');
+    const latMin = ((absLat % 1) * 60).toFixed(2).padStart(5, '0');
+
+    const lonDegRaw = Math.floor(absLon);
+    // Suppress first zero of longitude: 055 -> 55, 049 -> 49, 005 -> 05
+    const lonDeg = lonDegRaw.toString().padStart(3, '0').slice(1);
+    const lonMin = ((absLon % 1) * 60).toFixed(2).padStart(5, '0');
+
+    return `${latDeg} ${latMin} ${lonDeg} ${lonMin}`;
+}
+
+// Parse CSAR DD MM.CC or MGRS format into latitude and longitude
+function parseCSARToCoords(str) {
+    if (!str) return null;
+    const clean = str.trim().toUpperCase();
+
+    // Check if MGRS 8-digit or full MGRS string: e.g. 21KVB12345678 or 21K VB 1234 5678
+    const mgrsClean = clean.replace(/\s+/g, '');
+    const mgrsMatch = mgrsClean.match(/^(\d{1,2}[C-X])([A-Z]{2})(\d{8})$/);
+    if (mgrsMatch) {
+        // If mgrs forward/encoding was used, we can decode or handle standard coordinate fallback
+    }
+
+    // Extract digits only
+    const digits = clean.replace(/\D/g, '');
+    if (digits.length >= 12) {
+        // 6 digits lat: DD MM CC
+        const latDeg = parseInt(digits.slice(0, 2), 10);
+        const latMin = parseFloat(digits.slice(2, 4) + '.' + digits.slice(4, 6));
+
+        // 6 digits lon: DD MM CC (first zero suppressed -> so deg is 2 digits like 55 -> 055)
+        const lonDeg = parseInt(digits.slice(6, 8), 10);
+        const lonMin = parseFloat(digits.slice(8, 10) + '.' + digits.slice(10, 12));
+
+        if (!isNaN(latDeg) && !isNaN(latMin) && !isNaN(lonDeg) && !isNaN(lonMin)) {
+            const isNorth = clean.includes('N');
+            const isEast = clean.includes('E');
+            const signLat = isNorth ? 1 : -1;
+            const signLon = isEast ? 1 : -1;
+
+            const latDir = isNorth ? 'N' : 'S';
+            const lonDir = isEast ? 'E' : 'W';
+
+            return {
+                lat: signLat * (latDeg + latMin / 60),
+                lon: signLon * (lonDeg + lonMin / 60),
+                latStr: `${latDir} ${latDeg.toString().padStart(2, '0')}° ${latMin.toFixed(2).padStart(5, '0')}'`,
+                lonStr: `${lonDir} ${lonDeg.toString().padStart(3, '0')}° ${lonMin.toFixed(2).padStart(5, '0')}'`
+            };
+        }
+    }
+    return null;
+}
+
+window.resetToCampariSardot = () => {
+    state.sardot = {
+        name: "CAMPARI",
+        lat: CAMPARI_LAT,
+        lon: CAMPARI_LON,
+        magVar: -17.8,
+        active: true
+    };
+    const calculatedMagVar = calcWMMDeclination(CAMPARI_LAT, CAMPARI_LON, 0, 2026.5);
+    state.sardot.magVar = Math.round(calculatedMagVar * 10) / 10;
+
+    const nameInput = document.getElementById('sardotNameInput');
+    const latInput = document.getElementById('sardotLatInput');
+    const lonInput = document.getElementById('sardotLonInput');
+    if (nameInput) nameInput.value = "CAMPARI";
+    if (latInput) latInput.value = toDDM(CAMPARI_LAT, true);
+    if (lonInput) lonInput.value = toDDM(CAMPARI_LON, false);
+
+    updateSardotUI();
+    updateSardotPosition();
+    drawTacticalDisplay();
+    saveState();
+    alert("SARDOT restaurado para CAMPARI (S 20° 28' 59\" W 055° 47' 46\" / S 20° 28.98' W 055° 47.77')!");
+};
+
 window.saveSardotConfig = () => {
     const nameInput = document.getElementById('sardotNameInput');
     const latInput = document.getElementById('sardotLatInput');
     const lonInput = document.getElementById('sardotLonInput');
 
-    const name = (nameInput.value.trim() || "SARDOT").toUpperCase();
+    const name = (nameInput.value.trim() || "CAMPARI").toUpperCase();
     const lat = parseGGMM_MM(latInput.value, true);
     const lon = parseGGMM_MM(lonInput.value, false);
 
     if (isNaN(lat) || isNaN(lon)) {
-        alert("Preencha a Latitude e Longitude válidas para o SARDOT (ex: S 15° 30.00').");
+        alert("Preencha a Latitude e Longitude válidas para o SARDOT (ex: S 20° 28.98').");
         return;
     }
 
@@ -1426,7 +1534,7 @@ window.saveSardotConfig = () => {
     updateSardotPosition();
     drawTacticalDisplay();
     saveState();
-    alert(`SARDOT "${name}" cadastrado e ativado com sucesso!`);
+    alert(`SARDOT "${name}" salvo e ativado com sucesso!`);
 };
 
 window.toggleSardotActive = () => {
@@ -1447,10 +1555,13 @@ function updateSardotUI() {
     const nameInput = document.getElementById('sardotNameInput');
     const latInput = document.getElementById('sardotLatInput');
     const lonInput = document.getElementById('sardotLonInput');
+    const titleBadge = document.getElementById('sardot-badge-title');
 
     if (state.sardot && state.sardot.lat !== null && state.sardot.lon !== null) {
-        if (coordsText) coordsText.textContent = `${state.sardot.name}: ${toDDM(state.sardot.lat, true)} ${toDDM(state.sardot.lon, false)}`;
+        const csarFormat = formatCoordsToCSAR(state.sardot.lat, state.sardot.lon);
+        if (coordsText) coordsText.textContent = `${state.sardot.name}: ${toDDM(state.sardot.lat, true)} ${toDDM(state.sardot.lon, false)} [${csarFormat}]`;
         if (magvarText) magvarText.textContent = `MAGVAR: ${state.sardot.magVar.toFixed(1)}°`;
+        if (titleBadge) titleBadge.textContent = state.sardot.name || "SARDOT";
         if (nameInput && !nameInput.value) nameInput.value = state.sardot.name;
         if (latInput && !latInput.value) latInput.value = toDDM(state.sardot.lat, true);
         if (lonInput && !lonInput.value) lonInput.value = toDDM(state.sardot.lon, false);
@@ -1467,6 +1578,7 @@ function updateSardotUI() {
     } else {
         if (coordsText) coordsText.textContent = "NÃO CADASTRADO";
         if (magvarText) magvarText.textContent = "MAGVAR: --°";
+        if (titleBadge) titleBadge.textContent = "SARDOT";
         if (btn) {
             btn.classList.remove('active');
             btn.textContent = 'INATIVO';
@@ -1506,10 +1618,12 @@ window.calculateFromSardotVector = () => {
     const radInput = document.getElementById('sardotCalcRadial');
     const distInput = document.getElementById('sardotCalcDist');
     const resCoords = document.getElementById('sardot-res-coords');
+    const resMgrs = document.getElementById('sardot-res-mgrs');
     const resSarneg = document.getElementById('sardot-res-sarneg');
 
     if (!state.sardot || state.sardot.lat === null) {
         if (resCoords) resCoords.textContent = "CADASTRE O SARDOT";
+        if (resMgrs) resMgrs.textContent = "---";
         if (resSarneg) resSarneg.textContent = "---";
         return;
     }
@@ -1519,17 +1633,31 @@ window.calculateFromSardotVector = () => {
 
     if (isNaN(radial) || isNaN(dist)) {
         if (resCoords) resCoords.textContent = "---";
+        if (resMgrs) resMgrs.textContent = "---";
         if (resSarneg) resSarneg.textContent = "---";
         return;
     }
 
     const trueRadial = (radial + state.sardot.magVar + 360) % 360;
     const dest = getDestPoint(state.sardot.lat, state.sardot.lon, trueRadial, dist);
-    const coordStr = `${toDDM(dest.lat, true)} ${toDDM(dest.lon, false)}`;
+    
+    // CSAR format: DD MM.CC with first zero of longitude suppressed
+    const csarStr = formatCoordsToCSAR(dest.lat, dest.lon);
+    
+    // MGRS 8-digit format: e.g. 21K VB 1234 5678
+    let mgrs8Str = "---";
+    try {
+        mgrs8Str = mgrs.forward([dest.lon, dest.lat], 4);
+    } catch (e) {
+        console.error("MGRS calculation error", e);
+    }
 
-    if (resCoords) resCoords.textContent = coordStr;
+    if (resCoords) resCoords.textContent = csarStr;
+    if (resMgrs) resMgrs.textContent = mgrs8Str;
     if (resSarneg) {
-        resSarneg.textContent = (state.sarnegWord && state.sarnegWord.length === 10) ? encryptSarneg(coordStr) : "DEFINA O SARNEG";
+        resSarneg.textContent = (state.sarnegWord && state.sarnegWord.length === 10) 
+            ? encryptSarneg(csarStr) 
+            : "DEFINA O SARNEG";
     }
 };
 
@@ -1579,6 +1707,17 @@ window.plotSardotCalculatedTarget = () => {
 };
 
 // SARNEG LOGIC
+window.selectSarnegDay = (day) => {
+    state.sarnegDay = day;
+    if (SARNEG_DAYS[day]) {
+        state.sarnegWord = SARNEG_DAYS[day].word;
+        const input = document.getElementById('sarnegWordInput');
+        if (input) input.value = state.sarnegWord;
+        updateSarnegWordFromInput(state.sarnegWord);
+    }
+    saveState();
+};
+
 window.validateSarnegWord = (word) => {
     if (!word) return { valid: false, msg: "AGUARDANDO PALAVRA" };
     const clean = word.toUpperCase().replace(/[^A-Z]/g, '');
@@ -1603,6 +1742,13 @@ window.updateSarnegWordFromInput = (val) => {
         }
     }
 
+    // Match day dropdown if it matches a known fixed SARNEG
+    const matchedDay = Object.keys(SARNEG_DAYS).find(k => SARNEG_DAYS[k].word === clean);
+    const daySelect = document.getElementById('sarnegDaySelect');
+    if (daySelect) {
+        daySelect.value = matchedDay || "CUSTOM";
+    }
+
     renderSarnegGrid(clean);
 };
 
@@ -1611,7 +1757,7 @@ window.saveSarnegWord = () => {
     const word = input ? input.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 10) : "";
     const check = validateSarnegWord(word);
     if (!check.valid) {
-        alert("A palavra SARNEG deve conter exatamente 10 letras sem repetições (ex: BLACKHORSE).");
+        alert("A palavra SARNEG deve conter exatamente 10 letras sem repetições (ex: BEACHGIRLS).");
         return;
     }
     state.sarnegWord = word;
@@ -1701,32 +1847,49 @@ window.sendDecryptedToTargetPlot = () => {
         return;
     }
 
-    // Switch to EMPREGO page
-    const empregoBtn = document.querySelector('.nav-btn[data-page="calc-page"]');
-    if (empregoBtn) empregoBtn.click();
+    const parsed = parseCSARToCoords(plainInput.value);
+    if (parsed) {
+        // Switch to EMPREGO page
+        const empregoBtn = document.querySelector('.nav-btn[data-page="calc-page"]');
+        if (empregoBtn) empregoBtn.click();
 
-    // Switch plot mode to COORD
-    const coordBtn = document.querySelector('#plot-mode-segmented .segment-btn[data-val="COORD"]');
-    if (coordBtn) coordBtn.click();
+        // Switch plot mode to COORD
+        const coordBtn = document.querySelector('#plot-mode-segmented .segment-btn[data-val="COORD"]');
+        if (coordBtn) coordBtn.click();
 
-    // Extract digits
+        const latInput = document.getElementById('targetLat');
+        const lonInput = document.getElementById('targetLon');
+        if (latInput) latInput.value = parsed.latStr;
+        if (lonInput) lonInput.value = parsed.lonStr;
+
+        calculateBRAA();
+        calculateBullCoord();
+        return;
+    }
+
+    // Fallback: standard digit extraction (12 digits DDMMCC DDMMCC)
     const digits = plainInput.value.replace(/\D/g, '');
     if (digits.length >= 12) {
-        // Assume LAT (6) and LON (6 or 7)
+        const empregoBtn = document.querySelector('.nav-btn[data-page="calc-page"]');
+        if (empregoBtn) empregoBtn.click();
+
+        const coordBtn = document.querySelector('#plot-mode-segmented .segment-btn[data-val="COORD"]');
+        if (coordBtn) coordBtn.click();
+
         const latDigits = digits.slice(0, 6);
-        const lonDigits = digits.slice(6, 13);
+        const lonDigits = digits.slice(6, 12);
+        const fullLonDigits = '0' + lonDigits; // Add leading zero to longitude for 3-digit degrees
+
         const latInput = document.getElementById('targetLat');
         const lonInput = document.getElementById('targetLon');
         if (latInput) latInput.value = formatCoordinateRealtime(latDigits, false);
-        if (lonInput) lonInput.value = formatCoordinateRealtime(lonDigits, true);
-    } else if (digits.length >= 6) {
-        const latDigits = digits.slice(0, 6);
-        const latInput = document.getElementById('targetLat');
-        if (latInput) latInput.value = formatCoordinateRealtime(latDigits, false);
-    }
+        if (lonInput) lonInput.value = formatCoordinateRealtime(fullLonDigits, true);
 
-    calculateBRAA();
-    calculateBullCoord();
+        calculateBRAA();
+        calculateBullCoord();
+    } else {
+        alert("Coordenada decodificada não possui os 12 dígitos do formato DD MM.CC (ex: 20 28.98 55 47.77).");
+    }
 };
 
 window.resetThreats = () => { if (confirm("Limpar todas as ameaças?")) { state.threats = []; updateThreatDropdowns(); saveState(); } };
@@ -3318,7 +3481,8 @@ function saveState() {
             startTargetId: state.startTargetId,
             route: state.route,
             sardot: state.sardot,
-            sarnegWord: state.sarnegWord
+            sarnegWord: state.sarnegWord,
+            sarnegDay: state.sarnegDay
         };
         localStorage.setItem('tiziu_scenario_state', JSON.stringify(data));
     } catch (e) {
@@ -3369,13 +3533,32 @@ function loadSavedState() {
         if (typeof data.ringsOnBullseye === 'boolean') state.ringsOnBullseye = data.ringsOnBullseye;
         if (typeof data.startTargetId === 'number') state.startTargetId = data.startTargetId;
         if (Array.isArray(data.route)) state.route = data.route;
+        
         if (data.sardot) {
             state.sardot = data.sardot;
-            updateSardotUI();
-            updateSardotPosition();
+        } else {
+            state.sardot = { ...DEFAULT_SARDOT };
         }
-        if (typeof data.sarnegWord === 'string') {
+        updateSardotUI();
+        updateSardotPosition();
+
+        if (data.sarnegDay) {
+            state.sarnegDay = data.sarnegDay;
+            const daySel = document.getElementById('sarnegDaySelect');
+            if (daySel) daySel.value = data.sarnegDay;
+        }
+
+        if (typeof data.sarnegWord === 'string' && data.sarnegWord) {
             state.sarnegWord = data.sarnegWord;
+            const sInput = document.getElementById('sarnegWordInput');
+            if (sInput) sInput.value = state.sarnegWord;
+            updateSarnegWordFromInput(state.sarnegWord);
+        } else {
+            const defDay = getDefaultDayOfWeek();
+            state.sarnegDay = defDay;
+            state.sarnegWord = SARNEG_DAYS[defDay].word;
+            const daySel = document.getElementById('sarnegDaySelect');
+            if (daySel) daySel.value = defDay;
             const sInput = document.getElementById('sarnegWordInput');
             if (sInput) sInput.value = state.sarnegWord;
             updateSarnegWordFromInput(state.sarnegWord);
@@ -3466,14 +3649,11 @@ window.resetScenario = () => {
         state.ringsOnBullseye = false;
         state.startTargetId = 71;
         state.route = [];
-        state.sardot = {
-            name: "SARDOT",
-            lat: null,
-            lon: null,
-            magVar: 0,
-            active: false
-        };
-        state.sarnegWord = "";
+        state.sardot = { ...DEFAULT_SARDOT };
+        
+        const defDay = getDefaultDayOfWeek();
+        state.sarnegDay = defDay;
+        state.sarnegWord = SARNEG_DAYS[defDay].word;
 
         if (el.bullLat) el.bullLat.value = "";
         if (el.bullLon) el.bullLon.value = "";
@@ -3505,9 +3685,12 @@ window.resetScenario = () => {
         const startInput = document.getElementById('start-target-id-input');
         if (startInput) startInput.value = "71";
 
+        const daySel = document.getElementById('sarnegDaySelect');
+        if (daySel) daySel.value = defDay;
+
         const sInput = document.getElementById('sarnegWordInput');
-        if (sInput) sInput.value = "";
-        updateSarnegWordFromInput("");
+        if (sInput) sInput.value = state.sarnegWord;
+        updateSarnegWordFromInput(state.sarnegWord);
         clearSarnegConverter();
         updateSardotUI();
 
@@ -3526,12 +3709,17 @@ window.resetScenario = () => {
 window.initTheme();
 const loaded = loadSavedState();
 if (!loaded) {
-    // If no state is saved, make sure we have a clean environment with no loaded defaults
+    // If no state is saved, make sure we have a clean environment with defaults
     updateBullseyeDropdowns();
     updateBullseyesTable();
     updateThreatDropdowns();
     selectActiveBullseye("");
     updateSardotUI();
+    const daySel = document.getElementById('sarnegDaySelect');
+    if (daySel) daySel.value = state.sarnegDay;
+    const sInput = document.getElementById('sarnegWordInput');
+    if (sInput) sInput.value = state.sarnegWord;
+    updateSarnegWordFromInput(state.sarnegWord);
 }
 initGPS();
 window.activateSensors(true);
@@ -3542,3 +3730,4 @@ function animLoop() {
     requestAnimationFrame(animLoop);
 }
 requestAnimationFrame(animLoop);
+
