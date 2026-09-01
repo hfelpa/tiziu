@@ -35,6 +35,7 @@
             <span class="app-title-compact">TIZIU</span>
             <div class="header-nav-group">
                 <button class="nav-btn active" data-page="calc-page">EMPREGO</button>
+                <button class="nav-btn" data-page="csar-page">CSAR</button>
                 <button class="nav-btn" data-page="settings-page">CONFIGS</button>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -234,7 +235,160 @@
                 </section>
             </div>
 
-            <!-- PAGE 2: SETTINGS (UNIFIED) -->
+            <!-- PAGE 2: CSAR (SARDOT & SARNEG) -->
+            <div id="csar-page" class="page">
+                <!-- SECTION 1: SARNEG (ENCRYPTION GRID) -->
+                <section class="settings-section">
+                    <h3 class="section-title">01. SARNEG (CRIPTOGRAFIA DE COORDENADAS)</h3>
+                    <div class="card csar-card" style="padding: 16px !important;">
+                        <div class="card-header-inner" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                            <span style="font-size: 0.85rem; font-weight: bold; letter-spacing: 1px; color: var(--primary-color);">PALAVRA-CHAVE DO DIA (10 LETRAS)</span>
+                            <span id="sarneg-validation-badge" class="badge-status-valid" style="font-size: 0.75rem; background: rgba(0, 255, 65, 0.15); color: var(--primary-color); border: 1px solid var(--primary-color); padding: 3px 8px; border-radius: 4px; font-family: var(--font-mono); font-weight: bold;">AGUARDANDO PALAVRA</span>
+                        </div>
+                        <div class="threat-add-form-horizontal" style="margin-bottom: 14px;">
+                            <div class="input-group" style="flex: 1;">
+                                <label>PALAVRA SARNEG (10 LETRAS ÚNICAS)</label>
+                                <input type="text" id="sarnegWordInput" placeholder="EX: BLACKHORSE" maxlength="10"
+                                    style="text-transform: uppercase; font-family: var(--font-mono); font-weight: bold; letter-spacing: 2px; font-size: 1.1rem;"
+                                    oninput="updateSarnegWordFromInput(this.value)">
+                            </div>
+                            <button class="btn-import-mission btn-green" onclick="saveSarnegWord()" style="height: 52px; padding: 0 20px; font-weight: bold;">SALVAR</button>
+                        </div>
+
+                        <!-- SARNEG GRID TABLE -->
+                        <div class="sarneg-grid-wrapper" style="margin-bottom: 16px; overflow-x: auto;">
+                            <div class="sarneg-grid-digits">
+                                <div class="sarneg-cell digit">0</div>
+                                <div class="sarneg-cell digit">1</div>
+                                <div class="sarneg-cell digit">2</div>
+                                <div class="sarneg-cell digit">3</div>
+                                <div class="sarneg-cell digit">4</div>
+                                <div class="sarneg-cell digit">5</div>
+                                <div class="sarneg-cell digit">6</div>
+                                <div class="sarneg-cell digit">7</div>
+                                <div class="sarneg-cell digit">8</div>
+                                <div class="sarneg-cell digit">9</div>
+                            </div>
+                            <div class="sarneg-grid-letters" id="sarneg-letters-display">
+                                <div class="sarneg-cell letter">-</div>
+                                <div class="sarneg-cell letter">-</div>
+                                <div class="sarneg-cell letter">-</div>
+                                <div class="sarneg-cell letter">-</div>
+                                <div class="sarneg-cell letter">-</div>
+                                <div class="sarneg-cell letter">-</div>
+                                <div class="sarneg-cell letter">-</div>
+                                <div class="sarneg-cell letter">-</div>
+                                <div class="sarneg-cell letter">-</div>
+                                <div class="sarneg-cell letter">-</div>
+                            </div>
+                        </div>
+
+                        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 16px 0;">
+
+                        <!-- CONVERSOR BIDIRECIONAL SARNEG -->
+                        <div class="card-header-inner" style="margin-bottom: 10px;">
+                            <span style="font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">CONVERSOR RÁPIDO EM TEMPO REAL</span>
+                        </div>
+                        <div class="sarneg-converter-container">
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>CLARO (NÚMEROS / COORDENADA)</label>
+                                <input type="text" id="sarnegPlainInput" placeholder="EX: 153050 ou S 15° 30.50' W 049° 30.00'"
+                                    style="font-family: var(--font-mono); font-size: 1.1rem; font-weight: bold; color: var(--primary-color);"
+                                    oninput="handleSarnegLiveConversion('plain', this.value)">
+                            </div>
+                            <div class="input-group" style="margin-bottom: 12px;">
+                                <label>CIFRADO (SARNEG CRIPTOGRAFADO)</label>
+                                <input type="text" id="sarnegCipherInput" placeholder="EX: LHCHHB ou S LH° CH.HB' W BLH° CH.BB'"
+                                    style="font-family: var(--font-mono); font-size: 1.1rem; font-weight: bold; color: #ffb000; text-transform: uppercase;"
+                                    oninput="handleSarnegLiveConversion('cipher', this.value)">
+                            </div>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="btn-import-mission btn-green" style="flex: 1; min-width: 140px;" onclick="copySarnegResult()">COPIAR CIFRADO</button>
+                                <button class="btn-import-mission btn-purple" style="flex: 1; min-width: 140px;" onclick="sendDecryptedToTargetPlot()">ENVIAR P/ PLOT</button>
+                                <button class="btn-mission-reset" style="width: auto; padding: 0 16px;" onclick="clearSarnegConverter()">LIMPAR</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION 2: SARDOT (SEARCH AND RESCUE POINT) -->
+                <section class="settings-section">
+                    <h3 class="section-title">02. SARDOT (PONTO DE REFERÊNCIA CSAR)</h3>
+                    <div class="card csar-card" style="padding: 16px !important;">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                            <h2 style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <span id="sardot-badge-title" style="white-space: nowrap; color: #ffb000;">SARDOT</span>
+                                <span id="sardot-own-pos-badge" style="font-size: 0.95rem; background: rgba(255, 176, 0, 0.15); color: #ffb000; padding: 4px 8px; border-radius: 4px; border: 1px solid #ffb000; font-family: var(--font-mono); font-weight: bold; white-space: nowrap;">OWN: ---/---</span>
+                                <span id="sardot-alpha-badge" style="font-size: 0.95rem; background: rgba(0, 255, 65, 0.15); color: var(--primary-color); padding: 4px 8px; border-radius: 4px; border: 1px solid var(--primary-color); font-family: var(--font-mono); font-weight: bold; white-space: nowrap;">ALPHA: ---/---</span>
+                            </h2>
+                            <div style="display: flex; gap: 6px;">
+                                <button id="sardot-toggle-active-btn" class="btn-tiny" onclick="toggleSardotActive()">ATIVO</button>
+                            </div>
+                        </div>
+
+                        <!-- CADASTRO SARDOT -->
+                        <div class="threat-add-form-horizontal" style="margin-bottom: 14px;">
+                            <div class="input-group">
+                                <label>NOME SARDOT</label>
+                                <input type="text" id="sardotNameInput" placeholder="SARDOT 1" style="text-transform: uppercase;">
+                            </div>
+                            <div class="input-group">
+                                <label>LAT (GG° MM.MM')</label>
+                                <input type="text" id="sardotLatInput" placeholder="S 15° 30.00'">
+                            </div>
+                            <div class="input-group">
+                                <label>LON (GG° MM.MM')</label>
+                                <input type="text" id="sardotLonInput" placeholder="W 049° 30.00'">
+                            </div>
+                            <button id="save-sardot-btn" class="btn-add-threat-inline-horizontal" onclick="saveSardotConfig()">✓</button>
+                        </div>
+
+                        <!-- INFO SARDOT ATUAL -->
+                        <div id="sardot-info-display" class="sardot-info-box" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 14px; border-radius: 8px; font-family: var(--font-mono); font-size: 0.85rem; margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                                <span>POSIÇÃO SARDOT: <strong id="sardot-coords-text" style="color: #ffb000;">NÃO CADASTRADO</strong></span>
+                                <span id="sardot-magvar-text" style="color: #888;">MAGVAR: --°</span>
+                            </div>
+                        </div>
+
+                        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 16px 0;">
+
+                        <!-- CALCULADORA DE VETOR SARDOT -->
+                        <div class="card-header-inner" style="margin-bottom: 10px;">
+                            <span style="font-size: 0.8rem; font-weight: bold; letter-spacing: 1px;">CALCULADORA DE RESGATE (SOBREVIVENTE A PARTIR DO SARDOT)</span>
+                        </div>
+                        <div class="plot-input-row-horizontal" style="margin-bottom: 12px;">
+                            <div class="input-group rad-group" style="flex: 1;">
+                                <label>RADIAL SARDOT</label>
+                                <input type="number" id="sardotCalcRadial" placeholder="360°"
+                                    style="font-family: var(--font-mono); font-weight: bold; font-size: 1.1rem; text-align: center;"
+                                    oninput="calculateFromSardotVector()">
+                            </div>
+                            <div class="input-group dist-group" style="flex: 1;">
+                                <label>DIST (NM)</label>
+                                <input type="number" id="sardotCalcDist" placeholder="0 NM"
+                                    style="font-family: var(--font-mono); font-weight: bold; font-size: 1.1rem; text-align: center;"
+                                    oninput="calculateFromSardotVector()">
+                            </div>
+                            <button class="btn-import-mission btn-green" onclick="plotSardotCalculatedTarget()" style="height: 60px; width: 60px; font-size: 1.6rem; font-weight: bold; padding: 0; flex-shrink: 0;" title="Plotar Alvo CSAR">+</button>
+                        </div>
+
+                        <!-- RESULTADOS DO VETOR SARDOT -->
+                        <div class="sardot-calc-results" style="background: rgba(0, 255, 65, 0.05); border: 1px solid rgba(0, 255, 65, 0.2); border-radius: 8px; padding: 10px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-family: var(--font-mono);">
+                            <div>
+                                <span style="font-size: 0.7rem; color: #888; text-transform: uppercase;">COORDENADAS RESULTANTES</span>
+                                <div id="sardot-res-coords" style="color: var(--primary-color); font-weight: bold; font-size: 1.05rem; margin-top: 4px;">---</div>
+                            </div>
+                            <div>
+                                <span style="font-size: 0.7rem; color: #888; text-transform: uppercase;">SARNEG RESULTANTE</span>
+                                <div id="sardot-res-sarneg" style="color: #ffb000; font-weight: bold; font-size: 1.05rem; margin-top: 4px;">---</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- PAGE 3: SETTINGS (UNIFIED) -->
             <div id="settings-page" class="page">
                 <!-- SECTION 1: GPS STATUS -->
                 <section class="settings-section">
@@ -371,7 +525,7 @@
         </main>
 
         <footer class="tactical-footer">
-            <p>TIZIU v1.0.2 &copy; FPT</p>
+            <p>TIZIU v1.0.3 &copy; FPT</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
     </div>
@@ -424,7 +578,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=1.0.2')
+                navigator.serviceWorker.register('sw.js?v=1.0.3')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();

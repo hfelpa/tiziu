@@ -3,7 +3,7 @@
  * Core Logic & Math
  */
 
-/* Version: 1.0.2 */
+/* Version: 1.0.3 */
 
 
 
@@ -135,7 +135,15 @@ const state = {
     showClosestThreats: true,
     selectedTargetId: null,
     plotsFilter: 'ALL',
-    ringsOnBullseye: false
+    ringsOnBullseye: false,
+    sardot: {
+        name: "SARDOT",
+        lat: null,
+        lon: null,
+        magVar: 0,
+        active: false
+    },
+    sarnegWord: ""
 };
 
 const INPUT_SEQUENCE_BE = ["targetId", "targetRadial", "targetDist", "targetThreat"];
@@ -894,7 +902,9 @@ window.exportState = () => {
         threats: state.threats,
         bullseyes: state.bullseyes,
         activeBullseyeName: state.activeBullseyeName,
-        startTargetId: state.startTargetId
+        startTargetId: state.startTargetId,
+        sardot: state.sardot,
+        sarnegWord: state.sarnegWord
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -942,6 +952,17 @@ function handleMissionFile(event) {
                         state.startTargetId = data.startTargetId;
                         const startInput = document.getElementById('start-target-id-input');
                         if (startInput) startInput.value = data.startTargetId;
+                    }
+                    if (data.sardot) {
+                        state.sardot = data.sardot;
+                        updateSardotUI();
+                        updateSardotPosition();
+                    }
+                    if (data.sarnegWord) {
+                        state.sarnegWord = data.sarnegWord;
+                        const sInput = document.getElementById('sarnegWordInput');
+                        if (sInput) sInput.value = state.sarnegWord;
+                        updateSarnegWordFromInput(state.sarnegWord);
                     }
                     updateBullseyesTable();
                     updateThreatDropdowns();
@@ -1372,6 +1393,341 @@ function applyBullseye(bull) {
     }
     selectActiveBullseye(existing.name);
 }
+
+/**
+ * CSAR (SARDOT & SARNEG) MODULE
+ */
+window.saveSardotConfig = () => {
+    const nameInput = document.getElementById('sardotNameInput');
+    const latInput = document.getElementById('sardotLatInput');
+    const lonInput = document.getElementById('sardotLonInput');
+
+    const name = (nameInput.value.trim() || "SARDOT").toUpperCase();
+    const lat = parseGGMM_MM(latInput.value, true);
+    const lon = parseGGMM_MM(lonInput.value, false);
+
+    if (isNaN(lat) || isNaN(lon)) {
+        alert("Preencha a Latitude e Longitude válidas para o SARDOT (ex: S 15° 30.00').");
+        return;
+    }
+
+    const calculatedMagVar = calcWMMDeclination(lat, lon, 0, 2026.5);
+    const magVar = Math.round(calculatedMagVar * 10) / 10;
+
+    state.sardot = {
+        name,
+        lat,
+        lon,
+        magVar,
+        active: true
+    };
+
+    updateSardotUI();
+    updateSardotPosition();
+    drawTacticalDisplay();
+    saveState();
+    alert(`SARDOT "${name}" cadastrado e ativado com sucesso!`);
+};
+
+window.toggleSardotActive = () => {
+    if (!state.sardot || state.sardot.lat === null || state.sardot.lon === null) {
+        alert("Cadastre as coordenadas do SARDOT primeiro.");
+        return;
+    }
+    state.sardot.active = !state.sardot.active;
+    updateSardotUI();
+    drawTacticalDisplay();
+    saveState();
+};
+
+function updateSardotUI() {
+    const btn = document.getElementById('sardot-toggle-active-btn');
+    const coordsText = document.getElementById('sardot-coords-text');
+    const magvarText = document.getElementById('sardot-magvar-text');
+    const nameInput = document.getElementById('sardotNameInput');
+    const latInput = document.getElementById('sardotLatInput');
+    const lonInput = document.getElementById('sardotLonInput');
+
+    if (state.sardot && state.sardot.lat !== null && state.sardot.lon !== null) {
+        if (coordsText) coordsText.textContent = `${state.sardot.name}: ${toDDM(state.sardot.lat, true)} ${toDDM(state.sardot.lon, false)}`;
+        if (magvarText) magvarText.textContent = `MAGVAR: ${state.sardot.magVar.toFixed(1)}°`;
+        if (nameInput && !nameInput.value) nameInput.value = state.sardot.name;
+        if (latInput && !latInput.value) latInput.value = toDDM(state.sardot.lat, true);
+        if (lonInput && !lonInput.value) lonInput.value = toDDM(state.sardot.lon, false);
+
+        if (btn) {
+            if (state.sardot.active) {
+                btn.classList.add('active');
+                btn.textContent = 'ATIVO';
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = 'INATIVO';
+            }
+        }
+    } else {
+        if (coordsText) coordsText.textContent = "NÃO CADASTRADO";
+        if (magvarText) magvarText.textContent = "MAGVAR: --°";
+        if (btn) {
+            btn.classList.remove('active');
+            btn.textContent = 'INATIVO';
+        }
+    }
+}
+
+function updateSardotPosition() {
+    const badgeOwn = document.getElementById('sardot-own-pos-badge');
+    const badgeAlpha = document.getElementById('sardot-alpha-badge');
+    if (!badgeOwn || !badgeAlpha) return;
+
+    if (!state.sardot || state.sardot.lat === null || !state.ownPos.lat) {
+        badgeOwn.textContent = "OWN: ---/---";
+        badgeAlpha.textContent = "ALPHA: ---/---";
+        return;
+    }
+
+    const d = getDistance(state.sardot.lat, state.sardot.lon, state.ownPos.lat, state.ownPos.lon);
+    const b = getBearing(state.sardot.lat, state.sardot.lon, state.ownPos.lat, state.ownPos.lon);
+
+    let radOwnNum = Math.round((b - state.sardot.magVar + 360) % 360);
+    if (radOwnNum === 0) radOwnNum = 360;
+    const radOwnStr = radOwnNum.toString().padStart(3, '0');
+
+    let radAlphaNum = (radOwnNum + 180) % 360;
+    if (radAlphaNum === 0) radAlphaNum = 360;
+    const radAlphaStr = radAlphaNum.toString().padStart(3, '0');
+
+    const dist = Math.round(d);
+
+    badgeOwn.textContent = `OWN: ${radOwnStr}/${dist}`;
+    badgeAlpha.textContent = `ALPHA: ${radAlphaStr}/${dist}`;
+}
+
+window.calculateFromSardotVector = () => {
+    const radInput = document.getElementById('sardotCalcRadial');
+    const distInput = document.getElementById('sardotCalcDist');
+    const resCoords = document.getElementById('sardot-res-coords');
+    const resSarneg = document.getElementById('sardot-res-sarneg');
+
+    if (!state.sardot || state.sardot.lat === null) {
+        if (resCoords) resCoords.textContent = "CADASTRE O SARDOT";
+        if (resSarneg) resSarneg.textContent = "---";
+        return;
+    }
+
+    const radial = parseFloat(radInput.value);
+    const dist = parseFloat(distInput.value);
+
+    if (isNaN(radial) || isNaN(dist)) {
+        if (resCoords) resCoords.textContent = "---";
+        if (resSarneg) resSarneg.textContent = "---";
+        return;
+    }
+
+    const trueRadial = (radial + state.sardot.magVar + 360) % 360;
+    const dest = getDestPoint(state.sardot.lat, state.sardot.lon, trueRadial, dist);
+    const coordStr = `${toDDM(dest.lat, true)} ${toDDM(dest.lon, false)}`;
+
+    if (resCoords) resCoords.textContent = coordStr;
+    if (resSarneg) {
+        resSarneg.textContent = (state.sarnegWord && state.sarnegWord.length === 10) ? encryptSarneg(coordStr) : "DEFINA O SARNEG";
+    }
+};
+
+window.plotSardotCalculatedTarget = () => {
+    const radInput = document.getElementById('sardotCalcRadial');
+    const distInput = document.getElementById('sardotCalcDist');
+
+    if (!state.sardot || state.sardot.lat === null) {
+        alert("Cadastre o SARDOT primeiro.");
+        return;
+    }
+
+    const radial = parseFloat(radInput.value);
+    const dist = parseFloat(distInput.value);
+
+    if (isNaN(radial) || isNaN(dist)) {
+        alert("Preencha a Radial e a Distância a partir do SARDOT.");
+        return;
+    }
+
+    const trueRadial = (radial + state.sardot.magVar + 360) % 360;
+    const dest = getDestPoint(state.sardot.lat, state.sardot.lon, trueRadial, dist);
+
+    // Find next available ID
+    const usedIds = new Set(state.plots.map(p => p.targetId));
+    let nextId = state.startTargetId || 1;
+    while (usedIds.has(nextId.toString())) { nextId++; }
+
+    state.plots.push({
+        lat: dest.lat,
+        lon: dest.lon,
+        radial: Math.round(radial),
+        dist: Math.round(dist),
+        targetId: nextId.toString(),
+        threatCode: "CSAR",
+        threatRange: null,
+        threatType: "A/G",
+        timestamp: Date.now()
+    });
+
+    state.selectedTargetId = nextId.toString();
+    renderHistory();
+    drawTacticalDisplay();
+    saveState();
+
+    alert(`Ponto CSAR plotado com sucesso com ID ${nextId}!`);
+};
+
+// SARNEG LOGIC
+window.validateSarnegWord = (word) => {
+    if (!word) return { valid: false, msg: "AGUARDANDO PALAVRA" };
+    const clean = word.toUpperCase().replace(/[^A-Z]/g, '');
+    if (clean.length < 10) return { valid: false, msg: `${clean.length}/10 LETRAS` };
+    if (clean.length > 10) return { valid: false, msg: "MÁXIMO 10 LETRAS" };
+    const unique = new Set(clean);
+    if (unique.size !== 10) return { valid: false, msg: "LETRAS REPETIDAS!" };
+    return { valid: true, msg: "SARNEG VÁLIDO ✓" };
+};
+
+window.updateSarnegWordFromInput = (val) => {
+    const clean = val.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 10);
+    const badge = document.getElementById('sarneg-validation-badge');
+    const check = validateSarnegWord(clean);
+
+    if (badge) {
+        badge.textContent = check.msg;
+        if (check.valid) {
+            badge.className = 'badge-status-valid';
+        } else {
+            badge.className = 'badge-status-invalid';
+        }
+    }
+
+    renderSarnegGrid(clean);
+};
+
+window.saveSarnegWord = () => {
+    const input = document.getElementById('sarnegWordInput');
+    const word = input ? input.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 10) : "";
+    const check = validateSarnegWord(word);
+    if (!check.valid) {
+        alert("A palavra SARNEG deve conter exatamente 10 letras sem repetições (ex: BLACKHORSE).");
+        return;
+    }
+    state.sarnegWord = word;
+    renderSarnegGrid(word);
+    saveState();
+    alert(`Palavra SARNEG "${word}" salva com sucesso!`);
+};
+
+function renderSarnegGrid(word) {
+    const lettersContainer = document.getElementById('sarneg-letters-display');
+    if (!lettersContainer) return;
+
+    let html = '';
+    for (let i = 0; i < 10; i++) {
+        const char = (word && word[i]) ? word[i] : '-';
+        html += `<div class="sarneg-cell letter">${char}</div>`;
+    }
+    lettersContainer.innerHTML = html;
+}
+
+window.encryptSarneg = (plainText) => {
+    if (!state.sarnegWord || state.sarnegWord.length !== 10 || !plainText) return plainText || '';
+    let result = '';
+    for (let i = 0; i < plainText.length; i++) {
+        const ch = plainText[i];
+        if (ch >= '0' && ch <= '9') {
+            const digit = parseInt(ch, 10);
+            result += state.sarnegWord[digit];
+        } else {
+            result += ch;
+        }
+    }
+    return result;
+};
+
+window.decryptSarneg = (cipherText) => {
+    if (!state.sarnegWord || state.sarnegWord.length !== 10 || !cipherText) return cipherText || '';
+    let result = '';
+    const upperCipher = cipherText.toUpperCase();
+    for (let i = 0; i < upperCipher.length; i++) {
+        const ch = upperCipher[i];
+        const idx = state.sarnegWord.indexOf(ch);
+        if (idx !== -1) {
+            result += idx.toString();
+        } else {
+            result += ch;
+        }
+    }
+    return result;
+};
+
+window.handleSarnegLiveConversion = (source, value) => {
+    const plainInput = document.getElementById('sarnegPlainInput');
+    const cipherInput = document.getElementById('sarnegCipherInput');
+
+    if (!state.sarnegWord || state.sarnegWord.length !== 10) {
+        return;
+    }
+
+    if (source === 'plain') {
+        if (cipherInput) cipherInput.value = encryptSarneg(value);
+    } else if (source === 'cipher') {
+        if (plainInput) plainInput.value = decryptSarneg(value);
+    }
+};
+
+window.clearSarnegConverter = () => {
+    const plainInput = document.getElementById('sarnegPlainInput');
+    const cipherInput = document.getElementById('sarnegCipherInput');
+    if (plainInput) plainInput.value = '';
+    if (cipherInput) cipherInput.value = '';
+};
+
+window.copySarnegResult = () => {
+    const cipherInput = document.getElementById('sarnegCipherInput');
+    if (cipherInput && cipherInput.value) {
+        navigator.clipboard.writeText(cipherInput.value)
+            .then(() => alert("Texto criptografado copiado para a área de transferência!"))
+            .catch(() => alert("Erro ao copiar."));
+    }
+};
+
+window.sendDecryptedToTargetPlot = () => {
+    const plainInput = document.getElementById('sarnegPlainInput');
+    if (!plainInput || !plainInput.value) {
+        alert("Preencha ou descriptografe as coordenadas primeiro.");
+        return;
+    }
+
+    // Switch to EMPREGO page
+    const empregoBtn = document.querySelector('.nav-btn[data-page="calc-page"]');
+    if (empregoBtn) empregoBtn.click();
+
+    // Switch plot mode to COORD
+    const coordBtn = document.querySelector('#plot-mode-segmented .segment-btn[data-val="COORD"]');
+    if (coordBtn) coordBtn.click();
+
+    // Extract digits
+    const digits = plainInput.value.replace(/\D/g, '');
+    if (digits.length >= 12) {
+        // Assume LAT (6) and LON (6 or 7)
+        const latDigits = digits.slice(0, 6);
+        const lonDigits = digits.slice(6, 13);
+        const latInput = document.getElementById('targetLat');
+        const lonInput = document.getElementById('targetLon');
+        if (latInput) latInput.value = formatCoordinateRealtime(latDigits, false);
+        if (lonInput) lonInput.value = formatCoordinateRealtime(lonDigits, true);
+    } else if (digits.length >= 6) {
+        const latDigits = digits.slice(0, 6);
+        const latInput = document.getElementById('targetLat');
+        if (latInput) latInput.value = formatCoordinateRealtime(latDigits, false);
+    }
+
+    calculateBRAA();
+    calculateBullCoord();
+};
 
 window.resetThreats = () => { if (confirm("Limpar todas as ameaças?")) { state.threats = []; updateThreatDropdowns(); saveState(); } };
 
@@ -2212,6 +2568,46 @@ function drawTacticalDisplay() {
         ctx.textBaseline = 'alphabetic';
     }
 
+    // DRAW SARDOT (CSAR REFERENCE POINT) ON TACTICAL DISPLAY
+    if (state.sardot && state.sardot.lat !== null && state.sardot.active) {
+        const d = getDistance(state.ownPos.lat, state.ownPos.lon, state.sardot.lat, state.sardot.lon);
+        const b = getBearing(state.ownPos.lat, state.ownPos.lon, state.sardot.lat, state.sardot.lon);
+        const x = centerX + Math.sin(toRad(b)) * (d * pxPerNM);
+        const y = centerY - Math.cos(toRad(b)) * (d * pxPerNM);
+
+        const sardotColor = isLightMode ? '#d97706' : '#ffb000'; // Amber/Gold for CSAR
+
+        // SARDOT Symbol: Outer circle + crosshair
+        ctx.strokeStyle = sardotColor;
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x - 12, y); ctx.lineTo(x + 12, y);
+        ctx.moveTo(x, y - 12); ctx.lineTo(x, y + 12);
+        ctx.stroke();
+
+        ctx.fillStyle = sardotColor;
+        ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
+
+        // Label box billboarded
+        ctx.save();
+        ctx.translate(x + 14, y - 8);
+        ctx.rotate(-rotationRad);
+        ctx.fillStyle = isLightMode ? 'rgba(255, 255, 255, 0.92)' : 'rgba(0, 0, 0, 0.85)';
+        const labelText = state.sardot.name || 'SARDOT';
+        ctx.font = 'bold 9px JetBrains Mono';
+        const labelW = ctx.measureText(labelText).width + 8;
+        ctx.fillRect(0, 0, labelW, 16);
+        ctx.strokeStyle = sardotColor;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(0, 0, labelW, 16);
+
+        ctx.fillStyle = sardotColor;
+        ctx.fillText(labelText, 4, 11);
+        ctx.restore();
+    }
+
     const latestById = {}; state.plots.forEach(p => { if (!latestById[p.targetId] || p.timestamp > latestById[p.targetId].timestamp) latestById[p.targetId] = p; });
     const groups = {}; state.plots.forEach(p => { if (!groups[p.targetId]) groups[p.targetId] = []; groups[p.targetId].push(p); });
     Object.values(groups).forEach(g => g.sort((a, b) => a.timestamp - b.timestamp));
@@ -2694,6 +3090,7 @@ function updatePosition(pos) {
     
     calculateBRAA();
     if (typeof updateOwnBullPosition === 'function') updateOwnBullPosition();
+    if (typeof updateSardotPosition === 'function') updateSardotPosition();
     drawTacticalDisplay();
 }
 
@@ -2919,7 +3316,9 @@ function saveState() {
             plotsFilter: state.plotsFilter,
             ringsOnBullseye: state.ringsOnBullseye,
             startTargetId: state.startTargetId,
-            route: state.route
+            route: state.route,
+            sardot: state.sardot,
+            sarnegWord: state.sarnegWord
         };
         localStorage.setItem('tiziu_scenario_state', JSON.stringify(data));
     } catch (e) {
@@ -2970,6 +3369,17 @@ function loadSavedState() {
         if (typeof data.ringsOnBullseye === 'boolean') state.ringsOnBullseye = data.ringsOnBullseye;
         if (typeof data.startTargetId === 'number') state.startTargetId = data.startTargetId;
         if (Array.isArray(data.route)) state.route = data.route;
+        if (data.sardot) {
+            state.sardot = data.sardot;
+            updateSardotUI();
+            updateSardotPosition();
+        }
+        if (typeof data.sarnegWord === 'string') {
+            state.sarnegWord = data.sarnegWord;
+            const sInput = document.getElementById('sarnegWordInput');
+            if (sInput) sInput.value = state.sarnegWord;
+            updateSarnegWordFromInput(state.sarnegWord);
+        }
 
         updateBullseyeDropdowns();
         updateBullseyesTable();
@@ -3056,6 +3466,14 @@ window.resetScenario = () => {
         state.ringsOnBullseye = false;
         state.startTargetId = 71;
         state.route = [];
+        state.sardot = {
+            name: "SARDOT",
+            lat: null,
+            lon: null,
+            magVar: 0,
+            active: false
+        };
+        state.sarnegWord = "";
 
         if (el.bullLat) el.bullLat.value = "";
         if (el.bullLon) el.bullLon.value = "";
@@ -3087,6 +3505,12 @@ window.resetScenario = () => {
         const startInput = document.getElementById('start-target-id-input');
         if (startInput) startInput.value = "71";
 
+        const sInput = document.getElementById('sarnegWordInput');
+        if (sInput) sInput.value = "";
+        updateSarnegWordFromInput("");
+        clearSarnegConverter();
+        updateSardotUI();
+
         syncPlotModeUI();
         clearPlotFields();
         updateBullseyeDropdowns();
@@ -3107,6 +3531,7 @@ if (!loaded) {
     updateBullseyesTable();
     updateThreatDropdowns();
     selectActiveBullseye("");
+    updateSardotUI();
 }
 initGPS();
 window.activateSensors(true);

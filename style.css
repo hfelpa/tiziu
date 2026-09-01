@@ -2225,3 +2225,105 @@ body.light-mode .start-id-container {
 body.light-mode .start-id-label {
     color: var(--text-color);
 }
+
+/* ==========================================================================
+   CSAR (SARDOT & SARNEG) STYLES
+   ========================================================================== */
+.csar-card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    margin-bottom: 15px;
+}
+
+.sarneg-grid-wrapper {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 14px;
+}
+
+.sarneg-grid-digits,
+.sarneg-grid-letters {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(28px, 1fr));
+    gap: 4px;
+    text-align: center;
+}
+
+.sarneg-grid-digits {
+    margin-bottom: 4px;
+}
+
+.sarneg-cell {
+    font-family: var(--font-mono);
+    padding: 6px 2px;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: all;
+}
+
+.sarneg-cell.digit {
+    background: rgba(255, 255, 255, 0.05);
+    color: #888;
+    font-weight: normal;
+    font-size: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sarneg-cell.letter {
+    background: rgba(0, 255, 65, 0.15);
+    color: var(--primary-color);
+    font-weight: bold;
+    font-size: 1.15rem;
+    border: 1px solid rgba(0, 255, 65, 0.4);
+    box-shadow: 0 0 6px rgba(0, 255, 65, 0.2);
+}
+
+.badge-status-valid {
+    background: rgba(0, 255, 65, 0.15) !important;
+    color: var(--primary-color) !important;
+    border: 1px solid var(--primary-color) !important;
+}
+
+.badge-status-invalid {
+    background: rgba(255, 59, 48, 0.15) !important;
+    color: #ff3b30 !important;
+    border: 1px solid rgba(255, 59, 48, 0.5) !important;
+}
+
+.sardot-info-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 10px 14px;
+}
+
+/* Light mode overrides for CSAR */
+body.light-mode .sarneg-grid-wrapper {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light-mode .sarneg-cell.digit {
+    background: rgba(0, 0, 0, 0.05);
+    color: #666;
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .sarneg-cell.letter {
+    background: rgba(0, 168, 45, 0.1);
+    color: #008f25;
+    border-color: rgba(0, 168, 45, 0.4);
+    box-shadow: none;
+}
+
+body.light-mode .sardot-info-box {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
