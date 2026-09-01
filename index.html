@@ -288,8 +288,8 @@
                                 <thead>
                                     <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
                                         <th style="padding: 8px 6px; color: var(--primary-color);">BULLSEYE</th>
-                                        <th style="padding: 8px 6px; color: #aaa;">LAT (DD)</th>
-                                        <th style="padding: 8px 6px; color: #aaa;">LON (DD)</th>
+                                        <th style="padding: 8px 6px; color: #aaa;">LAT</th>
+                                        <th style="padding: 8px 6px; color: #aaa;">LON</th>
                                         <th style="padding: 8px 6px; color: #aaa;">MAGVAR</th>
                                         <th style="padding: 8px 6px; color: #aaa; text-align: right;">AÇÃO</th>
                                     </tr>
@@ -313,12 +313,12 @@
                                     style="text-transform: uppercase;">
                             </div>
                             <div class="input-group">
-                                <label>LAT (GGMM.MM')</label>
-                                <input type="text" id="newBullLat" placeholder="1530.00S">
+                                <label>LAT (GG° MM.MM')</label>
+                                <input type="text" id="newBullLat" placeholder="S 15° 30.00'">
                             </div>
                             <div class="input-group">
-                                <label>LON (GGMM.MM')</label>
-                                <input type="text" id="newBullLon" placeholder="04930.00W">
+                                <label>LON (GG° MM.MM')</label>
+                                <input type="text" id="newBullLon" placeholder="W 049° 30.00'">
                             </div>
                             <button id="add-bull-btn" class="btn-add-threat-inline-horizontal"
                                 onclick="addBullseyeConfig()">+</button>
@@ -371,7 +371,7 @@
         </main>
 
         <footer class="tactical-footer">
-            <p>TIZIU v1.0.1 &copy; FPT</p>
+            <p>TIZIU v1.0.2 &copy; FPT</p>
             <p>FLECHA AO AR! À CAÇA! BRASIL!</p>
         </footer>
     </div>
@@ -424,7 +424,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=1.0.1')
+                navigator.serviceWorker.register('sw.js?v=1.0.2')
                     .then(reg => {
                         console.log('SW Registered');
                         initGPS();
